@@ -1,0 +1,15 @@
+# prelim
+
+letter ::= 'A' | ... | 'Z' | 'a' | ... | 'z'
+digit ::= '0' | ... | '9'
+whitespace = ' ' | '\t'
+
+# token types
+
+id ::= letter (letter | digit)*
+int ::= digit +
+float ::= digit + '.' digit +
+
+string ::= '\"' (letter | digit | whitespace)* '\"'
+
+# grammar

@@ -4,9 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet_Lang {
-	class Program {
-		static void Main(string[] args) {
-		}
+namespace Outlet {
+
+	public enum TokenType {
+		Keyword,
+		Operator,
+		Literal,
+		Identifier,
+
+	}
+
+	public class Token {
+
 	}
 }
