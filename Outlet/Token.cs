@@ -28,9 +28,19 @@ namespace Outlet {
         EOF
 	}
 
-    public delegate Token Tokenizer(string input);
-
 	public class Token {
+
+        public static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>() {
+            {"if", TokenType.If },
+            {"else", TokenType.Else },
+            {"null", TokenType.Null },
+            {"for", TokenType.For },
+            {"while", TokenType.While },
+            {"return", TokenType.Return },
+            {"true", TokenType.True },
+            {"false", TokenType.False }
+        };
+
         public string Text;
         public TokenType Type;
         public Token(string text, TokenType type) {

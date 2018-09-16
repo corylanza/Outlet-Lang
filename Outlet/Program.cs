@@ -9,7 +9,7 @@ namespace Outlet {
 	public class Program {
 		public static void Main(string[] args) { 
              //byte[] file = File.ReadAllBytes("C:\\");
-            string input = "there 34.3 and h1";
+            string input = "  for  number 3\"some text\"and 34.1";
             byte[] bytes = Encoding.ASCII.GetBytes(input);
 			List<Token> lexout = Lexing.Lexer.Scan(bytes);
             foreach(Token t in lexout) {
