@@ -54,7 +54,6 @@
     <Compile Include="Lexing\Lexer.cs" />
     <Compile Include="Lexing\State.cs" />
     <Compile Include="Token.cs" />
-    <Compile Include="Util\LinkedList.cs" />
     <Compile Include="Util\State.cs" />
     <Compile Include="Util\StateMachine.cs" />
   </ItemGroup>

@@ -12,6 +12,16 @@ namespace Outlet.Expressions {
         public abstract override string ToString();
     }
 
+	public class Type {
+		public Type(string name) {
+
+		}
+	}
+	/*
+	public class Primitive : Type {
+		private Primitive(string name)
+	}*/
+
     public abstract class Operand : Expression {
         public object Value;
 
@@ -19,8 +29,9 @@ namespace Outlet.Expressions {
     }
 
     public class Literal : Operand {
-        public Literal(object value) {
+        public Literal(int value) {
             Value = value;
+			//Type = Primitive.Int;
         }
 
         public override string ToString() => Value.ToString();
