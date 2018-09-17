@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Outlet.Expressions;
 
 namespace Outlet {
 
@@ -22,14 +23,14 @@ namespace Outlet {
 
         // keywords
         If, Else, Null, For, While, Return, True, False,
-        // function keywords and assignment ops such as += or ++ not represented yet
+        // functions, increment ops, bitshifts, and logical ops not represented yet
 
 
         EOF
 	}
 
-	public class Token {
-
+	public interface IToken {
+        /*
         public static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>() {
             {"if", TokenType.If },
             {"else", TokenType.Else },
@@ -71,17 +72,86 @@ namespace Outlet {
             {">=", TokenType.GTE },
             {"!=", TokenType.NotEqual },
             {"==", TokenType.BoolEquals }
-        };
-
-        public string Text;
+        };*/
+        /*
+        public object Value;
         public TokenType Type;
-        public Token(string text, TokenType type) {
-            Text = text;
+        public IToken(object text, TokenType type) {
+            Value = text;
             Type = type;
         }
 
 
         
-        public override string ToString() => Text + " type: " + Type.ToString();
+        public override string ToString() => Value + " type: " + Type.ToString();*/
+    }
+
+    public class Identifier : IToken {
+        public string Name;
+        public Identifier(string name){Name = name;}
+    }
+
+    public class Keyword : IToken {
+
+        public static readonly Keyword If = new Keyword("if");
+        public static readonly Keyword Else = new Keyword("else");
+        public static readonly Keyword For = new Keyword("for");
+        public static readonly Keyword While = new Keyword("while");
+        public static readonly Keyword Return = new Keyword("return");
+        public string Name;
+        private Keyword(string name) {
+            Name = name;
+        }
+
+        public static IToken Get(string text) => Keywords[text];
+        public static bool ContainsKey(string text) => Keywords.ContainsKey(text);
+
+        public static readonly Dictionary<string, IToken> Keywords = new Dictionary<string, IToken>() {
+            {"if", If },
+            {"else", Else },
+            //{"null", TokenType.Null },
+            {"for", For },
+            {"while", While },
+            {"return", Return },
+            //{"true", new Literal(true) },
+            //{"false", new Literal(false) }
+        };
+    }
+
+    public enum Side { Left, Right }
+
+    public class Operator : IToken {
+        public static Operator Plus = new Operator(4, Side.Left, (l, r) => l.Value+r.Value);
+
+        public int Precedence;
+        public Side Asssoc;
+        private Func<Operand, Operand, Operand> Function;
+        private Operator(int precedence, Side associativity, Func<Operand, Operand, Operand> func) {
+            Precedence = precedence;
+            Asssoc = associativity;
+            Function = func;
+        }
+        public Operand PerformOp(Operand l, Operand r) => Function(l, r);
+        public static Operator Get(string text) => Plus;
+    }
+
+    public class Literal : Operand, IToken {
+        public Literal(int value) {
+            Value = value;
+        }
+
+        public Literal(string value) {
+            Value = value;
+        }
+
+        public Literal(float value) {
+            Value = value;
+        }
+
+        public Literal(bool value) {
+            Value = value;
+        }
+
+        public override string ToString() => Value.ToString();
     }
 }

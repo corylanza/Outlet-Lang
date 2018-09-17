@@ -85,17 +85,17 @@ namespace Outlet.Lexing {
             gt.SetTransition(CharType.Equals, withequal);
         }
 
-        public delegate Token Tokenizer(string text);
+        public delegate IToken Tokenizer(string text);
 
-        private static Token TokenizeID(string text) {
-            if(Token.Keywords.ContainsKey(text)) return new Token(text, Token.Keywords[text]);
-            else return new Token(text, TokenType.Identifier);
+        private static IToken TokenizeID(string text) {
+            if(Keyword.ContainsKey(text)) return Keyword.Get(text);
+            else return new Identifier(text);
         }
-        private static Token TokenizeSingleOp(string text) => new Token(text, Token.Delimeters[text]);
-        private static Token TokenizeString(string text) => new Token(text, TokenType.OString);
-        private static Token TokenizeInt(string text) => new Token(text, TokenType.OInt);
-        private static Token TokenizeFloat(string text) => new Token(text, TokenType.OFloat);
-        private static Token TokenizePreEquals(string text) => new Token(text, Token.PreEquals[text]);
-        private static Token NoToken(string text) => null;
+        private static IToken TokenizeSingleOp(string text) => Operator.Get(text);//new Token(text, Token.Delimeters[text]);
+        private static IToken TokenizeString(string text) => new Literal(text);// Token(text, TokenType.OString);
+        private static IToken TokenizeInt(string text) => new Literal(int.Parse(text));// Token(int.Parse(text), TokenType.OInt);
+        private static IToken TokenizeFloat(string text) => new Literal(float.Parse(text)); //Token(text, TokenType.OFloat);
+        private static IToken TokenizePreEquals(string text) => Operator.Get(text);//new Token(text, Token.PreEquals[text]);
+        private static IToken NoToken(string text) => null;
     }
 }

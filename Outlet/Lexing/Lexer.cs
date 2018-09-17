@@ -17,8 +17,8 @@ namespace Outlet.Lexing {
         }
 
 
-        public static Queue<Token> Scan(byte[] charStream) {
-            Queue<Token> tokens = new Queue<Token>();
+        public static Queue<IToken> Scan(byte[] charStream) {
+            Queue<IToken> tokens = new Queue<IToken>();
             for(int i = 0; i < charStream.Length; i++) {
                 byte b = charStream[i];
                

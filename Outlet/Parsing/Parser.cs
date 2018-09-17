@@ -7,19 +7,28 @@ using Outlet.Expressions;
 
 namespace Outlet.Parsing {
     public static class Parser {
-        public static Expression Parse(Queue<Token> t) {
+        public static Expression Parse(Queue<IToken> t) {
             Stack<Expression> stack = new Stack<Expression>();
+            Stack<Operator> opstack = new Stack<Operator>();
             while(t.Count > 0) {
-                Token cur = t.Dequeue();
-                switch(cur.Type) {
-                case TokenType.OInt:
-                    stack.Push(new Literal(cur.Text));
+                IToken cur = t.Dequeue();
+                switch(cur) {
+                case Literal l:
+                    stack.Push(l);
+                    break;
+                case Operator o:
+                    opstack.Push(o);
                     break;
                 default:
                     throw new Exception("unrecognized token");
                 }
+                
             }
-            return null;//new Literal(t[0].)
+            while(opstack.Count > 0) {
+                Expression temp = stack.Pop();
+                stack.Push(new Binary(stack.Pop(), opstack.Pop(), temp));
+            }
+            return stack.Pop();
         }
     }
 }
