@@ -46,7 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Expressions\BinaryOp.cs" />
+    <Compile Include="Expressions\Binary.cs" />
     <Compile Include="Expressions\Expression.cs" />
     <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Program.cs" />
@@ -66,6 +66,7 @@
   <ItemGroup>
     <Content Include="bnf.txt" />
     <Content Include="Test\file.txt" />
+    <Content Include="Test\file2.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
