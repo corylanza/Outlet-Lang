@@ -22,7 +22,7 @@ namespace Outlet {
 
         // keywords
         If, Else, Null, For, While, Return, True, False,
-        // function keywords and assignment ops such as += or ++ not represented yet
+        // functions, increment ops, bitshifts, and logical ops not represented yet
 
 
         EOF
@@ -73,15 +73,15 @@ namespace Outlet {
             {"==", TokenType.BoolEquals }
         };
 
-        public string Text;
+        public object Value;
         public TokenType Type;
-        public Token(string text, TokenType type) {
-            Text = text;
+        public Token(object text, TokenType type) {
+            Value = text;
             Type = type;
         }
 
 
         
-        public override string ToString() => Text + " type: " + Type.ToString();
+        public override string ToString() => Value + " type: " + Type.ToString();
     }
 }

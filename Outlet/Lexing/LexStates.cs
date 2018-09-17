@@ -93,7 +93,7 @@ namespace Outlet.Lexing {
         }
         private static Token TokenizeSingleOp(string text) => new Token(text, Token.Delimeters[text]);
         private static Token TokenizeString(string text) => new Token(text, TokenType.OString);
-        private static Token TokenizeInt(string text) => new Token(text, TokenType.OInt);
+        private static Token TokenizeInt(string text) => new Token(int.Parse(text), TokenType.OInt);
         private static Token TokenizeFloat(string text) => new Token(text, TokenType.OFloat);
         private static Token TokenizePreEquals(string text) => new Token(text, Token.PreEquals[text]);
         private static Token NoToken(string text) => null;

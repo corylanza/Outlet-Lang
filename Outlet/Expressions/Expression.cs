@@ -19,7 +19,19 @@ namespace Outlet.Expressions {
     }
 
     public class Literal : Operand {
-        public Literal(object value) {
+        public Literal(int value) {
+            Value = value;
+        }
+
+        public Literal(string value) {
+            Value = value;
+        }
+
+        public Literal(float value) {
+            Value = value;
+        }
+
+        public Literal(bool value) {
             Value = value;
         }
 
