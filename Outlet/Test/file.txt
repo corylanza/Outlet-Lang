@@ -1,0 +1,4 @@
+﻿int a = 2;
+for(int i = 0; i / 4.0; i+=1) {
+	system.print("Hello World");
+}

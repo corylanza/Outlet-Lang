@@ -10,12 +10,12 @@ namespace Outlet {
         None = 0,
         // One Character
         LeftParen, RightParen, LeftBrace, RightBrace,
-        Comma, Dot, Plus, Minus, SemiC, Divide, Multiply,
+        LeftCurly, RightCurly, Colon,
+        Comma, Dot, SemiC,
 
-        // One or two chars
-        Not, NotEqual,
-        Equal, BoolEquals,
-        GT, GTE, LT, LTE,
+        // Operators that can have = appended
+        Plus, Minus, Divide, Multiply, LT, GT, Not, Equal,
+        PlusEqual, MinusEqual, MultEqual, DividedEqual, LTE, GTE, NotEqual, BoolEquals,
 
         // multichar
         Identifier, OString, OInt, OFloat,
@@ -41,11 +41,47 @@ namespace Outlet {
             {"false", TokenType.False }
         };
 
+        public static readonly Dictionary<string, TokenType> Delimeters = new Dictionary<string, TokenType>() {
+            {"(", TokenType.LeftParen },
+            {")", TokenType.RightParen },
+            {"[", TokenType.LeftBrace },
+            {"]", TokenType.RightBrace },
+            {"{", TokenType.RightCurly },
+            {"}", TokenType.LeftCurly },
+            {",", TokenType.Comma },
+            {":", TokenType.Colon },
+            {";", TokenType.SemiC },
+            {".", TokenType.Dot }
+        };
+
+        public static readonly Dictionary<string, TokenType> PreEquals = new Dictionary<string, TokenType>() {
+            {"+", TokenType.Plus },
+            {"-", TokenType.Minus },
+            {"/", TokenType.Divide },
+            {"*", TokenType.Multiply },
+            {"<", TokenType.LT },
+            {">", TokenType.GT },
+            {"!", TokenType.Not },
+            {"=", TokenType.Equal },
+            {"+=", TokenType.PlusEqual },
+            {"-=", TokenType.MinusEqual },
+            {"/=", TokenType.DividedEqual },
+            {"*=", TokenType.MultEqual },
+            {"<=", TokenType.LTE },
+            {">=", TokenType.GTE },
+            {"!=", TokenType.NotEqual },
+            {"==", TokenType.BoolEquals }
+        };
+
         public string Text;
         public TokenType Type;
         public Token(string text, TokenType type) {
             Text = text;
             Type = type;
         }
-	}
+
+
+        
+        public override string ToString() => Text + " type: " + Type.ToString();
+    }
 }

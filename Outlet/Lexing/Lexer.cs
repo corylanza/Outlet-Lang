@@ -11,13 +11,14 @@ namespace Outlet.Lexing {
     public static partial class Lexer {
 
         private static string buffer = "";
-        private static List<Token> tokens = new List<Token>();
+        
         static Lexer() {
             InitStates();
         }
 
 
-        public static List<Token> Scan(byte[] charStream) {
+        public static Queue<Token> Scan(byte[] charStream) {
+            Queue<Token> tokens = new Queue<Token>();
             for(int i = 0; i < charStream.Length; i++) {
                 byte b = charStream[i];
                
@@ -25,14 +26,14 @@ namespace Outlet.Lexing {
                 if(machine.Peek(c)) {
                     machine.NextState(c);
                 } else if(machine.Cur.Accepting) { 
-                    tokens.Add(machine.Cur.Output(buffer));
+                    if(machine.Cur.Output != NoToken) tokens.Enqueue(machine.Cur.Output(buffer));
                     buffer = "";
                     machine.Cur = start.Transition(c);
                 } else throw new Exception("illegal");
                 if(machine.Cur.Keep) buffer += (char) b;
             }
             if(!machine.Cur.Accepting && buffer.Length > 0) throw new Exception("illegal");
-            else if(buffer.Length > 0) tokens.Add(machine.Cur.Output(buffer));
+            else if(buffer.Length > 0) tokens.Enqueue(machine.Cur.Output(buffer));
             return tokens;
 		}
 

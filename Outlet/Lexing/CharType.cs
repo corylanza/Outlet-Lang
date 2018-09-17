@@ -19,10 +19,30 @@ namespace Outlet.Lexing {
             SetRange(CharType.Letter, 65, 91); // A-Z
             SetRange(CharType.Letter, 97, 123); // a-z
             SetRange(CharType.Number, 48, 58); // 0-9
-            SetRange(CharType.Whitespace, 9, 11); // tab and new line
+            SetRange(CharType.Whitespace, 9, 11); // tab
             SetRange(CharType.Whitespace, 32, 33); // Space
-            SetRange(CharType.Dot, 46, 47);
-            SetRange(CharType.Quo, 34, 35);
+            SetRange(CharType.NewLine, 10, 11); // new line
+            SetRange(CharType.NewLine, 13, 14); // carriage return / new line
+            SetRange(CharType.Dot, 46, 47); // .
+            SetRange(CharType.Quo, 34, 35); // "
+            SetRange(CharType.Op1, 40, 42); // ()
+            SetRange(CharType.Op1, 91, 92); // [
+            SetRange(CharType.Op1, 93, 94); // ]
+            SetRange(CharType.Op1, 123, 124); // {
+            SetRange(CharType.Op1, 125, 126); // }
+            SetRange(CharType.Op1, 58, 60); // : ;
+            SetRange(CharType.Op1, 44, 45); // ,
+            SetRange(CharType.Plus, 43, 44); // +
+            SetRange(CharType.Minus, 45, 46); // -
+            SetRange(CharType.ForwardSlash, 47, 48); // /
+            SetRange(CharType.OpEq, 42, 43); // *
+            SetRange(CharType.OpEq, 37, 38); // %
+            SetRange(CharType.OpEq, 33, 34); // !
+            SetRange(CharType.LT, 60, 61); // *
+            SetRange(CharType.GT, 62, 63); // *
+            SetRange(CharType.Equals, 61, 62); // *
+
+
 
         }
 
@@ -37,10 +57,17 @@ namespace Outlet.Lexing {
         Letter,
 		Number,
 		Whitespace,
+        NewLine,
         Dot,
         Quo,
-        Op1, // single character operator ()
-        Op2, // two character operator
+        Op1, // single character operators ()[]{},;
+        // operators that could possibly be followed by an equals sign *%!
+        Plus,
+        Minus,
+        OpEq, 
+        Equals, //  =
+        LT,
+        GT,
         ForwardSlash,
         BackSlash,
 
