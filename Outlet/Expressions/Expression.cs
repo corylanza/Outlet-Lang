@@ -16,5 +16,20 @@ namespace Outlet.Expressions {
         public dynamic Value;
 
         public override Operand Eval() => this;
-    }
+
+		public override string ToString() => Value.ToString();
+
+
+		public static Operand operator *(Operand a, Operand b) => new Literal(a.Value * b.Value);
+		public static Operand operator /(Operand a, Operand b) => new Literal(a.Value / b.Value);
+		public static Operand operator %(Operand a, Operand b) => new Literal(a.Value % b.Value);
+		public static Operand operator +(Operand a, Operand b) => new Literal(a.Value + b.Value);
+		public static Operand operator -(Operand a, Operand b) => new Literal(a.Value - b.Value);
+		public static Operand operator <(Operand a, Operand b) => new Literal(a.Value < b.Value);
+		public static Operand operator >(Operand a, Operand b) => new Literal(a.Value > b.Value);
+		public static Operand operator <=(Operand a, Operand b) => new Literal(a.Value <= b.Value);
+		public static Operand operator >=(Operand a, Operand b) => new Literal(a.Value >= b.Value);
+		public static Operand operator ==(Operand a, Operand b) => new Literal(a.Value == b.Value);
+		public static Operand operator !=(Operand a, Operand b) => new Literal(a.Value != b.Value);
+	}
 }

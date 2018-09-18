@@ -16,10 +16,8 @@ namespace Outlet.Expressions {
             this.op = op;
         }
 
-        public override Operand Eval() => null;// op.PerformOp(left.Eval, right.Eval());
+        public override Operand Eval() => op.PerformOp(left.Eval(), right.Eval());
 
-        public override string ToString() {
-            throw new NotImplementedException();
-        }
+		public override string ToString() => "("+left.ToString() +" "+ op.ToString() + " "+right.ToString()+")";
     }
 }

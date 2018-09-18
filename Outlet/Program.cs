@@ -23,7 +23,7 @@ namespace Outlet {
             while(true) ;
 		}
 
-        public static string ToString(this TokenType token) => Enum.GetName(token.GetType(), token);
+        //public static string ToString(this TokenType token) => Enum.GetName(token.GetType(), token);
 
     }
 }

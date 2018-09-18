@@ -47,7 +47,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Expressions\Binary.cs" />
+    <Compile Include="Delimeter.cs" />
     <Compile Include="Expressions\Expression.cs" />
+    <Compile Include="Expressions\Identifier.cs" />
+    <Compile Include="Expressions\Literal.cs" />
+    <Compile Include="Keyword.cs" />
+    <Compile Include="Operator.cs" />
     <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

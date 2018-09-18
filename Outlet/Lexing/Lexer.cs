@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.Util;
-using State = Outlet.Util.State<Outlet.Lexing.CharType, Outlet.TokenType>;
+//using State = Outlet.Util.State<Outlet.Lexing.CharType, Outlet.TokenType>;
 
 namespace Outlet.Lexing {
     public static partial class Lexer {
@@ -15,7 +15,6 @@ namespace Outlet.Lexing {
         static Lexer() {
             InitStates();
         }
-
 
         public static Queue<IToken> Scan(byte[] charStream) {
             Queue<IToken> tokens = new Queue<IToken>();

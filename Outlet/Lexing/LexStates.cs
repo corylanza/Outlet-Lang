@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.Util;
+using Outlet.Expressions;
 using State = Outlet.Util.State<Outlet.Lexing.CharType, Outlet.Lexing.Lexer.Tokenizer>;
 
 namespace Outlet.Lexing {
@@ -26,14 +27,14 @@ namespace Outlet.Lexing {
         //static State escaped = machine.AddState();
 
         // operators
-        static State SingleCharOp = machine.AddState(true, true, TokenizeSingleOp);
-        static State plus = machine.AddState(true, true, TokenizePreEquals);
-        static State minus = machine.AddState(true, true, TokenizePreEquals);
-        static State forwardslash = machine.AddState(true, true, TokenizePreEquals);
-        static State lt = machine.AddState(true, true, TokenizePreEquals);
-        static State gt = machine.AddState(true, true, TokenizePreEquals);
-        static State preequal = machine.AddState(true, true, TokenizePreEquals);
-        static State withequal = machine.AddState(true, true, TokenizePreEquals);
+        static State SingleCharOp = machine.AddState(true, true, TokenizeOp);
+        static State plus = machine.AddState(true, true, TokenizeOp);
+        static State minus = machine.AddState(true, true, TokenizeOp);
+        static State forwardslash = machine.AddState(true, true, TokenizeOp);
+        static State lt = machine.AddState(true, true, TokenizeOp);
+        static State gt = machine.AddState(true, true, TokenizeOp);
+        static State preequal = machine.AddState(true, true, TokenizeOp);
+        static State withequal = machine.AddState(true, true, TokenizeOp);
 
 
         //static State comment = machine.AddState(true, true, NoToken);
@@ -88,14 +89,13 @@ namespace Outlet.Lexing {
         public delegate IToken Tokenizer(string text);
 
         private static IToken TokenizeID(string text) {
-            if(Keyword.ContainsKey(text)) return Keyword.Get(text);
+            if(Token.ContainsKey(text)) return Token.Get(text);
             else return new Identifier(text);
         }
-        private static IToken TokenizeSingleOp(string text) => Operator.Get(text);//new Token(text, Token.Delimeters[text]);
-        private static IToken TokenizeString(string text) => new Literal(text);// Token(text, TokenType.OString);
-        private static IToken TokenizeInt(string text) => new Literal(int.Parse(text));// Token(int.Parse(text), TokenType.OInt);
-        private static IToken TokenizeFloat(string text) => new Literal(float.Parse(text)); //Token(text, TokenType.OFloat);
-        private static IToken TokenizePreEquals(string text) => Operator.Get(text);//new Token(text, Token.PreEquals[text]);
+        private static IToken TokenizeOp(string text) => Token.Get(text);
+        private static IToken TokenizeString(string text) => new Literal(text);
+        private static IToken TokenizeInt(string text) => new Literal(int.Parse(text));
+        private static IToken TokenizeFloat(string text) => new Literal(float.Parse(text));
         private static IToken NoToken(string text) => null;
     }
 }
