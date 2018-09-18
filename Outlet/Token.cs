@@ -20,8 +20,8 @@ namespace Outlet {
             {"for", Keyword.For },
 			{"while", Keyword.While },
 			{"return", Keyword.Return },
-            //{"true", new Literal(true) },
-            //{"false", new Literal(false) },
+            {"true", new Literal(true) },
+            {"false", new Literal(false) },
 			// Operators
 			{"+", Operator.Plus },
 			{"-", Operator.Minus },

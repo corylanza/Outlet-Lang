@@ -19,7 +19,8 @@ namespace Outlet.Expressions {
 
 		public override string ToString() => Value.ToString();
 
-
+		public static Operand operator -(Operand a) => new Literal(-a.Value);
+		public static Operand operator !(Operand a) => new Literal(!a.Value);
 		public static Operand operator *(Operand a, Operand b) => new Literal(a.Value * b.Value);
 		public static Operand operator /(Operand a, Operand b) => new Literal(a.Value / b.Value);
 		public static Operand operator %(Operand a, Operand b) => new Literal(a.Value % b.Value);

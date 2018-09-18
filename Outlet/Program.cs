@@ -10,7 +10,20 @@ using Outlet.Expressions;
 
 namespace Outlet {
 	public static class Program {
-		public static void Main(string[] args) { 
+		public static void Main(string[] args) {
+			while (true) {
+				Console.WriteLine("<enter an expression>");
+				string input = Console.ReadLine();
+				byte[] bytes = Encoding.ASCII.GetBytes(input);
+				Queue<IToken> lexout = Lexer.Scan(bytes);// file.Skip(3).ToArray());
+				//string tokens = "tokens: ";
+				//foreach (IToken token in lexout) tokens += "(" + token.ToString() + "),";
+				//Console.WriteLine(tokens);
+				Expression expr = Parser.Parse(lexout);
+				Console.WriteLine("Parsed: " + expr.ToString());
+				object returnValue = expr.Eval().Value;
+				Console.WriteLine("Program returned value: " + returnValue);
+			}/*
             byte[] file = File.ReadAllBytes(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName+"/Test/file2.txt");
             //string input = "  for+(  nu)mber 3\"some text\"and //\n+= 34.1";
             //byte[] bytes = Encoding.ASCII.GetBytes(input);
@@ -18,7 +31,7 @@ namespace Outlet {
             Expression expr = Parser.Parse(lexout);
             object returnValue = expr.Eval().Value;
             Console.WriteLine("Program returned value: " + returnValue);
-            //foreach(IToken t in lexout) Console.WriteLine(t.ToString());
+            //foreach(IToken t in lexout) Console.WriteLine(t.ToString());*/
             
             while(true) ;
 		}

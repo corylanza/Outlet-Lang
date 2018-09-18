@@ -51,6 +51,8 @@
     <Compile Include="Expressions\Expression.cs" />
     <Compile Include="Expressions\Identifier.cs" />
     <Compile Include="Expressions\Literal.cs" />
+    <Compile Include="Expressions\Tuple.cs" />
+    <Compile Include="Expressions\Unary.cs" />
     <Compile Include="Keyword.cs" />
     <Compile Include="Operator.cs" />
     <Compile Include="Parsing\Parser.cs" />

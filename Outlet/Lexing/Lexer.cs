@@ -9,15 +9,15 @@ using Outlet.Util;
 
 namespace Outlet.Lexing {
     public static partial class Lexer {
-
-        private static string buffer = "";
         
         static Lexer() {
             InitStates();
         }
 
         public static Queue<IToken> Scan(byte[] charStream) {
-            Queue<IToken> tokens = new Queue<IToken>();
+			machine.Cur = start; 
+			string buffer = "";
+			Queue<IToken> tokens = new Queue<IToken>();
             for(int i = 0; i < charStream.Length; i++) {
                 byte b = charStream[i];
                
