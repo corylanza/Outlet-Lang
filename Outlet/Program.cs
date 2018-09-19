@@ -21,8 +21,8 @@ namespace Outlet {
 				//Console.WriteLine(tokens);
 				Expression expr = Parser.Parse(lexout);
 				Console.WriteLine("Parsed: " + expr.ToString());
-				object returnValue = expr.Eval().Value;
-				Console.WriteLine("Program returned value: " + returnValue);
+				//object returnValue = expr.Eval().Value;
+				Console.WriteLine("Program returned value: " + expr.Eval().ToString());
 			}/*
             byte[] file = File.ReadAllBytes(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName+"/Test/file2.txt");
             //string input = "  for+(  nu)mber 3\"some text\"and //\n+= 34.1";

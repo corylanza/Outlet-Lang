@@ -21,5 +21,9 @@ namespace Outlet.Expressions {
 		public Literal(bool value) {
 			Value = value;
 		}
+
+		public override Operand Eval() => this;
+
+		public override string ToString() => Value.ToString();
 	}
 }

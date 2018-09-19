@@ -15,10 +15,6 @@ namespace Outlet.Expressions {
     public abstract class Operand : Expression {
         public dynamic Value;
 
-        public override Operand Eval() => this;
-
-		public override string ToString() => Value.ToString();
-
 		public static Operand operator -(Operand a) => new Literal(-a.Value);
 		public static Operand operator !(Operand a) => new Literal(!a.Value);
 		public static Operand operator *(Operand a, Operand b) => new Literal(a.Value * b.Value);
