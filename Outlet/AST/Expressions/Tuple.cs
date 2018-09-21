@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.Expressions {
+namespace Outlet.AST {
 	public class OTuple : Operand {
 
 		public OTuple(params Expression[] vals) {

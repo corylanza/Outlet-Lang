@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet {
 	public class Keyword : IToken {
 
+		public static readonly Keyword Var = new Keyword("var");
 		public static readonly Keyword If = new Keyword("if");
 		public static readonly Keyword Else = new Keyword("else");
 		public static readonly Keyword For = new Keyword("for");

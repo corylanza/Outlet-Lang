@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.Expressions.Types {
+namespace Outlet.AST.Types {
 	public abstract class Type : IToken {
 		 
 	}

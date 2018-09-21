@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.Expressions {
+namespace Outlet.AST {
 	public class Unary : Expression {
 		private Expression input;
 		private Operator op;

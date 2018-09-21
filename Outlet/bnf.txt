@@ -2,14 +2,38 @@
 
 letter ::= 'A' | ... | 'Z' | 'a' | ... | 'z'
 digit ::= '0' | ... | '9'
-whitespace = ' ' | '\t'
+whitespace = ' ' | '\t' | '\n'
 
 # token types
 
 id ::= letter (letter | digit)*
 int ::= digit +
 float ::= digit + '.' digit +
-
-string ::= '\"' (letter | digit | whitespace)* '\"'
+string ::= '"' [^"]* '"'
+operator ::= "-" | "+" | "/" | "*" | "&&" ...
 
 # grammar
+operand ::= id | int | float | string
+
+expression ::= expression operator expression
+			 | operator expression
+			 | id '(' (expresion ',')* ')'
+			 | operand
+
+block ::= '{' statement* '}'
+
+conditional ::= if '(' expression ')' statement (else statement)?
+			 | while '(' expression ')' statement
+			 | for '(' variabledef | expression ';' expression ';' expression ')' statement
+
+declaration ::= classdef
+			::= functiondef
+			::= variabledef
+
+statement ::= block
+			| declaration
+			| conditional
+			| return expression;
+			| expression ';'
+
+program ::= statement*

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Outlet.Expressions;
+using Outlet.AST;
 
 namespace Outlet {
 	public enum Side { Left, Right }
@@ -13,7 +13,7 @@ namespace Outlet {
 
 		//1: ++, --
 		public static Operator Dot = new Operator(".", 1, Side.Left, (l, r) => l + r); // TODO
-		//2: pre ++ and --, unary + and -, ~, &, sizeof
+																					   //2: pre ++ and --, unary + and -, ~, &, sizeof
 		public static Operator Negative = new Operator("-", 2, Side.Right, (l) => -l); //TODO
 		public static Operator Not = new Operator("!", 2, Side.Right, (l) => !l); //TODO
 		public static Operator Times = new Operator("*", 3, Side.Left, (l, r) => l * r);
@@ -34,7 +34,7 @@ namespace Outlet {
 		//public static Operator BitwiseOr = new Operator("|", 10, Side.Left, (l, r) => l | r);
 		//public static Operator LogicalAnd = new Operator("&&", 11, Side.Left, (l, r) => l && r);
 		//public static Operator LogicalOr = new Operator("||", 12, Side.Left, (l, r) => l || r);
-		public static Operator Equal = new Operator("=", 14, Side.Right, (l, r) => l + r); //TODO from here on
+		public static Operator Equal = new Operator("=", 14, Side.Right, (l, r) => { l.Value = r.Value; return l; }); //TODO from here on
 		public static Operator PlusEqual = new Operator("+=", 14, Side.Right, (l, r) => l + r);
 		public static Operator MinusEqual = new Operator("-=", 14, Side.Right, (l, r) => l + r);
 		public static Operator DividedEqual = new Operator("/=", 14, Side.Right, (l, r) => l + r);

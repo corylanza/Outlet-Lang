@@ -6,37 +6,26 @@ using System.Text;
 using System.Threading.Tasks;
 using Outlet.Lexing;
 using Outlet.Parsing;
-using Outlet.Expressions;
+using Outlet.AST;
 
 namespace Outlet {
 	public static class Program {
 		public static void Main(string[] args) {
+			Scope s = new Scope(); // used by repl to keep definitions
 			while (true) {
 				Console.WriteLine("<enter an expression>");
 				string input = Console.ReadLine();
-				byte[] bytes = Encoding.ASCII.GetBytes(input);
-				Queue<IToken> lexout = Lexer.Scan(bytes);// file.Skip(3).ToArray());
-				//string tokens = "tokens: ";
-				//foreach (IToken token in lexout) tokens += "(" + token.ToString() + "),";
-				//Console.WriteLine(tokens);
-				Expression expr = Parser.Parse(lexout);
-				Console.WriteLine("Parsed: " + expr.ToString());
-				//object returnValue = expr.Eval().Value;
-				Console.WriteLine("Program returned value: " + expr.Eval().ToString());
-			}/*
-            byte[] file = File.ReadAllBytes(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName+"/Test/file2.txt");
-            //string input = "  for+(  nu)mber 3\"some text\"and //\n+= 34.1";
-            //byte[] bytes = Encoding.ASCII.GetBytes(input);
-			Queue<IToken> lexout = Lexer.Scan(file.Skip(3).ToArray());
-            Expression expr = Parser.Parse(lexout);
-            object returnValue = expr.Eval().Value;
-            Console.WriteLine("Program returned value: " + returnValue);
-            //foreach(IToken t in lexout) Console.WriteLine(t.ToString());*/
-            
-            while(true) ;
+				//byte[] file = File.ReadAllBytes(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "/Test/file2.txt");
+				byte[] bytes = Encoding.ASCII.GetBytes(input);// file.Skip(3).ToArray());
+				Queue<IToken> lexout = Lexer.Scan(bytes);
+				Statement program = Parser.Parse(s, lexout);
+				//Console.WriteLine("Parsed: " + program.ToString());
+				if (program is Expression e) Console.WriteLine("Expression returned " + e.Eval());
+				else {
+					program.Execute();
+				}
+				s.Lines.Clear();
+			}
 		}
-
-        //public static string ToString(this TokenType token) => Enum.GetName(token.GetType(), token);
-
     }
 }

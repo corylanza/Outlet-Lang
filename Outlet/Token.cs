@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Outlet.Expressions;
+using Outlet.AST;
 
 namespace Outlet {
 
@@ -12,15 +12,17 @@ namespace Outlet {
 		public static bool ContainsKey(string text) => Tokens.ContainsKey(text);
 		public static IToken Get(string text) => Tokens[text];
 
+
 		private static Dictionary<string, IToken> Tokens = new Dictionary<string, IToken>() {
 			// Keywords
+			{ "var", Keyword.Var },
 			{"if", Keyword.If },
 			{"else", Keyword.Else },
             //{"null", TokenType.Null },
             {"for", Keyword.For },
 			{"while", Keyword.While },
 			{"return", Keyword.Return },
-            {"true", new Literal(true) },
+            {"true", new Literal(true) }, // TODO FIX THIS
             {"false", new Literal(false) },
 			// Operators
 			{"+", Operator.Plus },
@@ -47,8 +49,8 @@ namespace Outlet {
 			{")", Delimeter.RightParen },
 			{"[", Delimeter.LeftBrace },
 			{"]", Delimeter.RightBrace },
-			{"{", Delimeter.RightCurly },
-			{"}", Delimeter.LeftCurly },
+			{"}", Delimeter.RightCurly },
+			{"{", Delimeter.LeftCurly },
 			{",", Delimeter.Comma },
 			{":", Delimeter.Colon },
 			{";", Delimeter.SemiC },

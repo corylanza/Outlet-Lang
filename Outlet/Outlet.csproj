@@ -46,16 +46,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Expressions\Binary.cs" />
+    <Compile Include="AST\Expressions\Binary.cs" />
+    <Compile Include="AST\Statements\Conditional.cs" />
     <Compile Include="Delimeter.cs" />
-    <Compile Include="Expressions\Expression.cs" />
-    <Compile Include="Expressions\FunctionCall.cs" />
-    <Compile Include="Expressions\Identifier.cs" />
-    <Compile Include="Expressions\Literal.cs" />
-    <Compile Include="Expressions\Scope.cs" />
-    <Compile Include="Expressions\Tuple.cs" />
-    <Compile Include="Expressions\Types\Type.cs" />
-    <Compile Include="Expressions\Unary.cs" />
+    <Compile Include="AST\Expressions\Expression.cs" />
+    <Compile Include="AST\Expressions\FunctionCall.cs" />
+    <Compile Include="AST\Expressions\Identifier.cs" />
+    <Compile Include="AST\Expressions\Literal.cs" />
+    <Compile Include="AST\Statements\Assignment.cs" />
+    <Compile Include="AST\Statements\Scope.cs" />
+    <Compile Include="AST\Expressions\Tuple.cs" />
+    <Compile Include="AST\Expressions\Types\Type.cs" />
+    <Compile Include="AST\Expressions\Unary.cs" />
+    <Compile Include="Function.cs" />
     <Compile Include="Keyword.cs" />
     <Compile Include="Operator.cs" />
     <Compile Include="Parsing\Parser.cs" />
@@ -64,6 +67,7 @@
     <Compile Include="Lexing\CharType.cs" />
     <Compile Include="Lexing\Lexer.cs" />
     <Compile Include="Lexing\LexStates.cs" />
+    <Compile Include="AST\Statements\Statement.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="Util\State.cs" />
     <Compile Include="Util\StateMachine.cs" />

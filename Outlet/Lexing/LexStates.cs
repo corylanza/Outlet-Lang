@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.Util;
-using Outlet.Expressions;
+using Outlet.AST;
 using State = Outlet.Util.State<Outlet.Lexing.CharType, Outlet.Lexing.Lexer.Tokenizer>;
 
 namespace Outlet.Lexing {
