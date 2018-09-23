@@ -8,14 +8,23 @@ using Outlet.AST;
 namespace Outlet.Parsing {
 	public static class Parser {
 
-		private static bool IsBinary(IToken last) => last is Operand || last == Delimeter.RightParen;
-		private static bool IsUnary(IToken last) => last is null || last is Operator || last == Delimeter.LeftParen || last == Delimeter.Comma;
+		private static bool IsBinary(IToken last) => 
+			last is Operand || last == Delimeter.RightParen || last == Delimeter.RightBrace;
+		private static bool IsUnary(IToken last) => 
+			last is null || last is Operator || last == Delimeter.LeftParen || last == Delimeter.LeftBrace || last == Delimeter.Comma;
 
 		public static Statement Parse(Queue<IToken> tokens) => Parse(new Scope(), tokens);
 
 		public static Statement Parse(Scope block, Queue<IToken> tokens) {
+			while(tokens.Count > 0) {
+				block.Lines.Add(NextStatement(block, tokens));
+			}
+			if (block.Lines.Count == 1 && block.Lines[0] is Expression e) return e;
+			return block;
+		}
+		public static Statement NextStatement(Scope block, Queue<IToken> tokens) {
 			bool Match(IToken s) { if (tokens.Count > 0 && tokens.Peek() == s) { tokens.Dequeue(); return true; } else return false; }
-			void Consume(IToken s, string error) { if (tokens.Dequeue() != s) throw new Exception(error); }
+			void Consume(IToken s, string error) { if (tokens.Count == 0 || tokens.Dequeue() != s) throw new Exception(error); }
 			Statement VariableDeclaration() {
 				Identifier name = tokens.Dequeue() as Identifier;
 				Expression initializer = null;
@@ -24,32 +33,43 @@ namespace Outlet.Parsing {
 			}
 			Statement Scope() {
 				Scope newscope = new Scope(block);
-				Statement outscope = Parse(newscope, tokens);
-				//Consume(Delimeter.RightCurly, "Expected } to close code block");
-				return outscope;
+				while (tokens.Count > 0 && tokens.Peek() != Delimeter.RightCurly) {
+					newscope.Lines.Add(NextStatement(newscope, tokens));
+				}
+				Consume(Delimeter.RightCurly, "Expected } to close code block");
+				return newscope;
 			}
 			Statement IfStatement() {
 				Expression condition = NextExpression(block, tokens);
-				Statement iftrue = Parse(block, tokens);
-				return new Conditional(condition, iftrue);
+				Statement iftrue = NextStatement(block, tokens);
+				//Consume(Keyword.Then, "Expected \"then\" after if condition");
+				Statement ifelse = null;
+				if (Match(Keyword.Else)) ifelse = NextStatement(block, tokens);
+				return new IfStatement(condition, iftrue, ifelse);
 			}
-			if (tokens.Count == 0 && block.Lines.Count == 1) return block.Lines[0];
-			if (tokens.Count == 0) return block;
-			if (Match(Keyword.Var)) {
-				block.Lines.Add(VariableDeclaration());
-				return Parse(block, tokens);
+			Statement WhileLoop() {
+				Expression condition = NextExpression(block, tokens);
+				Statement iftrue = NextStatement(block, tokens);
+				return new WhileLoop(condition, iftrue);
 			}
-			if (Match(Delimeter.LeftCurly)) {
-				block.Lines.Add(Scope());
-				return Parse(block, tokens);
-			};
-			if (Match(Keyword.If)) {
-				block.Lines.Add(IfStatement());
-				return Parse(block, tokens);
+			Statement Return() {
+				Expression e = NextExpression(block, tokens);
+				return new ReturnStatement(e);
 			}
-			if (Match(Delimeter.RightCurly)) return block;
-			block.Lines.Add(NextExpression(block, tokens));
-			return Parse(block, tokens);
+			Statement Function() {
+				Identifier name = tokens.Dequeue() as Identifier;
+				Consume(Operator.Equal, " expected = after function name");
+				return null;
+			}
+			if (Match(Keyword.Var)) return VariableDeclaration();
+			if (Match(Delimeter.LeftCurly)) return Scope();
+			if (Match(Keyword.If)) return IfStatement();
+			//if (Match(Keyword.For))
+			if (Match(Keyword.While)) return WhileLoop();
+			if (Match(Keyword.Return)) return Return();
+			if (Match(Keyword.Func)) return Function();
+			//if (Match(Keyword.Class))
+			return NextExpression(block, tokens);
 		}
 
 		public static Expression NextExpression(Scope s, Queue<IToken> tokens) {
@@ -58,10 +78,15 @@ namespace Outlet.Parsing {
 			Stack<IToken> stack = new Stack<IToken>();
 			Stack<int> arity = new Stack<int>();
 			IToken cur = null, last = null;
-			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator o && (o.Precedence <= op.Precedence || o.Asssoc == Side.Right);
-			while (tokens.Count > 0 && !done) {
+			bool ValidToken() => 
+				tokens.Count > 0 && tokens.Peek() is IToken i &&
+				(i is Identifier || i is Operand || i is Operator ||
+				i is Keyword k && (k == Keyword.True || k == Keyword.False || k == Keyword.Null) ||
+				i is Delimeter d && (d != Delimeter.LeftCurly || d != Delimeter.RightCurly));
+			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Asssoc == Side.Left);
+			while (ValidToken() && !done) {
 				last = cur;
-				cur = tokens.Peek();
+				cur = tokens.Dequeue();
 				switch (cur) {
 					case Identifier id:
 						output.Push(id);
@@ -69,6 +94,11 @@ namespace Outlet.Parsing {
 						break;
 					case Literal l: // does not handle other future operand types
 						output.Push(l);
+						break;
+					case Keyword k:
+						if (k == Keyword.True) output.Push(new Literal(true));
+						else if (k == Keyword.False) output.Push(new Literal(false));
+						else throw new NotImplementedException("null is not implemented");
 						break;
 					case Operator o:
 						if (o.Name == "-" && IsUnary(last)) {
@@ -79,12 +109,12 @@ namespace Outlet.Parsing {
 						}
 						stack.Push(o);
 						break;
-					case Delimeter d when d == Delimeter.LeftParen:
+					case Delimeter d when d == Delimeter.LeftParen || d == Delimeter.LeftBrace:
 						stack.Push(d);
 						arity.Push(1);
 						break;
 					case Delimeter comma when comma == Delimeter.Comma:
-						while (stack.Peek() != Delimeter.LeftParen) {
+						while (stack.Peek() != Delimeter.LeftParen && stack.Peek() != Delimeter.LeftBrace) {
 							ReduceOperator(output, stack.Pop() as Operator);
 						}
 						arity.Push(arity.Pop() + 1);
@@ -96,29 +126,38 @@ namespace Outlet.Parsing {
 						int a = arity.Pop();
 						Expression temp;
 						if (a != 1) {
-							Expression[] toadd = new Expression[a];
+							Expression[] tuple = new Expression[a];
 							for (int i = 0; i < a; i++) {
-								toadd[a - 1 - i] = output.Pop();
+								tuple[a - 1 - i] = output.Pop();
 							}
-							temp = new OTuple(toadd);
+							temp = new OTuple(tuple);
 						} else temp = output.Pop();
 						if (output.Count > 0 && output.Peek() is Identifier funcid) {
 							output.Pop();
 							output.Push(new FunctionCall(funcid, temp)); //TODO
 						} else output.Push(temp);
 						break;
+					case Delimeter rightb when rightb == Delimeter.RightBrace:
+						while (stack.Peek() != Delimeter.LeftBrace) {
+							ReduceOperator(output, stack.Pop() as Operator);
+						}
+						stack.Pop();
+						int addnum = arity.Pop();
+						Expression[] list = new Expression[addnum];
+						for (int i = 0; i < addnum; i++) {
+							list[addnum - 1 - i] = output.Pop();
+						}
+						output.Push(new OList(list));
+						break;
 					case Delimeter semicolon when semicolon == Delimeter.SemiC:
 						done = true;
-						tokens.Dequeue();
 						break;
 					default:
 						done = true;
 						break;
 				}
-				if (!done) tokens.Dequeue();
 			}
 			while (stack.Count > 0) ReduceOperator(output, stack.Pop() as Operator);
-
 			return output.Pop();
 		}
 

@@ -10,7 +10,7 @@ namespace Outlet {
 		public static readonly Delimeter LeftParen = new Delimeter("(");
 		public static readonly Delimeter RightParen = new Delimeter(")");
 		public static readonly Delimeter LeftBrace = new Delimeter("[");
-		public static readonly Delimeter RightBrace = new Delimeter(")");
+		public static readonly Delimeter RightBrace = new Delimeter("]");
 		public static readonly Delimeter RightCurly = new Delimeter("}");
 		public static readonly Delimeter LeftCurly = new Delimeter("{");
 		public static readonly Delimeter Comma = new Delimeter(",");

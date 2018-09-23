@@ -47,7 +47,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AST\Expressions\Binary.cs" />
-    <Compile Include="AST\Statements\Conditional.cs" />
+    <Compile Include="AST\Expressions\List.cs" />
+    <Compile Include="AST\Statements\IfStatement.cs" />
+    <Compile Include="AST\Statements\Return.cs" />
+    <Compile Include="AST\Statements\WhileLoop.cs" />
+    <Compile Include="OutletException.cs" />
     <Compile Include="Delimeter.cs" />
     <Compile Include="AST\Expressions\Expression.cs" />
     <Compile Include="AST\Expressions\FunctionCall.cs" />

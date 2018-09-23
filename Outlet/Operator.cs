@@ -21,19 +21,20 @@ namespace Outlet {
 		public static Operator Modulus = new Operator("%", 3, Side.Left, (l, r) => l % r);
 		public static Operator Plus = new Operator("+", 4, Side.Left, (l, r) => l + r);
 		public static Operator Minus = new Operator("-", 4, Side.Left, (l, r) => l - r);
-		//public static Operator LeftShift = new Operator("<<", 5, Side.Left, (l, r) => l << r);
-		//public static Operator RightShift = new Operator(">>", 5, Side.Left, (l, r) => l >> r);
+		public static Operator LeftShift = new Operator("<<", 5, Side.Left, (l, r) => new Literal(l.Value << r.Value));
+		public static Operator RightShift = new Operator(">>", 5, Side.Left, (l, r) => new Literal(l.Value >> r.Value));
 		public static Operator LT = new Operator("<", 6, Side.Left, (l, r) => l < r);
 		public static Operator LTE = new Operator("<=", 6, Side.Left, (l, r) => l <= r);
 		public static Operator GT = new Operator(">", 6, Side.Left, (l, r) => l > r);
 		public static Operator GTE = new Operator(">=", 6, Side.Left, (l, r) => l >= r);
+		//public static Operator Is = new Operator("is", 6, Side.Left, (l, r));
 		public static Operator BoolEquals = new Operator("==", 7, Side.Left, (l, r) => l == r);
 		public static Operator NotEqual = new Operator("!=", 7, Side.Left, (l, r) => l != r);
-		//public static Operator BitwiseAnd = new Operator("&", 8, Side.Left, (l, r) => l & r);
-		//public static Operator BitwiseXor = new Operator("^", 9, Side.Left, (l, r) => l ^ r);
-		//public static Operator BitwiseOr = new Operator("|", 10, Side.Left, (l, r) => l | r);
-		//public static Operator LogicalAnd = new Operator("&&", 11, Side.Left, (l, r) => l && r);
-		//public static Operator LogicalOr = new Operator("||", 12, Side.Left, (l, r) => l || r);
+		public static Operator BitwiseAnd = new Operator("&", 8, Side.Left, (l, r) => new Literal(l.Value & r.Value));
+		public static Operator BitwiseXor = new Operator("^", 9, Side.Left, (l, r) => new Literal(l.Value ^ r.Value));
+		public static Operator BitwiseOr = new Operator("|", 10, Side.Left, (l, r) => new Literal(l.Value | r.Value));
+		public static Operator LogicalAnd = new Operator("&&", 11, Side.Left, (l, r) => new Literal(l.Value && r.Value));
+		public static Operator LogicalOr = new Operator("||", 12, Side.Left, (l, r) => new Literal(l.Value || r.Value));
 		public static Operator Equal = new Operator("=", 14, Side.Right, (l, r) => { l.Value = r.Value; return l; }); //TODO from here on
 		public static Operator PlusEqual = new Operator("+=", 14, Side.Right, (l, r) => l + r);
 		public static Operator MinusEqual = new Operator("-=", 14, Side.Right, (l, r) => l + r);

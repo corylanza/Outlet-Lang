@@ -15,15 +15,18 @@ namespace Outlet {
 
 		private static Dictionary<string, IToken> Tokens = new Dictionary<string, IToken>() {
 			// Keywords
+			{"class", Keyword.Class },
+			{ "func", Keyword.Func },
 			{ "var", Keyword.Var },
 			{"if", Keyword.If },
+			{"then", Keyword.Then },
 			{"else", Keyword.Else },
-            //{"null", TokenType.Null },
             {"for", Keyword.For },
 			{"while", Keyword.While },
 			{"return", Keyword.Return },
-            {"true", new Literal(true) }, // TODO FIX THIS
-            {"false", new Literal(false) },
+            {"true", Keyword.True }, // TODO FIX THIS
+            {"false", Keyword.False },
+			{ "null", Keyword.Null },
 			// Operators
 			{"+", Operator.Plus },
 			{"-", Operator.Minus },
@@ -32,6 +35,16 @@ namespace Outlet {
 			{"%", Operator.Modulus },
 			{"<", Operator.LT },
 			{">", Operator.GT },
+			{"<<", Operator.LeftShift },
+			{">>", Operator.RightShift },
+			{"&", Operator.BitwiseAnd },
+			{"|", Operator.BitwiseOr },
+			{"^", Operator.BitwiseXor },
+			{"and", Operator.LogicalAnd },
+			{"or", Operator.LogicalOr },
+			{"&&", Operator.LogicalAnd },
+			{"||", Operator.LogicalOr },
+			{"not", Operator.Not },
 			{"!", Operator.Not },
 			{"=", Operator.Equal },
 			{"+=", Operator.PlusEqual },

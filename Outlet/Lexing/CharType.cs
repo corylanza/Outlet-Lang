@@ -25,13 +25,13 @@ namespace Outlet.Lexing {
             SetRange(CharType.NewLine, 13, 14); // carriage return / new line
             SetRange(CharType.Dot, 46, 47); // .
             SetRange(CharType.Quo, 34, 35); // "
-            SetRange(CharType.Op1, 40, 42); // ()
-            SetRange(CharType.Op1, 91, 92); // [
-            SetRange(CharType.Op1, 93, 94); // ]
-            SetRange(CharType.Op1, 123, 124); // {
-            SetRange(CharType.Op1, 125, 126); // }
-            SetRange(CharType.Op1, 58, 60); // : ;
-            SetRange(CharType.Op1, 44, 45); // ,
+            SetRange(CharType.OneChar, 40, 42); // ()
+            SetRange(CharType.OneChar, 91, 92); // [
+            SetRange(CharType.OneChar, 93, 94); // ]
+            SetRange(CharType.OneChar, 123, 124); // {
+            SetRange(CharType.OneChar, 125, 126); // }
+            SetRange(CharType.OneChar, 58, 60); // : ;
+            SetRange(CharType.OneChar, 44, 45); // ,
             SetRange(CharType.Plus, 43, 44); // +
             SetRange(CharType.Minus, 45, 46); // -
             SetRange(CharType.ForwardSlash, 47, 48); // /
@@ -41,9 +41,9 @@ namespace Outlet.Lexing {
             SetRange(CharType.LT, 60, 61); // *
             SetRange(CharType.GT, 62, 63); // *
             SetRange(CharType.Equals, 61, 62); // *
-
-
-
+			SetRange(CharType.And, 38, 39);// &
+			SetRange(CharType.Or, 124, 125); // |
+			SetRange(CharType.OneChar, 94, 95); // ^ xor
         }
 
         public static CharType Get(int c) {
@@ -60,7 +60,7 @@ namespace Outlet.Lexing {
         NewLine,
         Dot,
         Quo,
-        Op1, // single character operators ()[]{},;
+        OneChar, // single character operators ()[]{},;
         // operators that could possibly be followed by an equals sign *%!
         Plus,
         Minus,
@@ -68,6 +68,8 @@ namespace Outlet.Lexing {
         Equals, //  =
         LT,
         GT,
+		And,
+		Or,
         ForwardSlash,
         BackSlash,
 
