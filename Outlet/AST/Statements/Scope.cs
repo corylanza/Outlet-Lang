@@ -9,11 +9,16 @@ namespace Outlet.AST {
 
 		public Dictionary<string, Operand> Variables = new Dictionary<string, Operand>();
 		public List<Statement> Lines = new List<Statement>();
+        private bool Repl = false;
 		public Scope Parent;
 
 		public Scope(Scope parent = null) {
 			Parent = parent;
 		}
+
+        public Scope(bool replmode) {
+            Repl = true;
+        }
 
 		public void AddVariable(Identifier id, Operand o) => Variables.Add(id.Name, o);
 		public Operand Get(Identifier id) {
@@ -25,6 +30,7 @@ namespace Outlet.AST {
 
 		public override void Execute() {
 			foreach (Statement e in Lines) e.Execute();
+            if(!Repl) Variables.Clear();
 		}
 
 		public override string ToString() {
