@@ -172,6 +172,7 @@ namespace Outlet.Parsing {
 
 		public static void ReduceOperator(Stack<Expression> output, Stack<IToken> stack) {
             if(stack.Count > 0 && stack.Peek() is Operator op) {
+                stack.Pop();
                 if(op.Arity == Arity.Binary) {
                     if(output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
                     Expression temp = output.Pop();
