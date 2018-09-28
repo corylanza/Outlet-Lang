@@ -24,7 +24,7 @@ namespace Outlet.Parsing {
 		}
 		public static Statement NextStatement(Scope block, Queue<IToken> tokens) {
 			bool Match(IToken s) { if (tokens.Count > 0 && tokens.Peek() == s) { tokens.Dequeue(); return true; } else return false; }
-			void Consume(IToken s, string error) { if (tokens.Count == 0 || tokens.Dequeue() != s) throw new Exception(error); }
+			void Consume(IToken s, string error) { if (tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: "+error); }
 			Statement VariableDeclaration() {
 				Identifier name = tokens.Dequeue() as Identifier;
 				Expression initializer = null;
@@ -40,16 +40,19 @@ namespace Outlet.Parsing {
 				return newscope;
 			}
 			Statement IfStatement() {
-				Expression condition = NextExpression(block, tokens);
-				Statement iftrue = NextStatement(block, tokens);
-				//Consume(Keyword.Then, "Expected \"then\" after if condition");
-				Statement ifelse = null;
+                Consume(Delimeter.LeftParen, "Expected ( after if");
+                Expression condition = NextExpression(block, tokens);
+                Consume(Delimeter.RightParen, "Expected ) after if condition");
+                Statement iftrue = NextStatement(block, tokens);
+                Statement ifelse = null;
 				if (Match(Keyword.Else)) ifelse = NextStatement(block, tokens);
 				return new IfStatement(condition, iftrue, ifelse);
 			}
 			Statement WhileLoop() {
-				Expression condition = NextExpression(block, tokens);
-				Statement iftrue = NextStatement(block, tokens);
+                Consume(Delimeter.LeftParen, "Expected ( after while");
+                Expression condition = NextExpression(block, tokens);
+                Consume(Delimeter.RightParen, "Expected ) after while condition");
+                Statement iftrue = NextStatement(block, tokens);
 				return new WhileLoop(condition, iftrue);
 			}
 			Statement Return() {
@@ -86,7 +89,7 @@ namespace Outlet.Parsing {
 			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Asssoc == Side.Left);
 			while (ValidToken() && !done) {
 				last = cur;
-				cur = tokens.Dequeue();
+				cur = tokens.Peek();
 				switch (cur) {
 					case Identifier id:
 						output.Push(id);
@@ -105,7 +108,7 @@ namespace Outlet.Parsing {
 							o = Operator.Negative;
 						} //else if (IsUnary(last)) throw new Exception("unary operator: " +o.Name);
 						else while (lesserPrecedence(o)) {
-							ReduceOperator(output, stack.Pop() as Operator);
+							ReduceOperator(output, stack);
 						}
 						stack.Push(o);
 						break;
@@ -115,31 +118,35 @@ namespace Outlet.Parsing {
 						break;
 					case Delimeter comma when comma == Delimeter.Comma:
 						while (stack.Peek() != Delimeter.LeftParen && stack.Peek() != Delimeter.LeftBrace) {
-							ReduceOperator(output, stack.Pop() as Operator);
+							ReduceOperator(output, stack);
 						}
 						arity.Push(arity.Pop() + 1);
 						break;
 					case Delimeter right when right == Delimeter.RightParen:
-						while(stack.Peek() != Delimeter.LeftParen) {
-							ReduceOperator(output, stack.Pop() as Operator);
-						} stack.Pop();
-						int a = arity.Pop();
-						Expression temp;
-						if (a != 1) {
-							Expression[] tuple = new Expression[a];
-							for (int i = 0; i < a; i++) {
-								tuple[a - 1 - i] = output.Pop();
-							}
-							temp = new OTuple(tuple);
-						} else temp = output.Pop();
-						if (output.Count > 0 && output.Peek() is Identifier funcid) {
-							output.Pop();
-							output.Push(new FunctionCall(funcid, temp)); //TODO
-						} else output.Push(temp);
+						while(stack.Count > 0 && stack.Peek() != Delimeter.LeftParen) {
+							ReduceOperator(output, stack);
+						}
+                        if(stack.Count == 0) done = true; 
+                        else {
+                            stack.Pop();
+                            int a = arity.Pop();
+                            Expression temp;
+                            if(a != 1) {
+                                Expression[] tuple = new Expression[a];
+                                for(int i = 0; i < a; i++) {
+                                    tuple[a - 1 - i] = output.Pop();
+                                }
+                                temp = new OTuple(tuple);
+                            } else temp = output.Pop();
+                            if(output.Count > 0 && output.Peek() is Identifier funcid) {
+                                output.Pop();
+                                output.Push(new FunctionCall(funcid, temp)); //TODO
+                            } else output.Push(temp);
+                    }
 						break;
 					case Delimeter rightb when rightb == Delimeter.RightBrace:
 						while (stack.Peek() != Delimeter.LeftBrace) {
-							ReduceOperator(output, stack.Pop() as Operator);
+							ReduceOperator(output, stack);
 						}
 						stack.Pop();
 						int addnum = arity.Pop();
@@ -150,24 +157,31 @@ namespace Outlet.Parsing {
 						output.Push(new OList(list));
 						break;
 					case Delimeter semicolon when semicolon == Delimeter.SemiC:
+                    tokens.Dequeue();
 						done = true;
 						break;
 					default:
 						done = true;
 						break;
 				}
+                if(!done) tokens.Dequeue();
 			}
-			while (stack.Count > 0) ReduceOperator(output, stack.Pop() as Operator);
+			while (stack.Count > 0) ReduceOperator(output, stack);
 			return output.Pop();
 		}
 
-		public static void ReduceOperator(Stack<Expression> stack, Operator op) {
-			if(op.Arity == Arity.Binary) {
-				Expression temp = stack.Pop();
-				stack.Push(new Binary(stack.Pop(), op, temp));
-			} else {
-				stack.Push(new Unary(stack.Pop(), op));
-			}
+		public static void ReduceOperator(Stack<Expression> output, Stack<IToken> stack) {
+            if(stack.Count > 0 && stack.Peek() is Operator op) {
+                if(op.Arity == Arity.Binary) {
+                    if(output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+                    Expression temp = output.Pop();
+                    output.Push(new Binary(output.Pop(), op, temp));
+                } else {
+                    if(output.Count < 1) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+                    output.Push(new Unary(output.Pop(), op));
+                }
+            } else throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+			
 		}
 	}
 }

@@ -31,14 +31,21 @@ namespace Outlet {
                 string input = Console.ReadLine();
                 //byte[] file = File.ReadAllBytes(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "/Test/file2.txt");
                 byte[] bytes = Encoding.ASCII.GetBytes(input);// file.Skip(3).ToArray());
-                Queue<IToken> lexout = Lexer.Scan(bytes);
-                Statement program = Parser.Parse(s, lexout);
-                //Console.WriteLine("Parsed: " + program.ToString());
-                if(program is Expression e) Console.WriteLine("Expression returned " + e.Eval());
-                else {
-                    program.Execute();
+                try {
+                    Queue<IToken> lexout = Lexer.Scan(bytes);
+                    Statement program = Parser.Parse(s, lexout);
+                    //Console.WriteLine("Parsed: " + program.ToString());
+                    if(program is Expression e) Console.WriteLine("Expression returned " + e.Eval());
+                    else {
+                        program.Execute();
+                    }
+                    s.Lines.Clear();
+                } catch (OutletException ex) {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(ex.Message);
+                    Console.ForegroundColor = ConsoleColor.White;
                 }
-                s.Lines.Clear();
+               
             }
         }
 
