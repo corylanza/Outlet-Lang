@@ -22,6 +22,7 @@ namespace Outlet {
 			{"then", Keyword.Then },
 			{"else", Keyword.Else },
             {"for", Keyword.For },
+			{"in", Keyword.In },
 			{"while", Keyword.While },
 			{"return", Keyword.Return },
             {"true", Keyword.True }, // TODO FIX THIS

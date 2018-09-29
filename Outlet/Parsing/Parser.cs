@@ -55,6 +55,15 @@ namespace Outlet.Parsing {
                 Statement iftrue = NextStatement(block, tokens);
 				return new WhileLoop(condition, iftrue);
 			}
+			Statement ForLoop() {
+				Consume(Delimeter.LeftParen, "Expected ( after for");
+				Identifier loopvar = tokens.Dequeue() as Identifier;
+				Consume(Keyword.In, "expected in after for loop variable");
+				Expression collection = NextExpression(block, tokens);
+				Consume(Delimeter.RightParen, "Expected ) after for loop collection");
+				Statement body = NextStatement(block, tokens);
+				return new ForLoop(block, loopvar, collection, body);
+			}
 			Statement Return() {
 				Expression e = NextExpression(block, tokens);
 				return new ReturnStatement(e);
@@ -67,7 +76,7 @@ namespace Outlet.Parsing {
 			if (Match(Keyword.Var)) return VariableDeclaration();
 			if (Match(Delimeter.LeftCurly)) return Scope();
 			if (Match(Keyword.If)) return IfStatement();
-			//if (Match(Keyword.For))
+			if (Match(Keyword.For)) return ForLoop();
 			if (Match(Keyword.While)) return WhileLoop();
 			if (Match(Keyword.Return)) return Return();
 			if (Match(Keyword.Func)) return Function();
@@ -140,7 +149,8 @@ namespace Outlet.Parsing {
                             } else temp = output.Pop();
                             if(output.Count > 0 && output.Peek() is Identifier funcid) {
                                 output.Pop();
-                                output.Push(new FunctionCall(funcid, temp)); //TODO
+								FunctionCall funccall = new FunctionCall(funcid, temp);
+								output.Push(funccall); //TODO
                             } else output.Push(temp);
                     }
 						break;

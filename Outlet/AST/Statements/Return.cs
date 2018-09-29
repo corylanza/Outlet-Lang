@@ -20,7 +20,7 @@ namespace Outlet.AST {
 
 	public class Return : OutletException {
 
-		Operand Value;
+		public Operand Value;
 
 		public Return(Operand o) {
 			Value = o;

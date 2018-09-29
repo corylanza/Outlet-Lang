@@ -17,7 +17,7 @@ namespace Outlet {
 
         public static void RunFile(string path) {
             Scope s = new Scope();
-            byte[] file = File.ReadAllBytes(path);// Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "/Test/file2.txt")
+            byte[] file = File.ReadAllBytes(path);
             byte[] bytes = file.Skip(3).ToArray();
             Queue<IToken> lexout = Lexer.Scan(bytes);
             Statement program = Parser.Parse(s, lexout);
@@ -29,8 +29,7 @@ namespace Outlet {
             while(true) {
                 Console.WriteLine("<enter an expression>");
                 string input = Console.ReadLine();
-                //byte[] file = File.ReadAllBytes(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "/Test/file2.txt");
-                byte[] bytes = Encoding.ASCII.GetBytes(input);// file.Skip(3).ToArray());
+                byte[] bytes = Encoding.ASCII.GetBytes(input);
                 try {
                     Queue<IToken> lexout = Lexer.Scan(bytes);
                     Statement program = Parser.Parse(s, lexout);
@@ -39,12 +38,13 @@ namespace Outlet {
                     else {
                         program.Execute();
                     }
-                    s.Lines.Clear();
                 } catch (OutletException ex) {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(ex.Message);
                     Console.ForegroundColor = ConsoleColor.White;
-                }
+                } finally {
+					s.Lines.Clear();
+				}
                
             }
         }

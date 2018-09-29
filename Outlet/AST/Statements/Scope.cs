@@ -20,11 +20,14 @@ namespace Outlet.AST {
             Repl = true;
         }
 
-		public void AddVariable(Identifier id, Operand o) => Variables.Add(id.Name, o);
+		public void AddVariable(Identifier id, Operand o) {
+			if(Variables.ContainsKey(id.Name)) throw new OutletException("variable " + id.Name+" already exists in the current scope");
+			Variables.Add(id.Name, o);
+		}
 		public Operand Get(Identifier id) {
 			if (Variables.ContainsKey(id.Name)) return Variables[id.Name];
 			if (Parent != null) return Parent.Get(id);
-			throw new Exception("Cannot find variable " + id.Name); 
+			throw new OutletException("Cannot find variable " + id.Name); 
 		}
 
 

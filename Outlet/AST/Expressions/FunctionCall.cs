@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class FunctionCall : Expression {
 
-		Identifier FunctionName;
-		Expression[] Args;
+		private Identifier FunctionName;
+		private Expression[] Args;
 
 		public FunctionCall(Identifier function, params Expression[] args) {
 			FunctionName = function;
@@ -21,7 +21,11 @@ namespace Outlet.AST {
 			for(int i = 0; i < a.Length; i++) {
 				a[i] = Args[i].Eval();
 			}
-			f.Eval(a);
+			try {
+				f.Call(a);
+			} catch (Return r) {
+				return r.Value;
+			}
 			return null;
 		}
 

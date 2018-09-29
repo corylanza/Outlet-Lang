@@ -15,6 +15,7 @@ namespace Outlet {
 		public static readonly Keyword Then = new Keyword("then");
 		public static readonly Keyword Else = new Keyword("else");
 		public static readonly Keyword For = new Keyword("for");
+		public static readonly Keyword In = new Keyword("in");
 		public static readonly Keyword While = new Keyword("while");
 		public static readonly Keyword Return = new Keyword("return");
 		public static readonly Keyword Func = new Keyword("func");

@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="AST\Expressions\Binary.cs" />
     <Compile Include="AST\Expressions\List.cs" />
+    <Compile Include="AST\Statements\ForLoop.cs" />
     <Compile Include="AST\Statements\IfStatement.cs" />
     <Compile Include="AST\Statements\Return.cs" />
     <Compile Include="AST\Statements\WhileLoop.cs" />
