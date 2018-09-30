@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using Outlet.AST;
 
 namespace Outlet.AST {
-	public class Assignment : Statement {
+	public class VariableDeclaration : Declaration {
 
-		Scope scope;
-		Identifier ID;
-		Expression Initializer;
+		private Scope scope;
+		private Identifier ID;
+		private Expression Initializer;
 
-		public Assignment(Scope s, Identifier id, Expression initializer) {
+		public VariableDeclaration(Scope s, Identifier id, Expression initializer) {
 			scope = s;
 			ID = id;
 			Initializer = initializer;

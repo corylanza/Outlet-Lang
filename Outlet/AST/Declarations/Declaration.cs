@@ -5,6 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public abstract class Statement : Declaration {
-	}
+    public abstract class Declaration {
+
+        public abstract void Execute();
+
+        public abstract override string ToString();
+    }
 }

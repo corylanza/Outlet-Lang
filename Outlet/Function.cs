@@ -7,12 +7,40 @@ using Outlet.AST;
 
 namespace Outlet {
 	public class Function {
-		public Function() { }
+
+        private Identifier Name;
+        private List<Identifier> ArgNames;
+        private Statement Body;
+        private Scope Parent;
+
+        public Function() { }
+
+		public Function(Scope parent, Identifier id, List<Identifier> argnames, Statement body) {
+            Parent = parent;
+            Name = id;
+            ArgNames = argnames;
+            Body = body;
+        }
 
 		public virtual Operand Call(params Operand[] args) {
-			Console.WriteLine(args[0]);
-			return null;
-			//throw new Return(args[0].Value);
+            Scope t = new Scope(Parent) { Lines = new List<Declaration>() { Body } };
+            for(int i = 0; i < args.Length; i++) {
+                t.AddVariable(ArgNames[i], args[i]);
+            }
+            try {
+                t.Execute();
+            } catch(Return r) {
+                return r.Value;
+            }
+            return null;
 		}
 	}
+
+    public class Native : Function {
+        private Func<Operand[], Operand> F;
+        public Native(Func<Operand[], Operand> func)  {
+            F = func;
+        }
+        public override Operand Call(params Operand[] args) => F(args);
+    }
 }

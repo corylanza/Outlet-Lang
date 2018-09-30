@@ -34,8 +34,12 @@ namespace Outlet {
                     Queue<IToken> lexout = Lexer.Scan(bytes);
                     Statement program = Parser.Parse(s, lexout);
                     //Console.WriteLine("Parsed: " + program.ToString());
-                    if(program is Expression e) Console.WriteLine("Expression returned " + e.Eval());
-                    else {
+                    if(program is Expression e) {
+                        Operand result = e.Eval();
+                        if(!(result is null)) {
+                            Console.WriteLine("Expression returned " + result);
+                        }
+                    } else {
                         program.Execute();
                     }
                 } catch (OutletException ex) {
