@@ -22,7 +22,7 @@ namespace Outlet.AST {
 			Value = value;
 		}
 
-		public override Operand Eval() => this;
+		public override Operand Eval(Scope block) => this;
 
 		public override bool Equals(Operand b) => Value.Equals(b.Value);
 

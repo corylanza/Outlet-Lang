@@ -14,8 +14,8 @@ namespace Outlet.AST {
 			Iftrue = iftrue;
 		}
 
-		public override void Execute() {
-			while (Condition.Eval().Value is bool b && b) Iftrue.Execute();
+		public override void Execute(Scope block) {
+			while (Condition.Eval(block).Value is bool b && b) Iftrue.Execute(block);
 		}
 
 		public override string ToString() => "if ...";

@@ -16,7 +16,7 @@ namespace Outlet.AST {
             this.op = op;
         }
 
-        public override Operand Eval() => op.PerformOp(left.Eval(), right.Eval());
+        public override Operand Eval(Scope block) => op.PerformOp(left.Eval(block), right.Eval(block));
 
 		public override string ToString() => "("+left.ToString() +" "+ op.ToString() + " "+right.ToString()+")";
     }

@@ -25,7 +25,6 @@ namespace Outlet.Parsing {
                 switch(cur) {
                 case Identifier id:
                     output.Push(id);
-                    id.SetScope(scope);
                     break;
                 case Literal l: // does not handle other future operand types
                     output.Push(l);
@@ -62,19 +61,16 @@ namespace Outlet.Parsing {
                     else {
                         stack.Pop();
                         int a = arity.Pop();
-                        Expression temp;
-                        if(a != 1) {
-                            Expression[] tuple = new Expression[a];
-                            for(int i = 0; i < a; i++) {
-                                tuple[a - 1 - i] = output.Pop();
-                            }
-                            temp = new OTuple(tuple);
-                        } else temp = output.Pop();
-                        if(output.Count > 0 && output.Peek() is Identifier funcid) {
-                            output.Pop();
-                            FunctionCall funccall = new FunctionCall(scope, funcid, temp);
-                            output.Push(funccall); //TODO
-                        } else output.Push(temp);
+                        Expression[] tuple = new Expression[a];
+						for (int i = 0; i < a; i++) {
+							tuple[a - 1 - i] = output.Pop();
+						}
+						if (output.Count > 0 && output.Peek() is Identifier funcid) {
+							output.Pop();
+							FunctionCall funccall = new FunctionCall(scope, funcid, tuple);
+							output.Push(funccall); //TODO
+						} else if (a == 1) output.Push(tuple[0]);
+						else output.Push(new OTuple(tuple));
                     }
                     break;
                 case Delimeter rightb when rightb == Delimeter.RightBrace:

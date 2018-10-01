@@ -11,27 +11,36 @@ namespace Outlet {
         private Identifier Name;
         private List<Identifier> ArgNames;
         private Statement Body;
-        private Scope Parent;
 
         public Function() { }
 
-		public Function(Scope parent, Identifier id, List<Identifier> argnames, Statement body) {
-            Parent = parent;
+		public Function(Identifier id, List<Identifier> argnames, Statement body) {
             Name = id;
             ArgNames = argnames;
             Body = body;
         }
 
-		public virtual Operand Call(params Operand[] args) {
-            Scope t = new Scope(Parent) { Lines = new List<Declaration>() { Body } };
-            for(int i = 0; i < args.Length; i++) {
-                t.AddVariable(ArgNames[i], args[i]);
-            }
-            try {
-                t.Execute();
-            } catch(Return r) {
-                return r.Value;
-            }
+		public virtual Operand Call(Scope block, params Operand[] args) {
+            if(Body is Scope t) {
+				for (int i = 0; i < args.Length; i++) {
+					t.AddVariable(ArgNames[i], args[i]);
+				}
+				try {
+					t.Execute();
+				} catch (Return r) {
+					t.Variables.Clear();
+					return r.Value;
+				}
+				t.Variables.Clear();
+			} else if(Body is Expression e) {
+				Scope s = new Scope(block);
+				for (int i = 0; i < args.Length; i++) {
+					s.AddVariable(ArgNames[i], args[i]);
+				}
+				return e.Eval(s);
+			}
+            
+           
             return null;
 		}
 	}
@@ -41,6 +50,6 @@ namespace Outlet {
         public Native(Func<Operand[], Operand> func)  {
             F = func;
         }
-        public override Operand Call(params Operand[] args) => F(args);
+        public override Operand Call(Scope block, params Operand[] args) => F(args);
     }
 }

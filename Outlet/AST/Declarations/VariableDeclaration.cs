@@ -7,19 +7,17 @@ using Outlet.AST;
 
 namespace Outlet.AST {
 	public class VariableDeclaration : Declaration {
-
-		private Scope scope;
+		
 		private Identifier ID;
 		private Expression Initializer;
 
-		public VariableDeclaration(Scope s, Identifier id, Expression initializer) {
-			scope = s;
+		public VariableDeclaration(Identifier id, Expression initializer) {
 			ID = id;
 			Initializer = initializer;
 		}
 
-		public override void Execute() {
-			scope.AddVariable(ID, Initializer?.Eval());
+		public override void Execute(Scope block) {
+			block.AddVariable(ID, Initializer?.Eval(block));
 		}
 
 		public override string ToString() {

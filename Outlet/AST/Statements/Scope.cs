@@ -54,9 +54,13 @@ namespace Outlet.AST {
             throw new OutletException("Cannot find function " + id.Name);
         }
 
+		public void Execute() => Execute(this);
 
-        public override void Execute() {
-            foreach(Declaration d in Lines) d.Execute();
+
+        public override void Execute(Scope block) {
+			foreach (Declaration d in Lines) {
+				d.Execute(this);
+			}
             if(!Repl) Variables.Clear();
 		}
 

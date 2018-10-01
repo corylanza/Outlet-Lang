@@ -16,7 +16,7 @@ namespace Outlet.Parsing {
                 Expression initializer = null;
                 if(Match(Operator.Equal)) initializer = NextExpression(block, tokens);
                 else Consume(Delimeter.SemiC, "expected either ; or an initializer after declaring a variable");
-                return new VariableDeclaration(block, name, initializer);
+                return new VariableDeclaration(name, initializer);
             }
             Declaration FunctionDeclaration() {
                 Identifier name = tokens.Dequeue() as Identifier;
@@ -32,8 +32,9 @@ namespace Outlet.Parsing {
                 }
                 Consume(Delimeter.RightParen, " expected ) after function args");
                 //Consume(Operator.Equal, " expected = after function name");
+				// TODO check for => and call nextexpression if true
                 Statement body = NextStatement(block, tokens);
-                return new FunctionDeclaration(block, name, argnames, body);
+                return new FunctionDeclaration(name, argnames, body);
             }
             if(Match(Keyword.Var)) return VariableDeclaration();
             if(Match(Keyword.Func)) return FunctionDeclaration();

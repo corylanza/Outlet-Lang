@@ -21,7 +21,7 @@ namespace Outlet {
             byte[] bytes = file.Skip(3).ToArray();
             Queue<IToken> lexout = Lexer.Scan(bytes);
             Statement program = Parser.Parse(s, lexout);
-            program.Execute();
+            program.Execute(s);
         }
 
         public static void REPL() {
@@ -35,12 +35,12 @@ namespace Outlet {
                     Statement program = Parser.Parse(s, lexout);
                     //Console.WriteLine("Parsed: " + program.ToString());
                     if(program is Expression e) {
-                        Operand result = e.Eval();
+                        Operand result = e.Eval(s);
                         if(!(result is null)) {
                             Console.WriteLine("Expression returned " + result);
                         }
                     } else {
-                        program.Execute();
+                        program.Execute(s);
                     }
                 } catch (OutletException ex) {
                     Console.ForegroundColor = ConsoleColor.Red;

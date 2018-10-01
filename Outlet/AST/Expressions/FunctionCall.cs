@@ -9,21 +9,19 @@ namespace Outlet.AST {
 
 		private Identifier FunctionName;
 		private Expression[] Args;
-        private Scope Scope;
 
 		public FunctionCall(Scope s, Identifier function, params Expression[] args) {
 			FunctionName = function;
 			Args = args;
-            Scope = s;
 		}
 
-		public override Operand Eval() {
-            Function f = Scope.GetFunc(FunctionName);
+		public override Operand Eval(Scope block) {
+            Function f = block.GetFunc(FunctionName);
             Operand[] a = new Operand[Args.Length];
             for(int i = 0; i < a.Length; i++) {
-                a[i] = Args[i].Eval();
+                a[i] = Args[i].Eval(block);
             }
-            return f.Call(a);
+            return f.Call(block, a);
             /*
 			Function f = new Function();
 			Operand[] a = new Operand[Args.Length];

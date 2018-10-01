@@ -6,23 +6,21 @@ using System.Threading.Tasks;
 
 namespace Outlet.AST {
     public class FunctionDeclaration : Declaration {
-
-        private Scope Scope;
+		
         private Identifier ID;
         private List<Identifier> ArgNames;
         private Statement Body;
 
-        public FunctionDeclaration(Scope s, Identifier id, List<Identifier> argnames, Statement body) {
-            Scope = s;
+        public FunctionDeclaration(Identifier id, List<Identifier> argnames, Statement body) {
             ID = id;
             ArgNames = argnames;
             Body = body;
         }
 
 
-        public override void Execute() {
-            Function f = new Function(Scope, ID, ArgNames, Body);
-            Scope.AddFunc(ID, f);
+        public override void Execute(Scope block) {
+            Function f = new Function(ID, ArgNames, Body);
+            block.AddFunc(ID, f);
         }
 
         public override string ToString() {

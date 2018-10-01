@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public abstract class Expression : Statement {
 
-		public override void Execute() {
-			Eval();
+		public override void Execute(Scope block) {
+			Eval(block);
 		}
 		
-		public abstract Operand Eval();
+		public abstract Operand Eval(Scope block);
     }
 
     public abstract class Operand : Expression {

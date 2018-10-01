@@ -11,9 +11,9 @@ namespace Outlet.AST {
 			Value = vals;
 		}
 
-		public override Operand Eval() {
+		public override Operand Eval(Scope block) {
 			for(int i = 0; i < Value.Length; i++) {
-				Value[i] = Value[i].Eval();
+				Value[i] = Value[i].Eval(block);
 			}
 			return this;
 		}

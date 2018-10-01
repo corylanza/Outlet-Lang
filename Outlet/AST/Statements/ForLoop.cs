@@ -22,8 +22,8 @@ namespace Outlet.AST {
 			}
 		}
 
-		public override void Execute() {
-			OList c = Collection.Eval() as OList;
+		public override void Execute(Scope block) {
+			OList c = Collection.Eval(block) as OList;
 			Body.AddVariable(LoopVar, null);
 			foreach(Operand o in c.Value) {
 				Console.WriteLine(o.ToString());
