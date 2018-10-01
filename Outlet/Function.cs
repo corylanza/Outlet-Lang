@@ -21,26 +21,17 @@ namespace Outlet {
         }
 
 		public virtual Operand Call(Scope block, params Operand[] args) {
-            if(Body is Scope t) {
-				for (int i = 0; i < args.Length; i++) {
-					t.AddVariable(ArgNames[i], args[i]);
-				}
-				try {
-					t.Execute();
-				} catch (Return r) {
-					t.Variables.Clear();
-					return r.Value;
-				}
-				t.Variables.Clear();
-			} else if(Body is Expression e) {
-				Scope s = new Scope(block);
-				for (int i = 0; i < args.Length; i++) {
-					s.AddVariable(ArgNames[i], args[i]);
-				}
-				return e.Eval(s);
+			Scope exec = new Scope(block);
+			for (int i = 0; i < args.Length; i++) {
+				exec.AddVariable(ArgNames[i], args[i]);
 			}
-            
-           
+			try {
+				if (Body is Scope s) s.Parent = exec;
+				if (Body is Expression e) return e.Eval(exec);
+				Body.Execute(exec);
+			} catch (Return r) {
+				return r.Value;
+			}
             return null;
 		}
 	}

@@ -22,6 +22,7 @@ namespace Outlet {
             Queue<IToken> lexout = Lexer.Scan(bytes);
             Statement program = Parser.Parse(s, lexout);
             program.Execute(s);
+			while (true) ;
         }
 
         public static void REPL() {

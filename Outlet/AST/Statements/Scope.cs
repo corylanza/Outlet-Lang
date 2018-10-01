@@ -59,7 +59,8 @@ namespace Outlet.AST {
 
         public override void Execute(Scope block) {
 			foreach (Declaration d in Lines) {
-				d.Execute(this);
+				if (d is Scope s) s.Execute();
+				else d.Execute(block);
 			}
             if(!Repl) Variables.Clear();
 		}

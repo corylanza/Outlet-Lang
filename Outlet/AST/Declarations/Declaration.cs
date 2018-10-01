@@ -9,6 +9,8 @@ namespace Outlet.AST {
 
         public abstract void Execute(Scope block);
 
+		//public abstract void Resolve();
+
         public abstract override string ToString();
     }
 }
