@@ -7,7 +7,7 @@ using Outlet.AST;
 
 namespace Outlet.Parsing {
 	public static partial class Parser {
-		public static Expression NextExpression(Scope scope, LinkedList<IToken> tokens) {
+		public static Expression NextExpression(LinkedList<IToken> tokens) {
 			bool done = false;
 			Stack<Expression> output = new Stack<Expression>();
 			Stack<IToken> stack = new Stack<IToken>();
@@ -75,7 +75,7 @@ namespace Outlet.Parsing {
 							}
 							if (output.Count > 0 && output.Peek() is Identifier funcid) {
 								output.Pop();
-								FunctionCall funccall = new FunctionCall(scope, funcid, tuple);
+								FunctionCall funccall = new FunctionCall(funcid, tuple);
 								output.Push(funccall); //TODO
 							} else if (a == 1) output.Push(tuple[0]);
 							else output.Push(new OTuple(tuple));

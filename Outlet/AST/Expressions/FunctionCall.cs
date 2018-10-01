@@ -10,7 +10,7 @@ namespace Outlet.AST {
 		private Identifier FunctionName;
 		private Expression[] Args;
 
-		public FunctionCall(Scope s, Identifier function, params Expression[] args) {
+		public FunctionCall(Identifier function, params Expression[] args) {
 			FunctionName = function;
 			Args = args;
 		}

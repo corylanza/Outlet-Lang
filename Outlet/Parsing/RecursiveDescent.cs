@@ -14,7 +14,7 @@ namespace Outlet.Parsing {
             Declaration VariableDeclaration() {
                 Identifier name = tokens.Dequeue() as Identifier;
                 Expression initializer = null;
-                if(Match(Operator.Equal)) initializer = NextExpression(block, tokens);
+                if(Match(Operator.Equal)) initializer = NextExpression(tokens);
                 else Consume(Delimeter.SemiC, "expected either ; or an initializer after declaring a variable");
                 return new VariableDeclaration(name, initializer);
             }
@@ -72,7 +72,7 @@ namespace Outlet.Parsing {
             }
             Statement IfStatement() {
                 Consume(Delimeter.LeftParen, "Expected ( after if");
-                Expression condition = NextExpression(block, tokens);
+                Expression condition = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after if condition");
                 Statement iftrue = NextStatement(block, tokens);
                 Statement ifelse = null;
@@ -81,7 +81,7 @@ namespace Outlet.Parsing {
             }
             Statement WhileLoop() {
                 Consume(Delimeter.LeftParen, "Expected ( after while");
-                Expression condition = NextExpression(block, tokens);
+                Expression condition = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after while condition");
                 Statement iftrue = NextStatement(block, tokens);
                 return new WhileLoop(condition, iftrue);
@@ -90,13 +90,13 @@ namespace Outlet.Parsing {
                 Consume(Delimeter.LeftParen, "Expected ( after for");
                 Identifier loopvar = tokens.Dequeue() as Identifier;
                 Consume(Keyword.In, "expected in after for loop variable");
-                Expression collection = NextExpression(block, tokens);
+                Expression collection = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after for loop collection");
                 Statement body = NextStatement(block, tokens);
                 return new ForLoop(block, loopvar, collection, body);
             }
             Statement Return() {
-                Expression e = NextExpression(block, tokens);
+                Expression e = NextExpression(tokens);
                 return new ReturnStatement(e);
             }
 
@@ -105,7 +105,7 @@ namespace Outlet.Parsing {
             if(Match(Keyword.For)) return ForLoop();
             if(Match(Keyword.While)) return WhileLoop();
             if(Match(Keyword.Return)) return Return();
-            return NextExpression(block, tokens);
+            return NextExpression(tokens);
         }
     }
 }
