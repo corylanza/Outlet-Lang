@@ -64,10 +64,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AST\Declarations\ClassDeclaration.cs" />
     <Compile Include="AST\Declarations\Declaration.cs" />
     <Compile Include="AST\Declarations\FunctionDeclaration.cs" />
     <Compile Include="AST\Expressions\Binary.cs" />
-    <Compile Include="AST\Expressions\List.cs" />
+    <Compile Include="AST\Expressions\Operands\List.cs" />
     <Compile Include="AST\Statements\ForLoop.cs" />
     <Compile Include="AST\Statements\IfStatement.cs" />
     <Compile Include="AST\Statements\Return.cs" />
@@ -77,13 +78,13 @@
     <Compile Include="AST\Expressions\Expression.cs" />
     <Compile Include="AST\Expressions\FunctionCall.cs" />
     <Compile Include="AST\Expressions\Identifier.cs" />
-    <Compile Include="AST\Expressions\Literal.cs" />
+    <Compile Include="AST\Expressions\Operands\Literal.cs" />
     <Compile Include="AST\Declarations\VariableDeclaration.cs" />
     <Compile Include="AST\Statements\Scope.cs" />
-    <Compile Include="AST\Expressions\Tuple.cs" />
+    <Compile Include="AST\Expressions\Operands\Tuple.cs" />
     <Compile Include="AST\Expressions\Types\Type.cs" />
     <Compile Include="AST\Expressions\Unary.cs" />
-    <Compile Include="Function.cs" />
+    <Compile Include="AST\Expressions\Operands\Function.cs" />
     <Compile Include="Keyword.cs" />
     <Compile Include="Operator.cs" />
     <Compile Include="Parsing\Parser.cs" />
@@ -118,6 +119,7 @@
     <Content Include="bnf.txt" />
     <Content Include="Test\file.txt" />
     <Content Include="Test\file2.txt" />
+    <Content Include="Test\future.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

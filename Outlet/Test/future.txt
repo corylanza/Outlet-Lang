@@ -1,0 +1,2 @@
+﻿factorial(1): int = 1
+factorial(int n): int = n*factorial(n-1) 

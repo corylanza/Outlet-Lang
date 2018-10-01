@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Outlet.AST;
 
-namespace Outlet {
-	public class Function {
+namespace Outlet.AST{
+	public class Function : Operand {
 
         private Identifier Name;
         private List<Identifier> ArgNames;
@@ -33,6 +32,16 @@ namespace Outlet {
 				return r.Value;
 			}
             return null;
+		}
+
+		public override bool Equals(Operand b) => ReferenceEquals(this, b);
+
+		public override Operand Eval(Scope block) {
+			return this;
+		}
+
+		public override string ToString() {
+			return "function: "+Name.ToString();
 		}
 	}
 

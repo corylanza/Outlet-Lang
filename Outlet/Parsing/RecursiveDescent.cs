@@ -18,7 +18,7 @@ namespace Outlet.Parsing {
                 else Consume(Delimeter.SemiC, "expected either ; or an initializer after declaring a variable");
                 return new VariableDeclaration(name, initializer);
             }
-            Declaration FunctionDeclaration() {
+            Declaration FunctionDef() {
                 Identifier name = tokens.Dequeue() as Identifier;
                 Consume(Delimeter.LeftParen, "expected ( after function name");
                 List <Identifier> argnames = new List<Identifier>();
@@ -36,9 +36,25 @@ namespace Outlet.Parsing {
                 Statement body = NextStatement(block, tokens);
                 return new FunctionDeclaration(name, argnames, body);
             }
+			Declaration ClassDef(){
+				Identifier name = tokens.Dequeue() as Identifier;
+				Consume(Delimeter.LeftParen, "expected ( after function name");
+				List<Identifier> argnames = new List<Identifier>();
+				while (tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
+					do {
+						if (tokens.First() is Identifier argname) {
+							tokens.Dequeue();
+							argnames.Add(argname);
+						} else throw new OutletException("Only identifiers can be used as args");
+					} while (Match(Delimeter.Comma));
+				}
+				Consume(Delimeter.RightParen, " expected ) after function args");
+				//TODO check for { after and use that scope as body
+				return new ClassDeclaration(name, argnames);
+			}
             if(Match(Keyword.Var)) return VariableDeclaration();
-            if(Match(Keyword.Func)) return FunctionDeclaration();
-            //if (Match(Keyword.Class)) return ClassDeclaration();
+            if(Match(Keyword.Func)) return FunctionDef();
+            if (Match(Keyword.Class)) return ClassDef();
             return NextStatement(block, tokens);
         }
 

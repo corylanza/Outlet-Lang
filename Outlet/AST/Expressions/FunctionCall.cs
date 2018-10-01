@@ -16,7 +16,7 @@ namespace Outlet.AST {
 		}
 
 		public override Operand Eval(Scope block) {
-            Function f = block.GetFunc(FunctionName);
+            Function f = block.Get(FunctionName) as Function;
             Operand[] a = new Operand[Args.Length];
             for(int i = 0; i < a.Length; i++) {
                 a[i] = Args[i].Eval(block);

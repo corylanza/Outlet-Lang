@@ -44,6 +44,7 @@ namespace Outlet.AST {
 		public Operand Get(Identifier id) {
 			if (Variables.ContainsKey(id.Name)) return Variables[id.Name];
 			if (Parent != null) return Parent.Get(id);
+			else if (NativeFunctions.ContainsKey(id.Name)) return NativeFunctions[id.Name];
 			throw new OutletException("Cannot find variable " + id.Name); 
 		}
 
