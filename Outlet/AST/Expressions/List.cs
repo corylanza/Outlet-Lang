@@ -28,7 +28,8 @@ namespace Outlet.AST {
 		}
 
 		public override string ToString() {
-			string s = "List(";
+			if (Value.Length == 0) return "List()";
+			 string s = "List(";
 			foreach (Expression e in Value) {
 				s += e.ToString() + ", ";
 			}

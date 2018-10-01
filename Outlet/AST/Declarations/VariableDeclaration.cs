@@ -16,6 +16,10 @@ namespace Outlet.AST {
 			Initializer = initializer;
 		}
 
+		public override void Resolve() {
+			throw new NotImplementedException();
+		}
+
 		public override void Execute(Scope block) {
 			block.AddVariable(ID, Initializer?.Eval(block));
 		}

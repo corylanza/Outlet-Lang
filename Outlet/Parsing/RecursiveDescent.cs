@@ -8,8 +8,8 @@ using Outlet.AST;
 namespace Outlet.Parsing {
     public static partial class Parser {
 
-        public static Declaration NextDeclaration(Scope block, Queue<IToken> tokens) {
-            bool Match(IToken s) { if(tokens.Count > 0 && tokens.Peek() == s) { tokens.Dequeue(); return true; } else return false; }
+        public static Declaration NextDeclaration(Scope block, LinkedList<IToken> tokens) {
+            bool Match(IToken s) { if(tokens.Count > 0 && tokens.First() == s) { tokens.RemoveFirst(); return true; } else return false; }
             void Consume(IToken s, string error) { if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error); }
             Declaration VariableDeclaration() {
                 Identifier name = tokens.Dequeue() as Identifier;
@@ -22,16 +22,16 @@ namespace Outlet.Parsing {
                 Identifier name = tokens.Dequeue() as Identifier;
                 Consume(Delimeter.LeftParen, "expected ( after function name");
                 List <Identifier> argnames = new List<Identifier>();
-                while(tokens.Count > 0 && tokens.Peek() != Delimeter.RightParen) {
+                while(tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
                     do {
-                        if(tokens.Peek() is Identifier argname) {
+                        if(tokens.First() is Identifier argname) {
                             tokens.Dequeue();
                             argnames.Add(argname);
                         } else throw new OutletException("Only identifiers can be used as args");
                     } while(Match(Delimeter.Comma));
                 }
                 Consume(Delimeter.RightParen, " expected ) after function args");
-                //Consume(Operator.Equal, " expected = after function name");
+                Consume(Operator.Equal, " expected = after function name");
 				// TODO check for => and call nextexpression if true
                 Statement body = NextStatement(block, tokens);
                 return new FunctionDeclaration(name, argnames, body);
@@ -42,13 +42,13 @@ namespace Outlet.Parsing {
             return NextStatement(block, tokens);
         }
 
-        public static Statement NextStatement(Scope block, Queue<IToken> tokens) {
-            bool Match(IToken s) { if(tokens.Count > 0 && tokens.Peek() == s) { tokens.Dequeue(); return true; } else return false; }
+        public static Statement NextStatement(Scope block, LinkedList<IToken> tokens) {
+            bool Match(IToken s) { if(tokens.Count > 0 && tokens.First() == s) { tokens.Dequeue(); return true; } else return false; }
             void Consume(IToken s, string error) { if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error); }
 
             Statement Scope() {
                 Scope newscope = new Scope(block);
-                while(tokens.Count > 0 && tokens.Peek() != Delimeter.RightCurly) {
+                while(tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
                     newscope.Lines.Add(NextDeclaration(newscope, tokens));
                 }
                 Consume(Delimeter.RightCurly, "Expected } to close code block");

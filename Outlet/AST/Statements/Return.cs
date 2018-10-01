@@ -13,6 +13,8 @@ namespace Outlet.AST {
 			E = e;
 		}
 
+		public override void Resolve() => E.Resolve();
+
 		public override void Execute(Scope block) => throw new Return(E.Eval(block));
 
 		public override string ToString() => "return " + E.ToString();

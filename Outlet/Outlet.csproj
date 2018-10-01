@@ -50,6 +50,9 @@
   <PropertyGroup>
     <StartupObject>Outlet.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'REPL|AnyCPU'">
+    <OutputPath>bin\REPL\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />

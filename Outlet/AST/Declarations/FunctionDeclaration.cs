@@ -17,8 +17,11 @@ namespace Outlet.AST {
             Body = body;
         }
 
+		public override void Resolve() {
+			throw new NotImplementedException();
+		}
 
-        public override void Execute(Scope block) {
+		public override void Execute(Scope block) {
             Function f = new Function(ID, ArgNames, Body);
             block.AddFunc(ID, f);
         }

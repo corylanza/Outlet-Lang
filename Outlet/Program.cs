@@ -19,7 +19,7 @@ namespace Outlet {
             Scope s = new Scope();
             byte[] file = File.ReadAllBytes(path);
             byte[] bytes = file.Skip(3).ToArray();
-            Queue<IToken> lexout = Lexer.Scan(bytes);
+            LinkedList<IToken> lexout = Lexer.Scan(bytes);
             Statement program = Parser.Parse(s, lexout);
             program.Execute(s);
 			while (true) ;
@@ -29,10 +29,13 @@ namespace Outlet {
             Scope s = new Scope(true); // used by repl to keep definitions
             while(true) {
                 Console.WriteLine("<enter an expression>");
-                string input = Console.ReadLine();
+				string input = "";
+				while (input.Length == 0 || input.Count((c) => c == '{') != input.Count((c) => c == '}')) { 
+					input += Console.ReadLine();
+				}
                 byte[] bytes = Encoding.ASCII.GetBytes(input);
                 try {
-                    Queue<IToken> lexout = Lexer.Scan(bytes);
+                    LinkedList<IToken> lexout = Lexer.Scan(bytes);
                     Statement program = Parser.Parse(s, lexout);
                     //Console.WriteLine("Parsed: " + program.ToString());
                     if(program is Expression e) {

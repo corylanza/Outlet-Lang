@@ -14,6 +14,11 @@ namespace Outlet.AST {
 			Iftrue = iftrue;
 		}
 
+		public override void Resolve() {
+			Condition.Resolve();
+			Iftrue.Resolve();
+		}
+
 		public override void Execute(Scope block) {
 			while (Condition.Eval(block).Value is bool b && b) Iftrue.Execute(block);
 		}

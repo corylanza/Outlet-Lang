@@ -1,10 +1,10 @@
 ﻿var a = "global";
 {
-  func showA(b) {
+  func showA() {
     print(a);
   }
 
-  showA(0);
+  showA();
   var a = "block";
-  showA(0);
+  showA();
 }

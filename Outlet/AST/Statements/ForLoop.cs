@@ -22,6 +22,10 @@ namespace Outlet.AST {
 			}
 		}
 
+		public override void Resolve() {
+			throw new NotImplementedException();
+		}
+
 		public override void Execute(Scope block) {
 			OList c = Collection.Eval(block) as OList;
 			Body.AddVariable(LoopVar, null);
