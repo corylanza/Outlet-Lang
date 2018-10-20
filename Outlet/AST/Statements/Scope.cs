@@ -23,7 +23,7 @@ namespace Outlet.AST {
 
 		public Dictionary<string, Operand> Variables = new Dictionary<string, Operand>();
         public Dictionary<string, Function> Functions = new Dictionary<string, Function>();
-
+        public Dictionary<string, bool> Defined = new Dictionary<string, bool>();
 
         public List<Declaration> Lines = new List<Declaration>();
         private bool Repl = false;
@@ -37,6 +37,31 @@ namespace Outlet.AST {
             Repl = true;
         }
 
+        public void Declare(string s) {
+            if(Defined.ContainsKey(s)) throw new OutletException("variable "+s+" already declared in this scope");
+            Defined.Add(s, false);
+        }
+
+        public void Define(string s) {
+            Defined[s] = true;
+        }
+
+        public int Find(string s) {
+            if(Defined.ContainsKey(s)) {
+                if(Defined[s]) return 0;
+                else {
+                    Defined.Remove(s);
+                    throw new OutletException("Cannot reference variable being initialized in its own initializer");
+                }
+            } else if(Parent != null) return 1 + Parent.Find(s);
+            else return -1;
+        }
+
+        public Operand Get(int level, string s) {
+            if(level == 0) return Variables[s];
+            else return Parent.Get(level - 1, s);
+        }
+
 		public void AddVariable(string id, Operand o) {
 			if(Variables.ContainsKey(id)) throw new OutletException("variable " + id+" already exists in the current scope");
 			Variables.Add(id, o);
@@ -46,13 +71,13 @@ namespace Outlet.AST {
             if(Functions.ContainsKey(id)) throw new OutletException("function " + id + " already exists in the current scope");
             Functions.Add(id, f);
         }
-
+        /*
 		public Operand Get(string id) {
 			if (Variables.ContainsKey(id)) return Variables[id];
 			if (Parent != null) return Parent.Get(id);
 			else if (NativeTypes.ContainsKey(id)) return NativeTypes[id];
 			throw new OutletException("Cannot find variable " + id); 
-		}
+		}*/
 
         public Function GetFunc(string id) {
             if(Functions.ContainsKey(id)) return Functions[id];
@@ -61,8 +86,8 @@ namespace Outlet.AST {
             throw new OutletException("Cannot find function " + id);
         }
 
-		public override void Resolve() {
-			foreach (Statement s in Lines) s.Resolve();
+		public override void Resolve(Scope block) {
+			foreach (Declaration s in Lines) s.Resolve(this);
 		}
 
 		public void Execute() => Execute(this);
@@ -70,9 +95,7 @@ namespace Outlet.AST {
 
         public override void Execute(Scope block) {
 			foreach (Declaration d in Lines) {
-				//if (d is Scope s) s.Execute();
-				//else
-				d.Execute(block);
+				d.Execute(this);
 			}
             if(!Repl) Variables.Clear();
 		}

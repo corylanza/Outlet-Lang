@@ -26,6 +26,11 @@ namespace Outlet.AST {
 			return op.PerformOp(left.Eval(block), right.Eval(block));
 		}
 
-		public override string ToString() => "("+left.ToString() +" "+ op.ToString() + " "+right.ToString()+")";
+        public override void Resolve(Scope block) {
+            left.Resolve(block);
+            right.Resolve(block);
+        }
+
+        public override string ToString() => "("+left.ToString() +" "+ op.ToString() + " "+right.ToString()+")";
     }
 }

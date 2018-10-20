@@ -37,6 +37,7 @@ namespace Outlet {
                 try {
                     LinkedList<IToken> lexout = Lexer.Scan(bytes);
                     Statement program = Parser.Parse(s, lexout);
+                    program.Resolve(s);
                     //Console.WriteLine("Parsed: " + program.ToString());
                     if(program is Expression e) {
                         Operand result = e.Eval(s);

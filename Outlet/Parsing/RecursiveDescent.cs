@@ -95,7 +95,7 @@ namespace Outlet.Parsing {
                 Expression collection = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after for loop collection");
                 Statement body = NextStatement(block, tokens);
-                return new ForLoop(block, loopvar, collection, body);
+                return new ForLoop(loopvar, collection, body);
             }
             Statement Return() {
                 Expression e = NextExpression(tokens);

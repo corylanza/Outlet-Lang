@@ -27,7 +27,6 @@ namespace Outlet.AST{
 			for (int i = 0; i < args.Length; i++) {
 				exec.AddVariable(ArgNames[i].Name, args[i]);
 			} try {
-				if (Body is Scope s) s.Parent = exec;
 				if (Body is Expression e) return e.Eval(exec);
 				Body.Execute(exec);
 			} catch (Return r) {
@@ -42,7 +41,7 @@ namespace Outlet.AST{
 			return this;
 		}
 
-		public override string ToString() {
+        public override string ToString() {
 			return "function: "+Name.ToString();
 		}
 	}

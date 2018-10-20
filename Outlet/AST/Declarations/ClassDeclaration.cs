@@ -24,7 +24,7 @@ namespace Outlet.AST {
 			block.AddFunc(Name, new Native((args) => new Instance(c, ArgNames.TupleZip(args.ToList()))));
 		}
 
-		public override void Resolve() {
+		public override void Resolve(Scope block) {
 			throw new NotImplementedException();
 		}
 

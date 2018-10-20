@@ -19,9 +19,14 @@ namespace Outlet.AST {
 			Closure = closure;
         }
 
-		public override void Resolve() {
-			throw new NotImplementedException();
-		}
+		public override void Resolve(Scope block) {
+            Scope exec = new Scope(Closure);
+            foreach(Identifier arg in ArgNames) {
+                exec.Declare(arg.Name);
+                exec.Define(arg.Name);
+            }
+            Body.Resolve(exec);
+        }
 
 		public override void Execute(Scope block) {
             Function f = new Function(Closure, ID, ArgNames, Body);

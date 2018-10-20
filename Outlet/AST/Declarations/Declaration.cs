@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public abstract class Declaration {
 
-		public abstract void Resolve();
+		public abstract void Resolve(Scope block);
 
 		//public abstract void TypeCheck();
 

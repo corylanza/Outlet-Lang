@@ -7,10 +7,6 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public abstract class Expression : Statement {
 
-		public override void Resolve() {
-			throw new NotImplementedException();
-		}
-
 		public override void Execute(Scope block) => Eval(block);
 		
 		public abstract Operand Eval(Scope block);

@@ -28,7 +28,11 @@ namespace Outlet.AST {
 		//public abstract Operand Dereference(FunctionCall method);
 		public override int GetHashCode() => base.GetHashCode();
 
-	}
+        public override void Resolve(Scope block) {
+            
+        }
+
+    }
 
 	public interface ICallable {
 		Operand Call(params Operand[] args);

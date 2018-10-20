@@ -16,6 +16,10 @@ namespace Outlet.AST {
 
 		public override Operand Eval(Scope block) => op.PerformOp(input.Eval(block));
 
-		public override string ToString() => "("+op.ToString() + " " + input.ToString() + ")";
+        public override void Resolve(Scope block) {
+            input.Resolve(block);
+        }
+
+        public override string ToString() => "("+op.ToString() + " " + input.ToString() + ")";
 	}
 }

@@ -9,31 +9,35 @@ namespace Outlet.AST {
 
 		private string LoopVar;
 		private Expression Collection;
-		private Scope Body;
+		private Statement Body;
 
-		public ForLoop(Scope parent, Identifier loopvar, Expression collection, Statement body) {
+		public ForLoop(Identifier loopvar, Expression collection, Statement body) {
 			LoopVar = loopvar.Name;
 			Collection = collection;
-			if(body is Scope s) {
-				Body = s;
-			} else {
-				Body = new Scope(parent);
-				Body.Lines.Add(body);
-			}
+            Body = body;
 		}
 
-		public override void Resolve() {
-			throw new NotImplementedException();
+		public override void Resolve(Scope block) { 
+            /*
+            Scope exec = new Scope(block);
+            exec.Declare(LoopVar);
+            exec.Define(LoopVar);
+            Collection.Resolve(exec);
+            Body.Resolve(exec);
+            */
 		}
 
 		public override void Execute(Scope block) {
-			OList c = Collection.Eval(block) as OList;
-			Body.AddVariable(LoopVar, null);
+            throw new NotImplementedException("");
+            /*
+            Scope exec = new Scope(block);
+            Scope body = new Scope(exec) { Lines = new List<Declaration>() { Body } };
+            OList c = Collection.Eval(exec) as OList;
 			foreach(Operand o in c.Value) {
-				Console.WriteLine(o.ToString());
-				//Body.Get(LoopVar).Value = o.Value;
-				//Body.Execute();
-			}
+                exec.AddVariable(LoopVar, o);
+                Body.Execute(exec);
+                exec.Variables.Clear();
+			}*/
 		}
 
 		public override string ToString() => "for " + LoopVar + " in " + Collection.ToString() + Body.ToString();

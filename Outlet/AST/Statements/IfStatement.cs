@@ -16,10 +16,10 @@ namespace Outlet.AST {
 			Iffalse = ifelse;
 		}
 
-		public override void Resolve() {
-			Condition.Resolve();
-			Iftrue.Resolve();
-			if (Iffalse != null) Iffalse.Resolve();
+		public override void Resolve(Scope block) {
+            Condition.Resolve(block);
+            Iftrue.Resolve(block);
+            Iffalse?.Resolve(block);
 		}
 
 		public override void Execute(Scope block) {

@@ -24,6 +24,10 @@ namespace Outlet.AST {
             return f.Call(a);
 		}
 
-		public override string ToString() => FunctionName + new OTuple(Args).ToString(); 
+        public override void Resolve(Scope block) {
+            foreach(Expression e in Args) e.Resolve(block);
+        }
+
+        public override string ToString() => FunctionName + new OTuple(Args).ToString(); 
 	}
 }
