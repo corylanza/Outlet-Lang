@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ForLoop : Statement{
 
-		private Identifier LoopVar;
+		private string LoopVar;
 		private Expression Collection;
 		private Scope Body;
 
 		public ForLoop(Scope parent, Identifier loopvar, Expression collection, Statement body) {
-			LoopVar = loopvar;
+			LoopVar = loopvar.Name;
 			Collection = collection;
 			if(body is Scope s) {
 				Body = s;
@@ -36,6 +36,6 @@ namespace Outlet.AST {
 			}
 		}
 
-		public override string ToString() => "for " + LoopVar.Name + " in " + Collection.ToString() + Body.ToString();
+		public override string ToString() => "for " + LoopVar + " in " + Collection.ToString() + Body.ToString();
 	}
 }

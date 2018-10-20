@@ -7,17 +7,21 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ClassDeclaration : Declaration {
 
-		private Identifier Name;
+		private string Name;
 		private List<Identifier> ArgNames;
 
 
 		public ClassDeclaration(Identifier name, List<Identifier> argnames) {
-			Name = name;
+			Name = name.Name;
 			ArgNames = argnames;
 		}
 
 		public override void Execute(Scope block) {
-			throw new NotImplementedException();
+			// adds static class to scope
+			Class c = new Class(Name, ArgNames);
+			block.AddVariable(Name, c);
+			// adds constructor to scope
+			block.AddFunc(Name, new Native((args) => new Instance(c, ArgNames.TupleZip(args.ToList()))));
 		}
 
 		public override void Resolve() {

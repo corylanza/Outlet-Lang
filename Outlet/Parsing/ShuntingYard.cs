@@ -29,6 +29,10 @@ namespace Outlet.Parsing {
 					case Literal l: // does not handle other future operand types
 						output.Push(l);
 						break;
+					case AST.Type type:
+						output.Push(type);
+						//if(tokens.First() is Identifier tti) Console.WriteLine("yes");
+						break;
 					case Keyword k:
 						if (k == Keyword.True) output.Push(new Literal(true));
 						else if (k == Keyword.False) output.Push(new Literal(false));

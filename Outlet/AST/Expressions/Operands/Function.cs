@@ -5,26 +5,28 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST{
-	public class Function : Operand {
+	public class Function : Operand, ICallable {
 
-        private Identifier Name;
+        private string Name;
         private List<Identifier> ArgNames;
         private Statement Body;
+		private Scope Closure;
 
         public Function() { }
 
-		public Function(Identifier id, List<Identifier> argnames, Statement body) {
+		public Function(Scope closure, string id, List<Identifier> argnames, Statement body) {
             Name = id;
             ArgNames = argnames;
             Body = body;
+			Closure = closure;
         }
 
-		public virtual Operand Call(Scope block, params Operand[] args) {
-			Scope exec = new Scope(block);
+		//TODO fix scopes, may need scope passed in
+		public virtual Operand Call(params Operand[] args) {
+			Scope exec = new Scope(Closure);
 			for (int i = 0; i < args.Length; i++) {
-				exec.AddVariable(ArgNames[i], args[i]);
-			}
-			try {
+				exec.AddVariable(ArgNames[i].Name, args[i]);
+			} try {
 				if (Body is Scope s) s.Parent = exec;
 				if (Body is Expression e) return e.Eval(exec);
 				Body.Execute(exec);
@@ -50,6 +52,6 @@ namespace Outlet.AST{
         public Native(Func<Operand[], Operand> func)  {
             F = func;
         }
-        public override Operand Call(Scope block, params Operand[] args) => F(args);
+        public override Operand Call(params Operand[] args) => F(args);
     }
 }

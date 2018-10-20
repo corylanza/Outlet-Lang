@@ -7,14 +7,16 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public class FunctionDeclaration : Declaration {
 		
-        private Identifier ID;
+        private string ID;
         private List<Identifier> ArgNames;
         private Statement Body;
+		private Scope Closure;
 
-        public FunctionDeclaration(Identifier id, List<Identifier> argnames, Statement body) {
-            ID = id;
+        public FunctionDeclaration(Scope closure, Identifier id, List<Identifier> argnames, Statement body) {
+            ID = id.Name;
             ArgNames = argnames;
             Body = body;
+			Closure = closure;
         }
 
 		public override void Resolve() {
@@ -22,12 +24,13 @@ namespace Outlet.AST {
 		}
 
 		public override void Execute(Scope block) {
-            Function f = new Function(ID, ArgNames, Body);
-            block.AddVariable(ID, f);
+            Function f = new Function(Closure, ID, ArgNames, Body);
+            block.AddFunc(ID, f);
         }
 
         public override string ToString() {
-            throw new NotImplementedException();
+			string s = "func "+ID+"(";
+			return s+")";
         }
     }
 }

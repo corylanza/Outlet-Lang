@@ -9,7 +9,7 @@ namespace Outlet.AST {
 		public string Name;
 		public Identifier(string name) { Name = name; }
 
-		public override Operand Eval(Scope block) => block.Get(this);
+		public override Operand Eval(Scope block) => block.Get(this.Name);
 
 		public override string ToString() => Name;
 	}

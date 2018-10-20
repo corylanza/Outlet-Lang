@@ -57,5 +57,16 @@ namespace Outlet {
             }
         }
 
+		public static List<(T, V)> TupleZip<T, V>(this List<T> list, List<V> other) {
+			if(other.Count() == list.Count()) {
+				List<(T, V)> output = new List<(T, V)>();
+				for(int i = 0; i < list.Count(); i++) {
+					output.Add((list[i], other[i]));
+				}
+				return output;
+			}
+			throw new Exception("lists of differing length");
+		}
+
     }
 }

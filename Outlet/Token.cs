@@ -14,6 +14,12 @@ namespace Outlet {
 
 
 		private static Dictionary<string, IToken> Tokens = new Dictionary<string, IToken>() {
+			// Primitives
+			{"int", Primitive.Int },
+			{"float", Primitive.Float },
+			{"bool", Primitive.Bool },
+			{"string", Primitive.String },
+			{"object", Primitive.Object },
 			// Keywords
 			{"class", Keyword.Class },
 			{ "func", Keyword.Func },
@@ -57,6 +63,8 @@ namespace Outlet {
 			{">=", Operator.GTE },
 			{"!=", Operator.NotEqual },
 			{"==", Operator.BoolEquals },
+			{"is", Operator.Is },
+			{"isnt", Operator.Isnt },
 			{".", Operator.Dot },
 			// Delimeters
 			{"(", Delimeter.LeftParen },

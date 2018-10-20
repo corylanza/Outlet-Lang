@@ -8,11 +8,11 @@ using Outlet.AST;
 namespace Outlet.AST {
 	public class VariableDeclaration : Declaration {
 		
-		private Identifier ID;
+		private string ID;
 		private Expression Initializer;
 
 		public VariableDeclaration(Identifier id, Expression initializer) {
-			ID = id;
+			ID = id.Name;
 			Initializer = initializer;
 		}
 

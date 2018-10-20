@@ -20,7 +20,10 @@ namespace Outlet.AST {
 		}
 
 		public override void Execute(Scope block) {
-			while (Condition.Eval(block).Value is bool b && b) Iftrue.Execute(block);
+			while (Condition.Eval(block).Value is bool b && b) {
+				Iftrue.Execute(block);
+				block.Variables.Clear();
+			}
 		}
 
 		public override string ToString() => "if ...";

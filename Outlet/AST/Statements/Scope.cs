@@ -7,13 +7,19 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Scope : Statement {
 
-        public static Dictionary<string, Function> NativeFunctions = new Dictionary<string, Function>() {
-            {"print", new Native((Operand[] o) => {
-                                    foreach(Operand op in o){
-                                        Console.WriteLine(op.ToString());
-                                    } return null; }) },
-            {"readline", new Native((Operand[] o) => new Literal(Console.ReadLine())) }
-        };
+		public static Dictionary<string, Function> NativeFunctions = new Dictionary<string, Function>() {
+			{"print", new Native((Operand[] o) => {
+									foreach(Operand op in o){
+										Console.WriteLine(op.ToString());
+									} return null; }) },
+			{"readline", new Native((Operand[] o) => new Literal(Console.ReadLine())) },
+			{"max", new Native((Operand[] o) => new Literal(o.Max(x => x.Value))) },
+			{"type", new Native((Operand[] o) => new Literal(o[0].Type.Name)) }
+		};
+
+		public static Dictionary<string, Type> NativeTypes = new Dictionary<string, Type>() {
+			{"list", Type.List }
+		};
 
 		public Dictionary<string, Operand> Variables = new Dictionary<string, Operand>();
         public Dictionary<string, Function> Functions = new Dictionary<string, Function>();
@@ -31,28 +37,28 @@ namespace Outlet.AST {
             Repl = true;
         }
 
-		public void AddVariable(Identifier id, Operand o) {
-			if(Variables.ContainsKey(id.Name)) throw new OutletException("variable " + id.Name+" already exists in the current scope");
-			Variables.Add(id.Name, o);
+		public void AddVariable(string id, Operand o) {
+			if(Variables.ContainsKey(id)) throw new OutletException("variable " + id+" already exists in the current scope");
+			Variables.Add(id, o);
 		}
 
-        public void AddFunc(Identifier id, Function f) {
-            if(Functions.ContainsKey(id.Name)) throw new OutletException("function " + id.Name + " already exists in the current scope");
-            Functions.Add(id.Name, f);
+        public void AddFunc(string id, Function f) {
+            if(Functions.ContainsKey(id)) throw new OutletException("function " + id + " already exists in the current scope");
+            Functions.Add(id, f);
         }
 
-		public Operand Get(Identifier id) {
-			if (Variables.ContainsKey(id.Name)) return Variables[id.Name];
+		public Operand Get(string id) {
+			if (Variables.ContainsKey(id)) return Variables[id];
 			if (Parent != null) return Parent.Get(id);
-			else if (NativeFunctions.ContainsKey(id.Name)) return NativeFunctions[id.Name];
-			throw new OutletException("Cannot find variable " + id.Name); 
+			else if (NativeTypes.ContainsKey(id)) return NativeTypes[id];
+			throw new OutletException("Cannot find variable " + id); 
 		}
 
-        public Function GetFunc(Identifier id) {
-            if(Functions.ContainsKey(id.Name)) return Functions[id.Name];
+        public Function GetFunc(string id) {
+            if(Functions.ContainsKey(id)) return Functions[id];
             if(Parent != null) return Parent.GetFunc(id);
-            else if(NativeFunctions.ContainsKey(id.Name)) return NativeFunctions[id.Name];
-            throw new OutletException("Cannot find function " + id.Name);
+            else if(NativeFunctions.ContainsKey(id)) return NativeFunctions[id];
+            throw new OutletException("Cannot find function " + id);
         }
 
 		public override void Resolve() {
@@ -64,8 +70,9 @@ namespace Outlet.AST {
 
         public override void Execute(Scope block) {
 			foreach (Declaration d in Lines) {
-				if (d is Scope s) s.Execute();
-				else d.Execute(block);
+				//if (d is Scope s) s.Execute();
+				//else
+				d.Execute(block);
 			}
             if(!Repl) Variables.Clear();
 		}

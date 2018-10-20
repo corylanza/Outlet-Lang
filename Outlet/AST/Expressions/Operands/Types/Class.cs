@@ -1,0 +1,30 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Outlet.AST {
+
+	public class Class : Type {
+		
+		private List<Identifier> ArgNames;
+
+		public Class(string name, List<Identifier> argnames) : base(name, Primitive.Object, null) {
+			ArgNames = argnames;
+		}
+
+		public override bool Equals(Operand b) => ReferenceEquals(this, b);
+
+		public override Operand Eval(Scope block) => this;
+
+		public override string ToString() {
+			if (ArgNames.Count == 0) return Name + "()";
+			string s = Name + "(";
+			foreach (Identifier id in ArgNames) {
+				s += id.ToString() + ", ";
+			}
+			return s.Substring(0, s.Length - 2) + ")";
+		}
+	}
+}

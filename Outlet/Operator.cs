@@ -12,7 +12,7 @@ namespace Outlet {
 	public class Operator : IToken {
 
 		//1: ++, --
-		public static Operator Dot = new Operator(".", 1, Side.Left, (l, r) => l + r); // TODO
+		public static Operator Dot = new Operator(".", 1, Side.Left, (l, r) => { Console.WriteLine(l.ToString() + " field " + r.ToString()); return null; }); // TODO
 																					   //2: pre ++ and --, unary + and -, ~, &, sizeof
 		public static Operator Negative = new Operator("-", 2, Side.Right, (l) => -l); //TODO
 		public static Operator Not = new Operator("!", 2, Side.Right, (l) => !l); //TODO
@@ -27,7 +27,8 @@ namespace Outlet {
 		public static Operator LTE = new Operator("<=", 6, Side.Left, (l, r) => l <= r);
 		public static Operator GT = new Operator(">", 6, Side.Left, (l, r) => l > r);
 		public static Operator GTE = new Operator(">=", 6, Side.Left, (l, r) => l >= r);
-		//public static Operator Is = new Operator("is", 6, Side.Left, (l, r));
+		public static Operator Is = new Operator("is", 6, Side.Left, (l, r) => new Literal(l.Type.Is(r as AST.Type)));
+		public static Operator Isnt = new Operator("isnt", 6, Side.Left, (l, r) => new Literal(!l.Type.Is(r as AST.Type)));
 		public static Operator BoolEquals = new Operator("==", 7, Side.Left, (l, r) => l == r);
 		public static Operator NotEqual = new Operator("!=", 7, Side.Left, (l, r) => l != r);
 		public static Operator BitwiseAnd = new Operator("&", 8, Side.Left, (l, r) => new Literal(l.Value & r.Value));
@@ -63,6 +64,7 @@ namespace Outlet {
 			UnaryFunc = func;
 			Arity = Arity.Unary;
 		}
+
 		public Operand PerformOp(Operand l, Operand r) => BinaryFunc(l, r);
 		public Operand PerformOp(Operand input) => UnaryFunc(input);
 		public override string ToString() => Name;

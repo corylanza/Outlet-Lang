@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class OList : Operand {
+	public class OList : Operand, IDereferenceable {
 		public OList(params Expression[] vals) {
+			Type = Type.List;
 			Value = vals;
 		}
 		public override Operand Eval(Scope block) {
@@ -14,6 +15,11 @@ namespace Outlet.AST {
 				Value[i] = Value[i].Eval(block);
 			}
 			return this;
+		}
+
+		public Operand Dereference(Identifier field) {
+			if (field.Name == "length") return new Literal(Value.Length);
+			throw new OutletException("field "+field.Name+" not defined");
 		}
 
 		public override bool Equals(Operand b) {

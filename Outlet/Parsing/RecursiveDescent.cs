@@ -11,15 +11,16 @@ namespace Outlet.Parsing {
         public static Declaration NextDeclaration(Scope block, LinkedList<IToken> tokens) {
             bool Match(IToken s) { if(tokens.Count > 0 && tokens.First() == s) { tokens.RemoveFirst(); return true; } else return false; }
             void Consume(IToken s, string error) { if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error); }
+			T ConsumeType<T>(string error) { if (tokens.Count > 0 && tokens.Dequeue() is T t) return t; else throw new OutletException("Syntax Error: " + error); }
             Declaration VariableDeclaration() {
-                Identifier name = tokens.Dequeue() as Identifier;
+                Identifier name = ConsumeType<Identifier>("Expected variable identifier");
                 Expression initializer = null;
                 if(Match(Operator.Equal)) initializer = NextExpression(tokens);
                 else Consume(Delimeter.SemiC, "expected either ; or an initializer after declaring a variable");
                 return new VariableDeclaration(name, initializer);
             }
             Declaration FunctionDef() {
-                Identifier name = tokens.Dequeue() as Identifier;
+                Identifier name = ConsumeType<Identifier>("Expected function identifier"); ;
                 Consume(Delimeter.LeftParen, "expected ( after function name");
                 List <Identifier> argnames = new List<Identifier>();
                 while(tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
@@ -34,10 +35,10 @@ namespace Outlet.Parsing {
                 Consume(Operator.Equal, " expected = after function name");
 				// TODO check for => and call nextexpression if true
                 Statement body = NextStatement(block, tokens);
-                return new FunctionDeclaration(name, argnames, body);
+                return new FunctionDeclaration(block, name, argnames, body);
             }
 			Declaration ClassDef(){
-				Identifier name = tokens.Dequeue() as Identifier;
+				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
 				Consume(Delimeter.LeftParen, "expected ( after function name");
 				List<Identifier> argnames = new List<Identifier>();
 				while (tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
@@ -61,8 +62,9 @@ namespace Outlet.Parsing {
         public static Statement NextStatement(Scope block, LinkedList<IToken> tokens) {
             bool Match(IToken s) { if(tokens.Count > 0 && tokens.First() == s) { tokens.Dequeue(); return true; } else return false; }
             void Consume(IToken s, string error) { if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error); }
+			T ConsumeType<T>(string error) { if (tokens.Count > 0 && tokens.Dequeue() is T t) return t; else throw new OutletException("Syntax Error: " + error); }
 
-            Statement Scope() {
+			Statement Scope() {
                 Scope newscope = new Scope(block);
                 while(tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
                     newscope.Lines.Add(NextDeclaration(newscope, tokens));
@@ -88,7 +90,7 @@ namespace Outlet.Parsing {
             }
             Statement ForLoop() {
                 Consume(Delimeter.LeftParen, "Expected ( after for");
-                Identifier loopvar = tokens.Dequeue() as Identifier;
+                Identifier loopvar = ConsumeType<Identifier>("expected interator identifer");
                 Consume(Keyword.In, "expected in after for loop variable");
                 Expression collection = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after for loop collection");

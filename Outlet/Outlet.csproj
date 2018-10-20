@@ -68,7 +68,11 @@
     <Compile Include="AST\Declarations\Declaration.cs" />
     <Compile Include="AST\Declarations\FunctionDeclaration.cs" />
     <Compile Include="AST\Expressions\Binary.cs" />
+    <Compile Include="AST\Expressions\Operands\Instance.cs" />
     <Compile Include="AST\Expressions\Operands\List.cs" />
+    <Compile Include="AST\Expressions\Operands\Operand.cs" />
+    <Compile Include="AST\Expressions\Operands\Types\Class.cs" />
+    <Compile Include="AST\Expressions\Operands\Types\Primitive.cs" />
     <Compile Include="AST\Statements\ForLoop.cs" />
     <Compile Include="AST\Statements\IfStatement.cs" />
     <Compile Include="AST\Statements\Return.cs" />
@@ -82,7 +86,7 @@
     <Compile Include="AST\Declarations\VariableDeclaration.cs" />
     <Compile Include="AST\Statements\Scope.cs" />
     <Compile Include="AST\Expressions\Operands\Tuple.cs" />
-    <Compile Include="AST\Expressions\Types\Type.cs" />
+    <Compile Include="AST\Expressions\Operands\Types\Type.cs" />
     <Compile Include="AST\Expressions\Unary.cs" />
     <Compile Include="AST\Expressions\Operands\Function.cs" />
     <Compile Include="Keyword.cs" />

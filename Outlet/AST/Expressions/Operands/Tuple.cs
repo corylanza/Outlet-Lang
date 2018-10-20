@@ -9,6 +9,7 @@ namespace Outlet.AST {
 
 		public OTuple(params Expression[] vals) {
 			Value = vals;
+			Type = Primitive.Object;// Type.Construct(Value);
 		}
 
 		public override Operand Eval(Scope block) {
