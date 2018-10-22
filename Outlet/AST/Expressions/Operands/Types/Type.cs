@@ -31,6 +31,10 @@ namespace Outlet.AST {
 			return null;
 		}
 
+		public override void Resolve(Scope block) {
+			throw new NotImplementedException("resolving not implemented for types");
+		}
+
 		public Operand Dereference(Identifier field) {
 			throw new NotImplementedException();
 		}

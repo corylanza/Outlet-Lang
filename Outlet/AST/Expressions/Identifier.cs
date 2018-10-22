@@ -12,12 +12,14 @@ namespace Outlet.AST {
 		public Identifier(string name) { Name = name; }
 
         public override Operand Eval(Scope block) {
-            return block.Get(resolveLevel, Name);
+			if (resolveLevel == -1) {
+				if (ForeignFunctions.NativeFunctions.ContainsKey(Name)) return ForeignFunctions.NativeFunctions[Name];
+				else throw new OutletException("Variable "+Name+" could not be resolved, possibly global variable(unimplemented)");
+			} else return block.Get(resolveLevel, Name);
         }
 
         public override void Resolve(Scope block) {
             resolveLevel = block.Find(Name);
-            if(resolveLevel == -1) throw new OutletException("Variable could not be resolved, possibly global variable (unimplemented)");
         } 
 
         public override string ToString() => Name;

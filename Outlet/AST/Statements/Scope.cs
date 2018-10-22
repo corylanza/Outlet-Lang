@@ -7,20 +7,6 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Scope : Statement {
 
-		public static Dictionary<string, Function> NativeFunctions = new Dictionary<string, Function>() {
-			{"print", new Native((Operand[] o) => {
-									foreach(Operand op in o){
-										Console.WriteLine(op.ToString());
-									} return null; }) },
-			{"readline", new Native((Operand[] o) => new Literal(Console.ReadLine())) },
-			{"max", new Native((Operand[] o) => new Literal(o.Max(x => x.Value))) },
-			{"type", new Native((Operand[] o) => new Literal(o[0].Type.Name)) }
-		};
-
-		public static Dictionary<string, Type> NativeTypes = new Dictionary<string, Type>() {
-			{"list", Type.List }
-		};
-
 		public Dictionary<string, Operand> Variables = new Dictionary<string, Operand>();
         public Dictionary<string, Function> Functions = new Dictionary<string, Function>();
         public Dictionary<string, bool> Defined = new Dictionary<string, bool>();
@@ -47,14 +33,17 @@ namespace Outlet.AST {
         }
 
         public int Find(string s) {
-            if(Defined.ContainsKey(s)) {
-                if(Defined[s]) return 0;
-                else {
-                    Defined.Remove(s);
-                    throw new OutletException("Cannot reference variable being initialized in its own initializer");
-                }
-            } else if(Parent != null) return 1 + Parent.Find(s);
-            else return -1;
+			if (Defined.ContainsKey(s)) {
+				if (Defined[s]) return 0;
+				else {
+					Defined.Remove(s);
+					throw new OutletException("Cannot reference variable being initialized in its own initializer");
+				}
+			} else if (Parent != null) {
+				int r = Parent.Find(s);
+				if (r == -1) return -1;
+				else return 1 + r;
+			} else return -1;
         }
 
         public Operand Get(int level, string s) {
@@ -62,29 +51,11 @@ namespace Outlet.AST {
             else return Parent.Get(level - 1, s);
         }
 
-		public void AddVariable(string id, Operand o) {
-			if(Variables.ContainsKey(id)) throw new OutletException("variable " + id+" already exists in the current scope");
-			Variables.Add(id, o);
+		public void Add(string id, Operand v) {
+			//if (Defined.ContainsKey(id) && Defined[id])
+			Variables.Add(id, v);
+			//else throw new OutletException("Variable "+id+" was never resolved");
 		}
-
-        public void AddFunc(string id, Function f) {
-            if(Functions.ContainsKey(id)) throw new OutletException("function " + id + " already exists in the current scope");
-            Functions.Add(id, f);
-        }
-        /*
-		public Operand Get(string id) {
-			if (Variables.ContainsKey(id)) return Variables[id];
-			if (Parent != null) return Parent.Get(id);
-			else if (NativeTypes.ContainsKey(id)) return NativeTypes[id];
-			throw new OutletException("Cannot find variable " + id); 
-		}*/
-
-        public Function GetFunc(string id) {
-            if(Functions.ContainsKey(id)) return Functions[id];
-            if(Parent != null) return Parent.GetFunc(id);
-            else if(NativeFunctions.ContainsKey(id)) return NativeFunctions[id];
-            throw new OutletException("Cannot find function " + id);
-        }
 
 		public override void Resolve(Scope block) {
 			foreach (Declaration s in Lines) s.Resolve(this);

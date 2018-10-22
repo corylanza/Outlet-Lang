@@ -53,6 +53,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'REPL|AnyCPU'">
     <OutputPath>bin\REPL\</OutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'File|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\File\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -77,6 +87,7 @@
     <Compile Include="AST\Statements\IfStatement.cs" />
     <Compile Include="AST\Statements\Return.cs" />
     <Compile Include="AST\Statements\WhileLoop.cs" />
+    <Compile Include="ForeignFunctions.cs" />
     <Compile Include="OutletException.cs" />
     <Compile Include="Delimeter.cs" />
     <Compile Include="AST\Expressions\Expression.cs" />

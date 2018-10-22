@@ -19,9 +19,9 @@ namespace Outlet.AST {
 		public override void Execute(Scope block) {
 			// adds static class to scope
 			Class c = new Class(Name, ArgNames);
-			block.AddVariable(Name, c);
+			block.Add(Name, c);
 			// adds constructor to scope
-			block.AddFunc(Name, new Native((args) => new Instance(c, ArgNames.TupleZip(args.ToList()))));
+			block.Add(Name, new Native((args) => new Instance(c, ArgNames.TupleZip(args.ToList()))));
 		}
 
 		public override void Resolve(Scope block) {

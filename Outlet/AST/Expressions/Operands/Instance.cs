@@ -27,6 +27,10 @@ namespace Outlet.AST {
 
 		public override Operand Eval(Scope block) => this;
 
+		public override void Resolve(Scope block) {
+			throw new NotImplementedException("resolving not implemented for instances");
+		}
+
 		public override string ToString() {
 			string s = Type.Name+"("; 
 			foreach(string k in Fields.Keys) {

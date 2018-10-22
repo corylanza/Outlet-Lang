@@ -7,27 +7,28 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class FunctionCall : Expression {
 
-		private string FunctionName;
+		private Identifier FunctionName;
 		private Expression[] Args;
 
 		public FunctionCall(Identifier function, params Expression[] args) {
-			FunctionName = function.Name;
+			FunctionName = function;
 			Args = args;
 		}
 
 		public override Operand Eval(Scope block) {
-            Function f = block.GetFunc(FunctionName);
+            ICallable f = FunctionName.Eval(block) as ICallable;
             Operand[] a = new Operand[Args.Length];
             for(int i = 0; i < a.Length; i++) {
                 a[i] = Args[i].Eval(block);
             }
-            return f.Call(a);
+            return f.Call(block, a);
 		}
 
         public override void Resolve(Scope block) {
+			FunctionName.Resolve(block);
             foreach(Expression e in Args) e.Resolve(block);
         }
 
-        public override string ToString() => FunctionName + new OTuple(Args).ToString(); 
+        public override string ToString() => FunctionName.Name + new OTuple(Args).ToString(); 
 	}
 }

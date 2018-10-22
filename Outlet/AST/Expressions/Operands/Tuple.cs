@@ -37,5 +37,9 @@ namespace Outlet.AST {
 			}
 			return s.Substring(0, s.Length-2) + ")";
 		}
+
+		public override void Resolve(Scope block) {
+			foreach (Expression e in Value) e.Resolve(block);
+		}
 	}
 }

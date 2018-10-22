@@ -23,7 +23,7 @@ namespace Outlet.AST {
 		}
 
 		public override void Execute(Scope block) {
-			block.AddVariable(ID, Initializer?.Eval(block));
+			block.Add(ID, Initializer?.Eval(block));
 		}
 
 		public override string ToString() {
