@@ -17,7 +17,7 @@ namespace Outlet.AST {
             Body = body;
 		}
 
-		public override void Resolve(Scope block) { 
+		public override void Resolve(Scope scope) { 
             /*
             Scope exec = new Scope(block);
             exec.Declare(LoopVar);
@@ -27,7 +27,7 @@ namespace Outlet.AST {
             */
 		}
 
-		public override void Execute(Scope block) {
+		public override void Execute(Scope scope) {
             throw new NotImplementedException("");
             /*
             Scope exec = new Scope(block);

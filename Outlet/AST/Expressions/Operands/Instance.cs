@@ -25,9 +25,9 @@ namespace Outlet.AST {
 			throw new NotImplementedException();
 		}
 
-		public override Operand Eval(Scope block) => this;
+		public override Operand Eval(Scope scope) => this;
 
-		public override void Resolve(Scope block) {
+		public override void Resolve(Scope scope) {
 			throw new NotImplementedException("resolving not implemented for instances");
 		}
 

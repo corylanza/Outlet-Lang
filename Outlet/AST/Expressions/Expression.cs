@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public abstract class Expression : Statement {
 
-		public override void Execute(Scope block) => Eval(block);
+		public override void Execute(Scope scope) => Eval(scope);
 		
-		public abstract Operand Eval(Scope block);
+		public abstract Operand Eval(Scope scope);
     }
 
 }

@@ -14,17 +14,17 @@ namespace Outlet.AST {
 			Iftrue = iftrue;
 		}
 
-		public override void Resolve(Scope block) {
-            Scope exec = new Scope(block);
+		public override void Resolve(Scope scope) {
+            Scope exec = new Scope(scope);
 			Condition.Resolve(exec);
 			Iftrue.Resolve(exec);
 		}
 
-		public override void Execute(Scope block) {
-            Scope exec = new Scope(block);
+		public override void Execute(Scope scope) {
+            Scope exec = new Scope(scope);
             while (Condition.Eval(exec).Value is bool b && b) {
                 Iftrue.Execute(exec);
-                exec = new Scope(block);
+                exec = new Scope(scope);
 			}
 		}
 

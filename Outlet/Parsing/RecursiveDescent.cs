@@ -8,7 +8,7 @@ using Outlet.AST;
 namespace Outlet.Parsing {
     public static partial class Parser {
 
-        public static Declaration NextDeclaration(Scope block, LinkedList<IToken> tokens) {
+        public static Declaration NextDeclaration(LinkedList<IToken> tokens) {
             bool Match(IToken s) { if(tokens.Count > 0 && tokens.First() == s) { tokens.RemoveFirst(); return true; } else return false; }
             void Consume(IToken s, string error) { if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error); }
 			T ConsumeType<T>(string error) { if (tokens.Count > 0 && tokens.Dequeue() is T t) return t; else throw new OutletException("Syntax Error: " + error); }
@@ -34,8 +34,8 @@ namespace Outlet.Parsing {
                 Consume(Delimeter.RightParen, " expected ) after function args");
                 Consume(Operator.Equal, " expected = after function name");
 				// TODO check for => and call nextexpression if true
-                Statement body = NextStatement(block, tokens);
-                return new FunctionDeclaration(block, name, argnames, body);
+                Statement body = NextStatement(tokens);
+                return new FunctionDeclaration(name, argnames, body);
             }
 			Declaration ClassDef(){
 				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
@@ -56,36 +56,36 @@ namespace Outlet.Parsing {
             if(Match(Keyword.Var)) return VariableDeclaration();
             if(Match(Keyword.Func)) return FunctionDef();
             if (Match(Keyword.Class)) return ClassDef();
-            return NextStatement(block, tokens);
+            return NextStatement(tokens);
         }
 
-        public static Statement NextStatement(Scope block, LinkedList<IToken> tokens) {
+        public static Statement NextStatement(LinkedList<IToken> tokens) {
             bool Match(IToken s) { if(tokens.Count > 0 && tokens.First() == s) { tokens.Dequeue(); return true; } else return false; }
             void Consume(IToken s, string error) { if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error); }
 			T ConsumeType<T>(string error) { if (tokens.Count > 0 && tokens.Dequeue() is T t) return t; else throw new OutletException("Syntax Error: " + error); }
 
 			Statement Scope() {
-                Scope newscope = new Scope(block);
+				List<Declaration> lines = new List<Declaration>();
                 while(tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
-                    newscope.Lines.Add(NextDeclaration(newscope, tokens));
+                    lines.Add(NextDeclaration(tokens));
                 }
                 Consume(Delimeter.RightCurly, "Expected } to close code block");
-                return newscope;
+				return new Block(lines);
             }
             Statement IfStatement() {
                 Consume(Delimeter.LeftParen, "Expected ( after if");
                 Expression condition = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after if condition");
-                Statement iftrue = NextStatement(block, tokens);
+                Statement iftrue = NextStatement(tokens);
                 Statement ifelse = null;
-                if(Match(Keyword.Else)) ifelse = NextStatement(block, tokens);
+                if(Match(Keyword.Else)) ifelse = NextStatement(tokens);
                 return new IfStatement(condition, iftrue, ifelse);
             }
             Statement WhileLoop() {
                 Consume(Delimeter.LeftParen, "Expected ( after while");
                 Expression condition = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after while condition");
-                Statement iftrue = NextStatement(block, tokens);
+                Statement iftrue = NextStatement( tokens);
                 return new WhileLoop(condition, iftrue);
             }
             Statement ForLoop() {
@@ -94,7 +94,7 @@ namespace Outlet.Parsing {
                 Consume(Keyword.In, "expected in after for loop variable");
                 Expression collection = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after for loop collection");
-                Statement body = NextStatement(block, tokens);
+                Statement body = NextStatement(tokens);
                 return new ForLoop(loopvar, collection, body);
             }
             Statement Return() {

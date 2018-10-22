@@ -16,19 +16,19 @@ namespace Outlet.AST {
             this.op = op;
         }
 
-		public override Operand Eval(Scope block) {
+		public override Operand Eval(Scope scope) {
 			if (op == Operator.Dot) {
-				if (left.Eval(block) is IDereferenceable l && right is Identifier r) {
+				if (left.Eval(scope) is IDereferenceable l && right is Identifier r) {
 					return l.Dereference(r);
 				} else throw new OutletException("invalid dereference: ");
 			}
 			
-			return op.PerformOp(left.Eval(block), right.Eval(block));
+			return op.PerformOp(left.Eval(scope), right.Eval(scope));
 		}
 
-        public override void Resolve(Scope block) {
-            left.Resolve(block);
-            right.Resolve(block);
+        public override void Resolve(Scope scope) {
+            left.Resolve(scope);
+            right.Resolve(scope);
         }
 
         public override string ToString() => "("+left.ToString() +" "+ op.ToString() + " "+right.ToString()+")";

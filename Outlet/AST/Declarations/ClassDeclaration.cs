@@ -16,15 +16,15 @@ namespace Outlet.AST {
 			ArgNames = argnames;
 		}
 
-		public override void Execute(Scope block) {
+		public override void Execute(Scope scope) {
 			// adds static class to scope
 			Class c = new Class(Name, ArgNames);
-			block.Add(Name, c);
+			scope.Add(Name, c);
 			// adds constructor to scope
-			block.Add(Name, new Native((args) => new Instance(c, ArgNames.TupleZip(args.ToList()))));
+			scope.Add(Name, new Native((args) => new Instance(c, ArgNames.TupleZip(args.ToList()))));
 		}
 
-		public override void Resolve(Scope block) {
+		public override void Resolve(Scope scope) {
 			throw new NotImplementedException();
 		}
 

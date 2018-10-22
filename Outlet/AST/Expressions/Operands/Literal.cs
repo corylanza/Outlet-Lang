@@ -26,12 +26,12 @@ namespace Outlet.AST {
 			Value = value;
 		}
 
-		public override Operand Eval(Scope block) => this;
+		public override Operand Eval(Scope scope) => this;
 
 		public override bool Equals(Operand b) => Value.Equals(b.Value);
 
 		public override string ToString() => Value.ToString();
 
-		public override void Resolve(Scope block) { }
+		public override void Resolve(Scope scope) { }
 	}
 }

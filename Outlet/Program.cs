@@ -16,18 +16,20 @@ namespace Outlet {
 		}
 
         public static void RunFile(string path) {
-            Scope s = new Scope();
             byte[] file = File.ReadAllBytes(path);
             byte[] bytes = file.Skip(3).ToArray();
             LinkedList<IToken> lexout = Lexer.Scan(bytes);
-            Statement program = Parser.Parse(s, lexout);
-            program.Execute(s);
+            Declaration program = Parser.Parse(lexout);
+			Scope s = new Scope(null);
+			program.Resolve(s);
+			program.Execute(s);
 			while (true) ;
         }
 
         public static void REPL() {
-            Scope s = new Scope(true); // used by repl to keep definitions
-            while(true) {
+			Scope s = new Scope(true);
+
+			while (true) {
                 Console.WriteLine("<enter an expression>");
 				string input = "";
 				while (input.Length == 0 || input.Count((c) => c == '{') != input.Count((c) => c == '}')) { 
@@ -36,7 +38,7 @@ namespace Outlet {
                 byte[] bytes = Encoding.ASCII.GetBytes(input);
                 try {
                     LinkedList<IToken> lexout = Lexer.Scan(bytes);
-                    Statement program = Parser.Parse(s, lexout);
+                    Declaration program = Parser.Parse(lexout);
                     program.Resolve(s);
                     //Console.WriteLine("Parsed: " + program.ToString());
                     if(program is Expression e) {
@@ -52,7 +54,7 @@ namespace Outlet {
                     Console.WriteLine(ex.Message);
                     Console.ForegroundColor = ConsoleColor.White;
                 } finally {
-					s.Lines.Clear();
+					//s.Lines.Clear();
 				}
                
             }

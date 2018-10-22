@@ -16,15 +16,19 @@ namespace Outlet.AST {
 			Iffalse = ifelse;
 		}
 
-		public override void Resolve(Scope block) {
-            Condition.Resolve(block);
-            Iftrue.Resolve(block);
-            Iffalse?.Resolve(block);
+		public override void Resolve(Scope scope) {
+            Condition.Resolve(scope);
+			//if (Iftrue is Block || Iftrue is Expression)
+			Iftrue.Resolve(scope);
+			//else throw new OutletException("expected code block or expression after if statement");
+			//if (!(Iftrue is null) && Iffalse is Block || Iffalse is Expression) 
+			Iffalse?.Resolve(scope);
+			//else throw new OutletException("expected code block or expression for else condition");
 		}
 
-		public override void Execute(Scope block) {
-			if (Condition.Eval(block).Value is bool b && b) Iftrue.Execute(block);
-			else if (Iffalse != null) Iffalse.Execute(block);
+		public override void Execute(Scope scope) {
+			if (Condition.Eval(scope).Value is bool b && b) Iftrue.Execute(scope);
+			else if (Iffalse != null) Iffalse.Execute(scope);
 		}
 
 

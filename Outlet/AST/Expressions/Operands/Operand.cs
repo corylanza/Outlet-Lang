@@ -31,7 +31,7 @@ namespace Outlet.AST {
     }
 
 	public interface ICallable {
-		Operand Call(Scope block, params Operand[] args);
+		Operand Call(params Operand[] args);
 	}
 	public interface IDereferenceable {
 		Operand Dereference(Identifier field);

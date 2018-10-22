@@ -31,7 +31,7 @@ namespace Outlet.AST {
 			return null;
 		}
 
-		public override void Resolve(Scope block) {
+		public override void Resolve(Scope scope) {
 			throw new NotImplementedException("resolving not implemented for types");
 		}
 

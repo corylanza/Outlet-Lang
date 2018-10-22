@@ -10,9 +10,9 @@ namespace Outlet.AST {
 			Type = Type.List;
 			Value = vals;
 		}
-		public override Operand Eval(Scope block) {
+		public override Operand Eval(Scope scope) {
 			for (int i = 0; i < Value.Length; i++) {
-				Value[i] = Value[i].Eval(block);
+				Value[i] = Value[i].Eval(scope);
 			}
 			return this;
 		}
@@ -42,8 +42,8 @@ namespace Outlet.AST {
 			return s.Substring(0, s.Length - 2) + ")";
 		}
 
-		public override void Resolve(Scope block) {
-			foreach (Expression e in Value) e.Resolve(block);
+		public override void Resolve(Scope scope) {
+			foreach (Expression e in Value) e.Resolve(scope);
 		}
 	}
 }

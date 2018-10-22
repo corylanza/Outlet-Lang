@@ -13,14 +13,13 @@ namespace Outlet.Parsing {
 		private static bool IsUnary(IToken last) => 
 			last is null || last is Operator || last == Delimeter.LeftParen || last == Delimeter.LeftBrace || last == Delimeter.Comma;
 
-		public static Statement Parse(LinkedList<IToken> tokens) => Parse(new Scope(), tokens);
-
-		public static Statement Parse(Scope block, LinkedList<IToken> tokens) {
+		public static Declaration Parse(LinkedList<IToken> tokens) {
+			List<Declaration> lines = new List<Declaration>();
 			while(tokens.Count > 0) {
-				block.Lines.Add(NextDeclaration(block, tokens));
+				lines.Add(NextDeclaration(tokens));
 			}
-			if (block.Lines.Count == 1 && block.Lines[0] is Expression e) return e;
-			return block;
+			if (lines.Count == 1) return lines[0];
+			return new Block(lines);
 		}
 
 		public static T Dequeue<T>(this LinkedList<T> ll) {

@@ -16,14 +16,14 @@ namespace Outlet.AST {
 			Initializer = initializer;
 		}
 
-		public override void Resolve(Scope block) {
-            block.Declare(ID);
-            if(!(Initializer is null)) Initializer.Resolve(block);
-            block.Define(ID);
+		public override void Resolve(Scope scope) {
+            scope.Declare(ID);
+            Initializer?.Resolve(scope);
+            scope.Define(ID);
 		}
 
-		public override void Execute(Scope block) {
-			block.Add(ID, Initializer?.Eval(block));
+		public override void Execute(Scope scope) {
+			scope.Add(ID, Initializer?.Eval(scope));
 		}
 
 		public override string ToString() {

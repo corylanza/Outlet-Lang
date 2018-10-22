@@ -22,7 +22,7 @@ namespace Outlet.AST{
         }
 
 		//TODO fix scopes, may need scope passed in
-		public virtual Operand Call(Scope block, params Operand[] args) {
+		public virtual Operand Call(params Operand[] args) {
 			Scope exec = new Scope(Closure);
 			for (int i = 0; i < args.Length; i++) {
 				exec.Add(ArgNames[i].Name, args[i]);
@@ -37,11 +37,11 @@ namespace Outlet.AST{
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override Operand Eval(Scope block) {
+		public override Operand Eval(Scope scope) {
 			return this;
 		}
 
-		public override void Resolve(Scope block) {
+		public override void Resolve(Scope scope) {
 			Console.WriteLine("resolved");
 		}
 
@@ -55,6 +55,6 @@ namespace Outlet.AST{
         public Native(Func<Operand[], Operand> func)  {
             F = func;
         }
-        public override Operand Call(Scope block, params Operand[] args) => F(args);
+        public override Operand Call(params Operand[] args) => F(args);
     }
 }

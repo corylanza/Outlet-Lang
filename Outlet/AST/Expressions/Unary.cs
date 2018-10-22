@@ -14,10 +14,10 @@ namespace Outlet.AST {
 			this.op = op;
 		}
 
-		public override Operand Eval(Scope block) => op.PerformOp(input.Eval(block));
+		public override Operand Eval(Scope scope) => op.PerformOp(input.Eval(scope));
 
-        public override void Resolve(Scope block) {
-            input.Resolve(block);
+        public override void Resolve(Scope scope) {
+            input.Resolve(scope);
         }
 
         public override string ToString() => "("+op.ToString() + " " + input.ToString() + ")";

@@ -19,7 +19,7 @@ namespace Outlet.AST {
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override Operand Eval(Scope block) => this;
+		public override Operand Eval(Scope scope) => this;
 
 		public override string ToString() => Name;
 	}

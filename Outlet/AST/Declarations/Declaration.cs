@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public abstract class Declaration {
 
-		public abstract void Resolve(Scope block);
+		public abstract void Resolve(Scope scope);
 
 		//public abstract void TypeCheck();
 
-		public abstract void Execute(Scope block);
+		public abstract void Execute(Scope scope);
 
 		public abstract override string ToString();
     }

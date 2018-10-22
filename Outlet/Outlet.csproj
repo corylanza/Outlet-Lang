@@ -95,7 +95,7 @@
     <Compile Include="AST\Expressions\Identifier.cs" />
     <Compile Include="AST\Expressions\Operands\Literal.cs" />
     <Compile Include="AST\Declarations\VariableDeclaration.cs" />
-    <Compile Include="AST\Statements\Scope.cs" />
+    <Compile Include="AST\Statements\Block.cs" />
     <Compile Include="AST\Expressions\Operands\Tuple.cs" />
     <Compile Include="AST\Expressions\Operands\Types\Type.cs" />
     <Compile Include="AST\Expressions\Unary.cs" />
@@ -111,6 +111,7 @@
     <Compile Include="Lexing\Lexer.cs" />
     <Compile Include="Lexing\LexStates.cs" />
     <Compile Include="AST\Statements\Statement.cs" />
+    <Compile Include="Scope.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="Util\State.cs" />
     <Compile Include="Util\StateMachine.cs" />

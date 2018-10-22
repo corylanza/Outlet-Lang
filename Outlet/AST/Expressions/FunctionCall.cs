@@ -15,18 +15,18 @@ namespace Outlet.AST {
 			Args = args;
 		}
 
-		public override Operand Eval(Scope block) {
-            ICallable f = FunctionName.Eval(block) as ICallable;
+		public override Operand Eval(Scope scope) {
+            ICallable f = FunctionName.Eval(scope) as ICallable;
             Operand[] a = new Operand[Args.Length];
             for(int i = 0; i < a.Length; i++) {
-                a[i] = Args[i].Eval(block);
+                a[i] = Args[i].Eval(scope);
             }
-            return f.Call(block, a);
+            return f.Call(a);
 		}
 
-        public override void Resolve(Scope block) {
-			FunctionName.Resolve(block);
-            foreach(Expression e in Args) e.Resolve(block);
+        public override void Resolve(Scope scope) {
+			FunctionName.Resolve(scope);
+            foreach(Expression e in Args) e.Resolve(scope);
         }
 
         public override string ToString() => FunctionName.Name + new OTuple(Args).ToString(); 

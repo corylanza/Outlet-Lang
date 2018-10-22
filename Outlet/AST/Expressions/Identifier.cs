@@ -11,15 +11,15 @@ namespace Outlet.AST {
         private int resolveLevel;
 		public Identifier(string name) { Name = name; }
 
-        public override Operand Eval(Scope block) {
+        public override Operand Eval(Scope scope) {
 			if (resolveLevel == -1) {
 				if (ForeignFunctions.NativeFunctions.ContainsKey(Name)) return ForeignFunctions.NativeFunctions[Name];
 				else throw new OutletException("Variable "+Name+" could not be resolved, possibly global variable(unimplemented)");
-			} else return block.Get(resolveLevel, Name);
+			} else return scope.Get(resolveLevel, Name);
         }
 
-        public override void Resolve(Scope block) {
-            resolveLevel = block.Find(Name);
+        public override void Resolve(Scope scope) {
+            resolveLevel = scope.Find(Name);
         } 
 
         public override string ToString() => Name;

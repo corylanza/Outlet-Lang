@@ -8,9 +8,3 @@
   var a = "block";
   showA();
 }
-func makepoint(x, y) = {
-	func closure(method) = {
-		if(method == "x") return x;
-		if(method == "y") return y;
-	} return closure;
-}
