@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ClassDeclaration : Declaration {
 
-		private string Name;
-		private List<Identifier> ArgNames;
+		private readonly string Name;
+		private readonly List<Identifier> ArgNames;
 
 
 		public ClassDeclaration(Identifier name, List<Identifier> argnames) {
@@ -20,12 +20,10 @@ namespace Outlet.AST {
 			// adds static class to scope
 			Class c = new Class(Name, ArgNames);
 			scope.Add(Name, c);
-			// adds constructor to scope
-			scope.Add(Name, new Native((args) => new Instance(c, ArgNames.TupleZip(args.ToList()))));
 		}
 
 		public override void Resolve(Scope scope) {
-			throw new NotImplementedException();
+			scope.Define(Name);
 		}
 
 		public override string ToString() {

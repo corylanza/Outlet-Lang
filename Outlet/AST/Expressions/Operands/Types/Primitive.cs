@@ -13,9 +13,7 @@ namespace Outlet.AST {
 		public static Primitive Bool = new Primitive("bool", Object, false);
 		public static Primitive String = new Primitive("string", Object, "");
 
-		private Primitive(string name, Type parent, object def) : base(name, parent, def) {
-			
-		}
+		private Primitive(string name, Type parent, object def) : base(name, parent, def) {	}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 

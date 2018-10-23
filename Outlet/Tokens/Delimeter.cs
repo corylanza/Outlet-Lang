@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet {
 	public class Delimeter : IToken {
 
+		public static readonly Delimeter FuncParen = new Delimeter("(");
 		public static readonly Delimeter LeftParen = new Delimeter("(");
 		public static readonly Delimeter RightParen = new Delimeter(")");
 		public static readonly Delimeter LeftBrace = new Delimeter("[");

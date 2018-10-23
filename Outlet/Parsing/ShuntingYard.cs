@@ -48,7 +48,12 @@ namespace Outlet.Parsing {
 						stack.Push(o);
 						break;
 					case Delimeter d when d == Delimeter.LeftParen:
-						stack.Push(d);
+						while (lesserPrecedence(Operator.Dot)) {
+							ReduceOperator(output, stack);
+						}
+						if (!(last is null || last is Operator || last is Delimeter dl && dl.Name != ")")) {
+							stack.Push(Delimeter.FuncParen);
+						} else stack.Push(d);
 						if (tokens.Count > 0 && tokens.First() == Delimeter.RightParen) arity.Push(0);
 						else arity.Push(1);
 						break;
@@ -58,31 +63,24 @@ namespace Outlet.Parsing {
 						else arity.Push(1);
 						break;
 					case Delimeter comma when comma == Delimeter.Comma:
-						while (stack.Peek() != Delimeter.LeftParen && stack.Peek() != Delimeter.LeftBrace) {
+						while (stack.Count > 0 && !(stack.Peek() is Delimeter d && (d.Name == "(" || d.Name == "["))) {
 							ReduceOperator(output, stack);
 						}
 						arity.Push(arity.Pop() + 1);
 						break;
 					case Delimeter right when right == Delimeter.RightParen:
-						while (stack.Count > 0 && stack.Peek() != Delimeter.LeftParen) {
+						while (stack.Count > 0 && !(stack.Peek() is Delimeter d && d.Name == "(")) {
 							ReduceOperator(output, stack);
 						}
 						if (stack.Count == 0) {
 							tokens.AddFirst(cur);
 							done = true;
 						} else {
-							stack.Pop();
 							int a = arity.Pop();
 							Expression[] tuple = new Expression[a];
-							for (int i = 0; i < a; i++) {
-								tuple[a - 1 - i] = output.Pop();
-							}
-							if (output.Count > 0 && output.Peek() is Identifier funcid) {
-								output.Pop();
-								FunctionCall funccall = new FunctionCall(funcid, tuple);
-								output.Push(funccall); //TODO
-							} else if (a == 1) output.Push(tuple[0]);
-							else output.Push(new OTuple(tuple));
+							for (int i = 0; i < a; i++) tuple[a - 1 - i] = output.Pop();
+							if (stack.Pop() == Delimeter.FuncParen) output.Push(new FunctionCall(output.Pop(), tuple));
+							else output.Push(new TupleLiteral(tuple));
 						}
 						break;
 					case Delimeter rightb when rightb == Delimeter.RightBrace:
@@ -95,7 +93,7 @@ namespace Outlet.Parsing {
 						for (int i = 0; i < addnum; i++) {
 							list[addnum - 1 - i] = output.Pop();
 						}
-						output.Push(new OList(list));
+						output.Push(new ListLiteral(list));
 						break;
 					case Delimeter semicolon when semicolon == Delimeter.SemiC:
 						done = true;
@@ -112,7 +110,15 @@ namespace Outlet.Parsing {
 		public static void ReduceOperator(Stack<Expression> output, Stack<IToken> stack) {
 			if (stack.Count > 0 && stack.Peek() is Operator op) {
 				stack.Pop();
-				if (op.Arity == Arity.Binary) {
+				if (op == Operator.Dot) {
+					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+					Expression temp = output.Pop();
+					output.Push(new Deref(output.Pop(), temp));
+				} else if (op == Operator.Equal) {
+					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+					Expression temp = output.Pop();
+					output.Push(new Assign(output.Pop(), temp));
+				} else if (op.Arity == Arity.Binary) {
 					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
 					Expression temp = output.Pop();
 					output.Push(new Binary(output.Pop(), op, temp));

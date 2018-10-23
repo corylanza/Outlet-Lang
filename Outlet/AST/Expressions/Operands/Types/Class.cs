@@ -6,12 +6,17 @@ using System.Threading.Tasks;
 
 namespace Outlet.AST {
 
-	public class Class : Type {
+	public class Class : Type, ICallable {
 		
 		private List<Identifier> ArgNames;
 
 		public Class(string name, List<Identifier> argnames) : base(name, Primitive.Object, null) {
 			ArgNames = argnames;
+		}
+
+		// constructor
+		public Operand Call(params Operand[] args) {
+			return new Instance(this, ArgNames.TupleZip(args.ToList()));
 		}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);

@@ -14,6 +14,7 @@ namespace Outlet.AST {
 			foreach((Identifier id, Operand o) in fields) {
 				Fields.Add(id.Name, o);
 			}
+			Fields.Add("toString", new Native((args) => new Literal(ToString())));
 		}
 
 		public Operand Dereference(Identifier field) {
@@ -27,14 +28,10 @@ namespace Outlet.AST {
 
 		public override Operand Eval(Scope scope) => this;
 
-		public override void Resolve(Scope scope) {
-			throw new NotImplementedException("resolving not implemented for instances");
-		}
-
 		public override string ToString() {
 			string s = Type.Name+"("; 
 			foreach(string k in Fields.Keys) {
-				s += k + ": " + Fields[k].ToString()+", ";
+				if(!(Fields[k] is Function)) s += k + ": " + Fields[k].ToString()+", ";
 			}
 			return s+")";
 		}

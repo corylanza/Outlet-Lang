@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.AST{
+namespace Outlet.AST {
 	public class Function : Operand, ICallable {
 
         private readonly string Name;
@@ -12,7 +12,7 @@ namespace Outlet.AST{
         private readonly Statement Body;
 		private readonly Scope Closure;
 
-        public Function() { }
+		protected Function() { }
 
 		public Function(Scope closure, string id, List<Identifier> argnames, Statement body) {
             Name = id;
@@ -20,8 +20,7 @@ namespace Outlet.AST{
             Body = body;
 			Closure = closure;
         }
-
-		//TODO fix scopes, may need scope passed in
+		
 		public virtual Operand Call(params Operand[] args) {
 			Scope exec = new Scope(Closure);
 			for (int i = 0; i < args.Length; i++) {
@@ -37,24 +36,16 @@ namespace Outlet.AST{
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override Operand Eval(Scope scope) {
-			return this;
-		}
-
-		public override void Resolve(Scope scope) {
-			Console.WriteLine("resolved");
-		}
+		public override Operand Eval(Scope scope) => this;
 
 		public override string ToString() {
-			return "function: "+Name.ToString();
+			return "function: "+Name?.ToString();
 		}
 	}
 
-    public class Native : Function {
-        private Func<Operand[], Operand> F;
-        public Native(Func<Operand[], Operand> func)  {
-            F = func;
-        }
-        public override Operand Call(params Operand[] args) => F(args);
+    public class Native : Function, ICallable {
+        private readonly Func<Operand[], Operand> Underlying;
+        public Native(Func<Operand[], Operand> func)  { Underlying = func; }
+        public override Operand Call(params Operand[] args) => Underlying(args);
     }
 }

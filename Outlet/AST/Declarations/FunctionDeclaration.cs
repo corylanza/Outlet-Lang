@@ -20,11 +20,9 @@ namespace Outlet.AST {
 		}
 
 		public override void Resolve(Scope scope) {
-			scope.Declare(ID);
 			scope.Define(ID);
 			Scope exec = new Scope(scope);
 			foreach (Identifier arg in ArgNames) {
-				exec.Declare(arg.Name);
 				exec.Define(arg.Name);
 			}
 			Body.Resolve(exec);

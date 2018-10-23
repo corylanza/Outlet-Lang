@@ -10,7 +10,6 @@ namespace Outlet {
 
 		public Dictionary<string, bool> Defined = new Dictionary<string, bool>();
 		public Dictionary<string, Operand> Variables = new Dictionary<string, Operand>();
-		//public Dictionary<string, Function> Functions = new Dictionary<string, Function>();
 
 		public bool Repl = false;
 		public Scope Parent;
@@ -52,9 +51,7 @@ namespace Outlet {
 		}
 
 		public void Add(string id, Operand v) {
-			//if (Defined.ContainsKey(id) && Defined[id])
-			Variables.Add(id, v);
-			//else throw new OutletException("Variable "+id+" was never resolved");
+			Variables[id] = v;//.Add(id, v);
 		}
 	}
 }

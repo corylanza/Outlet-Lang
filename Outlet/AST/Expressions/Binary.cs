@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-    public class Binary : Expression {
+	public class Binary : Expression {
 
         private Expression left, right;
         private Operator op;
@@ -17,12 +17,6 @@ namespace Outlet.AST {
         }
 
 		public override Operand Eval(Scope scope) {
-			if (op == Operator.Dot) {
-				if (left.Eval(scope) is IDereferenceable l && right is Identifier r) {
-					return l.Dereference(r);
-				} else throw new OutletException("invalid dereference: ");
-			}
-			
 			return op.PerformOp(left.Eval(scope), right.Eval(scope));
 		}
 

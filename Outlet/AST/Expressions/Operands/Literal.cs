@@ -31,7 +31,5 @@ namespace Outlet.AST {
 		public override bool Equals(Operand b) => Value.Equals(b.Value);
 
 		public override string ToString() => Value.ToString();
-
-		public override void Resolve(Scope scope) { }
 	}
 }

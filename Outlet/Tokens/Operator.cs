@@ -12,7 +12,7 @@ namespace Outlet {
 	public class Operator : IToken {
 
 		//1: ++, --
-		public static Operator Dot = new Operator(".", 1, Side.Left, (l, r) => { Console.WriteLine(l.ToString() + " field " + r.ToString()); return null; }); // TODO
+		public static Operator Dot = new Operator(".", 1, Side.Left, (l, r) => null); // TODO
 																					   //2: pre ++ and --, unary + and -, ~, &, sizeof
 		public static Operator Negative = new Operator("-", 2, Side.Right, (l) => -l); //TODO
 		public static Operator Not = new Operator("!", 2, Side.Right, (l) => !l); //TODO
@@ -43,12 +43,12 @@ namespace Outlet {
 		public static Operator MultEqual = new Operator("*=", 14, Side.Right, (l, r) => l + r);
 		public static Operator ModEqual = new Operator("%=", 14, Side.Right, (l, r) => l * r);
 
-		public string Name;
-		public int Precedence;
-		public Side Asssoc;
-		public Arity Arity;
-		private Func<Operand, Operand, Operand> BinaryFunc;
-		private Func<Operand, Operand> UnaryFunc;
+		public readonly string Name;
+		public readonly int Precedence;
+		public readonly Side Asssoc;
+		public readonly Arity Arity;
+		private readonly Func<Operand, Operand, Operand> BinaryFunc;
+		private readonly Func<Operand, Operand> UnaryFunc;
 		
 		private Operator(string name, int precedence, Side associativity, Func<Operand, Operand, Operand> func) {
 			Name = name;

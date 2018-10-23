@@ -7,28 +7,26 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class FunctionCall : Expression {
 
-		private Identifier FunctionName;
+		private Expression Caller;
 		private Expression[] Args;
 
-		public FunctionCall(Identifier function, params Expression[] args) {
-			FunctionName = function;
+		public FunctionCall(Expression caller, params Expression[] args) {
+			Caller = caller;
 			Args = args;
 		}
 
 		public override Operand Eval(Scope scope) {
-            ICallable f = FunctionName.Eval(scope) as ICallable;
-            Operand[] a = new Operand[Args.Length];
-            for(int i = 0; i < a.Length; i++) {
-                a[i] = Args[i].Eval(scope);
-            }
-            return f.Call(a);
+			Operand Left = Caller.Eval(scope);
+			if (Left is ICallable c) {
+				return c.Call(Args.Select(arg => arg.Eval(scope)).ToArray());
+			} else throw new OutletException(Left.Type.ToString() + " is not callable");
 		}
 
         public override void Resolve(Scope scope) {
-			FunctionName.Resolve(scope);
+			Caller.Resolve(scope);
             foreach(Expression e in Args) e.Resolve(scope);
         }
 
-        public override string ToString() => FunctionName.Name + new OTuple(Args).ToString(); 
+        public override string ToString() => Caller.ToString(); 
 	}
 }

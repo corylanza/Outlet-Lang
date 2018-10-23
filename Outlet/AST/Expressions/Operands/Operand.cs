@@ -25,15 +25,19 @@ namespace Outlet.AST {
 
 		public override bool Equals(object obj) => obj is Operand o && Equals(o);
 		public abstract bool Equals(Operand b);
-		//public abstract Operand Dereference(FunctionCall method);
 		public override int GetHashCode() => base.GetHashCode();
+		public abstract override string ToString();
+		public override void Resolve(Scope scope) {	}
 
-    }
+	}
 
 	public interface ICallable {
 		Operand Call(params Operand[] args);
 	}
 	public interface IDereferenceable {
 		Operand Dereference(Identifier field);
+	}
+	public interface ICollection {
+		Operand[] Values();
 	}
 }

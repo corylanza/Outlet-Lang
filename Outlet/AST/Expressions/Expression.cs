@@ -10,6 +10,8 @@ namespace Outlet.AST {
 		public override void Execute(Scope scope) => Eval(scope);
 		
 		public abstract Operand Eval(Scope scope);
-    }
+
+		public abstract override string ToString();
+	}
 
 }
