@@ -8,16 +8,22 @@ using Outlet.AST;
 namespace Outlet.AST {
 	public class VariableDeclaration : Declaration {
 		
-		private Identifier ID;
+		private string ID;
 		private Expression Initializer;
 
 		public VariableDeclaration(Identifier id, Expression initializer) {
-			ID = id;
+			ID = id.Name;
 			Initializer = initializer;
 		}
 
-		public override void Execute(Scope block) {
-			block.AddVariable(ID, Initializer?.Eval(block));
+		public override void Resolve(Scope scope) {
+            scope.Declare(ID);
+            Initializer?.Resolve(scope);
+            scope.Define(ID);
+		}
+
+		public override void Execute(Scope scope) {
+			scope.Add(ID, Initializer?.Eval(scope));
 		}
 
 		public override string ToString() {

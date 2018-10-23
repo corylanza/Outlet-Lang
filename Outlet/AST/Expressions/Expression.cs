@@ -7,33 +7,11 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public abstract class Expression : Statement {
 
-		public override void Execute(Scope block) {
-			Eval(block);
-		}
+		public override void Execute(Scope scope) => Eval(scope);
 		
-		public abstract Operand Eval(Scope block);
-    }
+		public abstract Operand Eval(Scope scope);
 
-    public abstract class Operand : Expression {
-        public dynamic Value;
-
-		public static Operand operator -(Operand a) => new Literal(-a.Value);
-		public static Operand operator !(Operand a) => new Literal(!a.Value);
-		public static Operand operator *(Operand a, Operand b) => new Literal(a.Value * b.Value);
-		public static Operand operator /(Operand a, Operand b) => new Literal(a.Value / b.Value);
-		public static Operand operator %(Operand a, Operand b) => new Literal(a.Value % b.Value);
-		public static Operand operator +(Operand a, Operand b) => new Literal(a.Value + b.Value);
-		public static Operand operator -(Operand a, Operand b) => new Literal(a.Value - b.Value);
-		public static Operand operator <(Operand a, Operand b) => new Literal(a.Value < b.Value);
-		public static Operand operator >(Operand a, Operand b) => new Literal(a.Value > b.Value);
-		public static Operand operator <=(Operand a, Operand b) => new Literal(a.Value <= b.Value);
-		public static Operand operator >=(Operand a, Operand b) => new Literal(a.Value >= b.Value);
-		public static Operand operator ==(Operand a, Operand b) => new Literal(a.Equals(b));
-		public static Operand operator !=(Operand a, Operand b) => new Literal(!a.Equals(b));
-
-		public override bool Equals(object obj) => obj is Operand o && Equals(o);
-		public abstract bool Equals(Operand b);
-		public override int GetHashCode() =>  base.GetHashCode();
-		
+		public abstract override string ToString();
 	}
+
 }

@@ -7,16 +7,12 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class OTuple : Operand {
 
-		public OTuple(params Expression[] vals) {
+		public OTuple(params Operand[] vals) {
 			Value = vals;
+			Type = Primitive.Object;// Type.Construct(Value);
 		}
 
-		public override Operand Eval(Scope block) {
-			for(int i = 0; i < Value.Length; i++) {
-				Value[i] = Value[i].Eval(block);
-			}
-			return this;
-		}
+		public override Operand Eval(Scope scope) => this;
 
 		public override bool Equals(Operand b) {
 			if(b is OTuple oth) {

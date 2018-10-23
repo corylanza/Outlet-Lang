@@ -7,24 +7,34 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public class FunctionDeclaration : Declaration {
 		
-        private Identifier ID;
-        private List<Identifier> ArgNames;
-        private Statement Body;
+        private readonly string ID;
+		private readonly List<Identifier> ArgNames;
+		private readonly Statement Body;
+		//private readonly Function Func;
 
-        public FunctionDeclaration(Identifier id, List<Identifier> argnames, Statement body) {
-            ID = id;
-            ArgNames = argnames;
-            Body = body;
-        }
+		public FunctionDeclaration(Identifier id, List<Identifier> argnames, Statement body) {
+            ID = id.Name;
+			ArgNames = argnames;
+			Body = body;
+			//Func = new Function(closure, ID, argnames, body);
+		}
 
+		public override void Resolve(Scope scope) {
+			scope.Define(ID);
+			Scope exec = new Scope(scope);
+			foreach (Identifier arg in ArgNames) {
+				exec.Define(arg.Name);
+			}
+			Body.Resolve(exec);
+		}
 
-        public override void Execute(Scope block) {
-            Function f = new Function(ID, ArgNames, Body);
-            block.AddFunc(ID, f);
+		public override void Execute(Scope scope) {
+            scope.Add(ID, new Function(scope, ID, ArgNames, Body));
         }
 
         public override string ToString() {
-            throw new NotImplementedException();
+			string s = "func "+ID+"(";
+			return s+")";
         }
     }
 }

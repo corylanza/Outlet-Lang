@@ -5,16 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class OList : Operand {
-		public OList(params Expression[] vals) {
+	public class OList : Operand, ICallable, IDereferenceable, ICollection {
+		public OList(params Operand[] vals) {
+			Type = Type.List;
 			Value = vals;
 		}
-		public override Operand Eval(Scope block) {
-			for (int i = 0; i < Value.Length; i++) {
-				Value[i] = Value[i].Eval(block);
-			}
-			return this;
+		public override Operand Eval(Scope scope) => this;
+
+		public Operand Dereference(Identifier field) {
+			if (field.Name == "length") return new Literal(Value.Length);
+			throw new OutletException("field "+field.Name+" not defined");
 		}
+
+		public Operand Call(params Operand[] args) => Value[args[0].Value];
+
+		public Operand[] Values() => Value;
 
 		public override bool Equals(Operand b) {
 			if (b is OList oth) {
@@ -28,7 +33,8 @@ namespace Outlet.AST {
 		}
 
 		public override string ToString() {
-			string s = "List(";
+			if (Value.Length == 0) return "List()";
+			 string s = "List(";
 			foreach (Expression e in Value) {
 				s += e.ToString() + ", ";
 			}

@@ -6,5 +6,6 @@ using System.Threading.Tasks;
 
 namespace Outlet.AST {
 	public abstract class Statement : Declaration {
+		public abstract override string ToString();
 	}
 }

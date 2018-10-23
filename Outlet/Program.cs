@@ -16,24 +16,30 @@ namespace Outlet {
 		}
 
         public static void RunFile(string path) {
-            Scope s = new Scope();
             byte[] file = File.ReadAllBytes(path);
             byte[] bytes = file.Skip(3).ToArray();
-            Queue<IToken> lexout = Lexer.Scan(bytes);
-            Statement program = Parser.Parse(s, lexout);
-            program.Execute(s);
+            LinkedList<IToken> lexout = Lexer.Scan(bytes);
+            Declaration program = Parser.Parse(lexout);
+			Scope s = new Scope(null);
+			program.Resolve(s);
+			program.Execute(s);
 			while (true) ;
         }
 
         public static void REPL() {
-            Scope s = new Scope(true); // used by repl to keep definitions
-            while(true) {
+			Scope s = new Scope(true);
+
+			while (true) {
                 Console.WriteLine("<enter an expression>");
-                string input = Console.ReadLine();
+				string input = "";
+				while (input.Length == 0 || input.Count((c) => c == '{') != input.Count((c) => c == '}')) { 
+					input += Console.ReadLine();
+				}
                 byte[] bytes = Encoding.ASCII.GetBytes(input);
                 try {
-                    Queue<IToken> lexout = Lexer.Scan(bytes);
-                    Statement program = Parser.Parse(s, lexout);
+                    LinkedList<IToken> lexout = Lexer.Scan(bytes);
+                    Declaration program = Parser.Parse(lexout);
+                    program.Resolve(s);
                     //Console.WriteLine("Parsed: " + program.ToString());
                     if(program is Expression e) {
                         Operand result = e.Eval(s);
@@ -48,11 +54,22 @@ namespace Outlet {
                     Console.WriteLine(ex.Message);
                     Console.ForegroundColor = ConsoleColor.White;
                 } finally {
-					s.Lines.Clear();
+					//s.Lines.Clear();
 				}
                
             }
         }
+
+		public static List<(T, V)> TupleZip<T, V>(this List<T> list, List<V> other) {
+			if(other.Count() == list.Count()) {
+				List<(T, V)> output = new List<(T, V)>();
+				for(int i = 0; i < list.Count(); i++) {
+					output.Add((list[i], other[i]));
+				}
+				return output;
+			}
+			throw new Exception("lists of differing length");
+		}
 
     }
 }

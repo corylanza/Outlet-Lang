@@ -5,33 +5,37 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class ForLoop : Statement{
+	public class ForLoop : Statement {
 
-		private Identifier LoopVar;
-		private Expression Collection;
-		private Scope Body;
+		private readonly string LoopVar;
+		private readonly Expression Collection;
+		private readonly Statement Body;
 
-		public ForLoop(Scope parent, Identifier loopvar, Expression collection, Statement body) {
-			LoopVar = loopvar;
+		public ForLoop(Identifier loopvar, Expression collection, Statement body) {
+			LoopVar = loopvar.Name;
 			Collection = collection;
-			if(body is Scope s) {
-				Body = s;
-			} else {
-				Body = new Scope(parent);
-				Body.Lines.Add(body);
-			}
+            Body = body;
 		}
 
-		public override void Execute(Scope block) {
-			OList c = Collection.Eval(block) as OList;
-			Body.AddVariable(LoopVar, null);
-			foreach(Operand o in c.Value) {
-				Console.WriteLine(o.ToString());
-				//Body.Get(LoopVar).Value = o.Value;
-				//Body.Execute();
-			}
+		public override void Resolve(Scope scope) {
+            Scope exec = new Scope(scope);
+            exec.Define(LoopVar);
+            Collection.Resolve(exec);
+            Body.Resolve(exec);
 		}
 
-		public override string ToString() => "for " + LoopVar.Name + " in " + Collection.ToString() + Body.ToString();
+		public override void Execute(Scope scope) {
+            Scope exec = new Scope(scope);
+			Operand c = Collection.Eval(exec);
+			if (c is ICollection collect) {
+				foreach (Operand o in collect.Values()) {
+					exec.Add(LoopVar, o);
+					Body.Execute(exec);
+					exec = new Scope(scope);
+				}
+			} else throw new OutletException("for loops can only loop over collections");
+		}
+
+		public override string ToString() => "for " + LoopVar + " in " + Collection.ToString() + Body.ToString();
 	}
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-    public class Binary : Expression {
+	public class Binary : Expression {
 
         private Expression left, right;
         private Operator op;
@@ -16,8 +16,15 @@ namespace Outlet.AST {
             this.op = op;
         }
 
-        public override Operand Eval(Scope block) => op.PerformOp(left.Eval(block), right.Eval(block));
+		public override Operand Eval(Scope scope) {
+			return op.PerformOp(left.Eval(scope), right.Eval(scope));
+		}
 
-		public override string ToString() => "("+left.ToString() +" "+ op.ToString() + " "+right.ToString()+")";
+        public override void Resolve(Scope scope) {
+            left.Resolve(scope);
+            right.Resolve(scope);
+        }
+
+        public override string ToString() => "("+left.ToString() +" "+ op.ToString() + " "+right.ToString()+")";
     }
 }
