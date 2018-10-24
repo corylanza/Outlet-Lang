@@ -7,19 +7,23 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Instance : Operand, IDereferenceable {
 		
-		private Dictionary<string, Operand> Fields = new Dictionary<string, Operand>();
+		private readonly Dictionary<string, Operand> Fields = new Dictionary<string, Operand>();
+		private readonly Scope Scope;
 
-		public Instance(Class type, List<(Identifier, Operand)> fields) {
+		public Instance(Class type, Scope closure, List<(Identifier, Operand)> fields) {
 			Type = type;
+			Scope = closure;
 			foreach((Identifier id, Operand o) in fields) {
-				Fields.Add(id.Name, o);
+				Scope.Add(id.Name, o);
+				//Fields.Add(id.Name, o);
 			}
 			Fields.Add("toString", new Native((args) => new Literal(ToString())));
 		}
 
 		public Operand Dereference(Identifier field) {
 			if (Fields.ContainsKey(field.Name)) return Fields[field.Name];
-			throw new OutletException("field " + field.Name + " not found");
+			return Scope.Get(0, field.Name);
+			//return (Type as Class).Get(field);
 		}
 
 		public override bool Equals(Operand b) {

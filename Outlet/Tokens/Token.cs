@@ -22,6 +22,7 @@ namespace Outlet {
 			{"object", Primitive.Object },
 			// Keywords
 			{"class", Keyword.Class },
+			{"static", Keyword.Static },
 			{ "func", Keyword.Func },
 			{ "var", Keyword.Var },
 			{"if", Keyword.If },

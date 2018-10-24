@@ -1,0 +1,22 @@
+﻿class person(name, age) {
+
+	var Name;
+	var Age;
+	static var count = 0;
+
+	func person(n, a) = {
+		Name = n;
+		Age = a;
+		make();
+	}
+	func greet() = "hello i am "+Name;
+
+	static func make() = { count = count + 1; }
+}
+
+print(person.count);
+var a = person("cory", 20);
+var b = person("jenna", 21);
+print(a.greet());
+print(b.greet());
+print(person.count);

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public abstract class Type : Operand, IDereferenceable {
 
-		public static Type List = new Class("list", new List<Identifier>());
+		public static Type List = new Class("list", null, new List<Identifier>(), new List<Declaration>(), new List<Declaration>());
 
 		public readonly string Name;
 		public readonly Type Parent;
@@ -25,6 +25,8 @@ namespace Outlet.AST {
 			return false;
 		}
 
+		public abstract Operand Dereference(Identifier feld);
+
 		public static Type Construct(Operand o) {
 			if (o is Literal l) return l.Type;
 			//if (o is OTuple t) return TupleType(t.Value.Select(x => Construct(x.Type)))
@@ -32,11 +34,7 @@ namespace Outlet.AST {
 		}
 
 		public override void Resolve(Scope scope) {
-			throw new NotImplementedException("resolving not implemented for types");
-		}
-
-		public Operand Dereference(Identifier field) {
-			throw new NotImplementedException();
+			//throw new NotImplementedException("resolving not implemented for types");
 		}
 	}
 

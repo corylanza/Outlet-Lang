@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="bnf.txt" />
+    <Content Include="Test\classes.txt" />
     <Content Include="Test\file.txt" />
     <Content Include="Test\file2.txt" />
     <Content Include="Test\future.txt" />

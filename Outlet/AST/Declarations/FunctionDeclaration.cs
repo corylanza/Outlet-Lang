@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public class FunctionDeclaration : Declaration {
 		
-        private readonly string ID;
+        public readonly string ID;
 		private readonly List<Identifier> ArgNames;
 		private readonly Statement Body;
 		//private readonly Function Func;
@@ -16,8 +16,9 @@ namespace Outlet.AST {
             ID = id.Name;
 			ArgNames = argnames;
 			Body = body;
-			//Func = new Function(closure, ID, argnames, body);
 		}
+
+		public Function Construct(Scope closure) => new Function(closure, ID, ArgNames, Body);
 
 		public override void Resolve(Scope scope) {
 			scope.Define(ID);
@@ -29,7 +30,7 @@ namespace Outlet.AST {
 		}
 
 		public override void Execute(Scope scope) {
-            scope.Add(ID, new Function(scope, ID, ArgNames, Body));
+            scope.Add(ID, Construct(scope));
         }
 
         public override string ToString() {

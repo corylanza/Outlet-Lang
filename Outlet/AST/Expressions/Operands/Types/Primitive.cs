@@ -15,6 +15,10 @@ namespace Outlet.AST {
 
 		private Primitive(string name, Type parent, object def) : base(name, parent, def) {	}
 
+		public override Operand Dereference(Identifier feld) {
+			throw new NotImplementedException();
+		}
+
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
 		public override Operand Eval(Scope scope) => this;

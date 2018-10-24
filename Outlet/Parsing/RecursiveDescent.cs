@@ -9,17 +9,25 @@ namespace Outlet.Parsing {
     public static partial class Parser {
 
         public static Declaration NextDeclaration(LinkedList<IToken> tokens) {
-            bool Match(IToken s) { if(tokens.Count > 0 && tokens.First() == s) { tokens.RemoveFirst(); return true; } else return false; }
-            void Consume(IToken s, string error) { if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error); }
-			T ConsumeType<T>(string error) { if (tokens.Count > 0 && tokens.Dequeue() is T t) return t; else throw new OutletException("Syntax Error: " + error); }
-            Declaration VariableDeclaration() {
+            bool Match(IToken s) {
+				if (tokens.Count > 0 && tokens.First() == s) {
+					tokens.RemoveFirst(); return true;
+				} else return false; }
+            void Consume(IToken s, string error) {
+				if (tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error);
+			}
+			T ConsumeType<T>(string error) {
+				if (tokens.Count > 0 && tokens.Dequeue() is T t) return t;
+				else throw new OutletException("Syntax Error: " + error);
+			}
+            VariableDeclaration VarDeclaration() {
                 Identifier name = ConsumeType<Identifier>("Expected variable identifier");
                 Expression initializer = null;
                 if(Match(Operator.Equal)) initializer = NextExpression(tokens);
                 else Consume(Delimeter.SemiC, "expected either ; or an initializer after declaring a variable");
                 return new VariableDeclaration(name, initializer);
             }
-            Declaration FunctionDef() {
+            FunctionDeclaration FunctionDef() {
                 Identifier name = ConsumeType<Identifier>("Expected function identifier"); ;
                 Consume(Delimeter.LeftParen, "expected ( after function name");
                 List <Identifier> argnames = new List<Identifier>();
@@ -37,7 +45,7 @@ namespace Outlet.Parsing {
                 Statement body = NextStatement(tokens);
                 return new FunctionDeclaration(name, argnames, body);
             }
-			Declaration ClassDef(){
+			ClassDeclaration ClassDef(){
 				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
 				Consume(Delimeter.LeftParen, "expected ( after function name");
 				List<Identifier> argnames = new List<Identifier>();
@@ -50,20 +58,42 @@ namespace Outlet.Parsing {
 					} while (Match(Delimeter.Comma));
 				}
 				Consume(Delimeter.RightParen, " expected ) after function args");
-				//TODO check for { after and use that scope as body
-				return new ClassDeclaration(name, argnames);
+				List<Declaration> instance = new List<Declaration>();
+				List<Declaration> statics = new List<Declaration>();
+				if (Match(Delimeter.LeftCurly)) {
+					while (true) {
+						if (Match(Keyword.Func)) instance.Add(FunctionDef());
+						else if (Match(Keyword.Var)) instance.Add(VarDeclaration());
+						else if (Match(Keyword.Static)) {
+							if (Match(Keyword.Var)) statics.Add(VarDeclaration());
+							else if (Match(Keyword.Func)) statics.Add(FunctionDef());
+							else throw new OutletException("expected either variable or function declaration after static keyword");
+						}
+						else if (Match(Delimeter.RightCurly)) break;
+						else throw new OutletException("expected } after class definition");
+					}
+				}
+				return new ClassDeclaration(name, argnames, instance, statics);
 			}
-            if(Match(Keyword.Var)) return VariableDeclaration();
+            if(Match(Keyword.Var)) return VarDeclaration();
             if(Match(Keyword.Func)) return FunctionDef();
             if (Match(Keyword.Class)) return ClassDef();
             return NextStatement(tokens);
         }
 
         public static Statement NextStatement(LinkedList<IToken> tokens) {
-            bool Match(IToken s) { if(tokens.Count > 0 && tokens.First() == s) { tokens.Dequeue(); return true; } else return false; }
-            void Consume(IToken s, string error) { if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error); }
-			T ConsumeType<T>(string error) { if (tokens.Count > 0 && tokens.Dequeue() is T t) return t; else throw new OutletException("Syntax Error: " + error); }
-
+            bool Match(IToken s) {
+				if (tokens.Count > 0 && tokens.First() == s) {
+					tokens.Dequeue(); return true;
+				} else return false;
+			}
+            void Consume(IToken s, string error) {
+				if (tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error);
+			}
+			T ConsumeType<T>(string error) {
+				if (tokens.Count > 0 && tokens.Dequeue() is T t) return t;
+				else throw new OutletException("Syntax Error: " + error);
+			}
 			Statement Scope() {
 				List<Declaration> lines = new List<Declaration>();
                 while(tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
