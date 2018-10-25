@@ -21,6 +21,7 @@ namespace Outlet {
 		public static readonly Keyword Static = new Keyword("static");
 		public static readonly Keyword Func = new Keyword("func");
 		public static readonly Keyword Class = new Keyword("class");
+		public static readonly Keyword Operator = new Keyword("operator");
 		public string Name;
 		private Keyword(string name) {
 			Name = name;

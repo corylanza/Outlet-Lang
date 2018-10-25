@@ -9,10 +9,8 @@ namespace Outlet.AST {
 
 		public OTuple(params Operand[] vals) {
 			Value = vals;
-			Type = Primitive.Object;// Type.Construct(Value);
+			Type = new TupleType(vals.Select(val => val.Type).ToArray());//Primitive.Object;// Type.Construct(Value);
 		}
-
-		public override Operand Eval(Scope scope) => this;
 
 		public override bool Equals(Operand b) {
 			if(b is OTuple oth) {

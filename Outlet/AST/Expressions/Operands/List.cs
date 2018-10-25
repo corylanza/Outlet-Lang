@@ -10,7 +10,6 @@ namespace Outlet.AST {
 			Type = Type.List;
 			Value = vals;
 		}
-		public override Operand Eval(Scope scope) => this;
 
 		public Operand Dereference(Identifier field) {
 			if (field.Name == "length") return new Literal(Value.Length);

@@ -18,10 +18,9 @@ namespace Outlet.Lexing {
 			machine.Cur = start; 
 			string buffer = "";
 			LinkedList<IToken> tokens = new LinkedList<IToken>();
-            for(int i = 0; i < charStream.Length; i++) {
+			for (int i = 0; i < charStream.Length; i++) {
                 byte b = charStream[i];
-               
-                CharType c = CharClass.Get(b);
+				CharType c = CharClass.Get(b);
                 if(machine.Peek(c)) {
                     machine.NextState(c);
                 } else if(machine.Cur.Accepting) { 

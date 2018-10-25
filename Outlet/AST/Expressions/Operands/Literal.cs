@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Outlet.AST {
 	public class Literal : Operand, IToken {
+
 		public Literal(int value) {
 			Type = Primitive.Int;
 			Value = value;
@@ -25,8 +26,6 @@ namespace Outlet.AST {
 			Type = Primitive.Bool;
 			Value = value;
 		}
-
-		public override Operand Eval(Scope scope) => this;
 
 		public override bool Equals(Operand b) => Value.Equals(b.Value);
 

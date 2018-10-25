@@ -25,6 +25,7 @@ namespace Outlet {
 			{"static", Keyword.Static },
 			{ "func", Keyword.Func },
 			{ "var", Keyword.Var },
+			{ "operator", Keyword.Operator },
 			{"if", Keyword.If },
 			{"then", Keyword.Then },
 			{"else", Keyword.Else },

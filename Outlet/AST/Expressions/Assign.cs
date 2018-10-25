@@ -16,10 +16,12 @@ namespace Outlet.AST {
 		}
 
 		public override Operand Eval(Scope scope) {
-			Operand var = Left.Eval(scope);
-			Operand val = Right.Eval(scope);
-			var.Value = val.Value;
-			return var;
+			if(Left is Identifier id) {
+				Operand val = Right.Eval(scope);
+				scope.Assign(id.resolveLevel, id.Name, val);
+				return val;
+			}
+			throw new OutletException("invalid left side of assignment expression");
 		}
 
 		public override void Resolve(Scope scope) {

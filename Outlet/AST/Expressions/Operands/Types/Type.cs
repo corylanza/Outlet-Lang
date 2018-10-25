@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public abstract class Type : Operand, IDereferenceable {
 
-		public static Type List = new Class("list", null, new List<Identifier>(), new List<Declaration>(), new List<Declaration>());
+		public static Type List = new Class("list", null, new List<Declaration>(), new List<Declaration>());
 
 		public readonly string Name;
 		public readonly Type Parent;
@@ -29,7 +29,7 @@ namespace Outlet.AST {
 
 		public static Type Construct(Operand o) {
 			if (o is Literal l) return l.Type;
-			//if (o is OTuple t) return TupleType(t.Value.Select(x => Construct(x.Type)))
+			//if (o is OTuple t) return new TupleType(t.Value.Select(x => Construct(x.Type)))
 			return null;
 		}
 

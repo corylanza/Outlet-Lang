@@ -1,22 +1,36 @@
-﻿class person(name, age) {
+﻿class person {
 
-	var Name;
-	var Age;
+	var Name = "";
+	var Age = 0;
 	static var count = 0;
 
 	func person(n, a) = {
 		Name = n;
 		Age = a;
 		make();
+		print("contructed "+Name+" "+Age+" count "+count);
 	}
+
 	func greet() = "hello i am "+Name;
 
 	static func make() = { count = count + 1; }
 }
 
+class math {
+	static func fac(n) = {
+		if(n <= 1) return 1;
+		return n*fac(n-1);
+	}
+	static func pow(b, e) = {
+		if(e == 0) return 1;
+		return b*pow(b, e-1);
+	}
+}
+print(math.fac(5));
+print(math.pow(10,3));
 print(person.count);
 var a = person("cory", 20);
 var b = person("jenna", 21);
-print(a.greet());
-print(b.greet());
+print(a);
+print(b);
 print(person.count);

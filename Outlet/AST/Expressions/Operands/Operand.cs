@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Outlet.AST {
 	public abstract class Operand : Expression {
+
 		public dynamic Value;
 		public Type Type;
 
@@ -23,12 +24,14 @@ namespace Outlet.AST {
 		public static Operand operator ==(Operand a, Operand b) => new Literal(a.Equals(b));
 		public static Operand operator !=(Operand a, Operand b) => new Literal(!a.Equals(b));
 
+		public override Operand Eval(Scope scope) => this;
 		public override bool Equals(object obj) => obj is Operand o && Equals(o);
-		public abstract bool Equals(Operand b);
 		public override int GetHashCode() => base.GetHashCode();
-		public abstract override string ToString();
 		public override void Resolve(Scope scope) {	}
 
+		//public abstract dynamic NewValue { get; set; }
+		public abstract bool Equals(Operand b);
+		public abstract override string ToString();
 	}
 
 	public interface ICallable {

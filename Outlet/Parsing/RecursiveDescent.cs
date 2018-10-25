@@ -20,6 +20,7 @@ namespace Outlet.Parsing {
 				if (tokens.Count > 0 && tokens.Dequeue() is T t) return t;
 				else throw new OutletException("Syntax Error: " + error);
 			}
+			
             VariableDeclaration VarDeclaration() {
                 Identifier name = ConsumeType<Identifier>("Expected variable identifier");
                 Expression initializer = null;
@@ -47,7 +48,8 @@ namespace Outlet.Parsing {
             }
 			ClassDeclaration ClassDef(){
 				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
-				Consume(Delimeter.LeftParen, "expected ( after function name");
+				/*
+				 * Consume(Delimeter.LeftParen, "expected ( after function name");
 				List<Identifier> argnames = new List<Identifier>();
 				while (tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
 					do {
@@ -58,6 +60,7 @@ namespace Outlet.Parsing {
 					} while (Match(Delimeter.Comma));
 				}
 				Consume(Delimeter.RightParen, " expected ) after function args");
+				*/
 				List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				if (Match(Delimeter.LeftCurly)) {
@@ -73,7 +76,7 @@ namespace Outlet.Parsing {
 						else throw new OutletException("expected } after class definition");
 					}
 				}
-				return new ClassDeclaration(name, argnames, instance, statics);
+				return new ClassDeclaration(name, instance, statics);
 			}
             if(Match(Keyword.Var)) return VarDeclaration();
             if(Match(Keyword.Func)) return FunctionDef();

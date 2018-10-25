@@ -34,9 +34,9 @@ namespace Outlet {
 		public static Operator BitwiseAnd = new Operator("&", 8, Side.Left, (l, r) => new Literal(l.Value & r.Value));
 		public static Operator BitwiseXor = new Operator("^", 9, Side.Left, (l, r) => new Literal(l.Value ^ r.Value));
 		public static Operator BitwiseOr = new Operator("|", 10, Side.Left, (l, r) => new Literal(l.Value | r.Value));
-		public static Operator LogicalAnd = new Operator("&&", 11, Side.Left, (l, r) => new Literal(l.Value && r.Value));
-		public static Operator LogicalOr = new Operator("||", 12, Side.Left, (l, r) => new Literal(l.Value || r.Value));
-		public static Operator Equal = new Operator("=", 14, Side.Right, (l, r) => { l.Value = r.Value; return l; }); //TODO from here on
+		public static Operator LogicalAnd = new Operator("&&", 11, Side.Left, (l, r) => null);
+		public static Operator LogicalOr = new Operator("||", 12, Side.Left, (l, r) => null);
+		public static Operator Equal = new Operator("=", 14, Side.Right, (l, r) => null);
 		public static Operator PlusEqual = new Operator("+=", 14, Side.Right, (l, r) => l + r);
 		public static Operator MinusEqual = new Operator("-=", 14, Side.Right, (l, r) => l + r);
 		public static Operator DividedEqual = new Operator("/=", 14, Side.Right, (l, r) => l + r);
@@ -69,6 +69,12 @@ namespace Outlet {
 		public Operand PerformOp(Operand input) => UnaryFunc(input);
 		public override string ToString() => Name;
 	}
+	/*
+	internal class Operation {
+		public Operation(AST.Type left, Operator op, AST.Type right, Func<Operand, Operand, Operand> operation) {
+
+		}
+	}*/
 
 
 }

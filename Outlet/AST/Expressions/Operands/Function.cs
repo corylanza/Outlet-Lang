@@ -36,8 +36,6 @@ namespace Outlet.AST {
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override Operand Eval(Scope scope) => this;
-
 		public override string ToString() {
 			return "function: "+Name?.ToString();
 		}

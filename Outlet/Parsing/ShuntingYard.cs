@@ -26,12 +26,12 @@ namespace Outlet.Parsing {
 					case Identifier id:
 						output.Push(id);
 						break;
-					case Literal l: // does not handle other future operand types
+					case Literal l:
 						output.Push(l);
 						break;
 					case AST.Type type:
 						output.Push(type);
-						//if(tokens.First() is Identifier tti) Console.WriteLine("yes");
+						if(tokens.First() is Identifier tti) Console.WriteLine("yes");
 						break;
 					case Keyword k:
 						if (k == Keyword.True) output.Push(new Literal(true));
@@ -118,6 +118,10 @@ namespace Outlet.Parsing {
 					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
 					Expression temp = output.Pop();
 					output.Push(new Assign(output.Pop(), temp));
+				} else if (op == Operator.LogicalAnd || op == Operator.LogicalOr) {
+					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+					Expression temp = output.Pop();
+					output.Push(new ShortCircuit(output.Pop(), op, temp));
 				} else if (op.Arity == Arity.Binary) {
 					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
 					Expression temp = output.Pop();

@@ -8,7 +8,7 @@ namespace Outlet.AST {
 	public class Identifier : Expression, IToken {
 
 		public string Name;
-        private int resolveLevel;
+        public int resolveLevel;
 		public Identifier(string name) { Name = name; }
 
         public override Operand Eval(Scope scope) {

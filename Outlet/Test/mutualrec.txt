@@ -1,0 +1,10 @@
+﻿func even(n) = {
+	if(n == 0) return true;
+	return !odd(n-1);
+}
+func odd(n) = {
+	if(n == 1) return true;
+	return !even(n-1);
+}
+
+print(even(4));

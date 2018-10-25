@@ -8,19 +8,17 @@ namespace Outlet.AST {
 	public class ClassDeclaration : Declaration {
 
 		private readonly string Name;
-		private readonly List<Identifier> ArgNames;
 		private readonly List<Declaration> InstanceDecls;
 		private readonly List<Declaration> StaticDecls;
 
-		public ClassDeclaration(Identifier name, List<Identifier> argnames, List<Declaration> instance, List<Declaration> statics) {
+		public ClassDeclaration(Identifier name, List<Declaration> instance, List<Declaration> statics) {
 			Name = name.Name;
-			ArgNames = argnames;
 			InstanceDecls = instance;
 			StaticDecls = statics;
 		}
 
 		public override void Execute(Scope scope) {
-			Class c = new Class(Name, scope, ArgNames, InstanceDecls, StaticDecls);
+			Class c = new Class(Name, scope, InstanceDecls, StaticDecls);
 			scope.Add(Name, c);
 		}
 

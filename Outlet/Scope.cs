@@ -51,7 +51,12 @@ namespace Outlet {
 		}
 
 		public void Add(string id, Operand v) {
-			Variables[id] = v;//.Add(id, v);
+			Variables[id] = v;
+		}
+
+		public void Assign(int level, string id, Operand v) {
+			if (level == 0) Variables[id] = v;
+			else Parent.Assign(level - 1, id, v);
 		}
 	}
 }
