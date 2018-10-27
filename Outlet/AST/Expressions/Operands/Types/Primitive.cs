@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Outlet.AST {
 	public class Primitive : Type, IToken {
-
+		
+		public static Primitive MetaType = new Primitive("type", null, null);
 		public static Primitive Object = new Primitive("object", null, null);
 		public static Primitive Int = new Primitive("int", Object, 0);
 		public static Primitive Float = new Primitive("float", Object, 0.0f);

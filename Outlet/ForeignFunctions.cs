@@ -14,7 +14,7 @@ namespace Outlet {
 									} return null; }) },
 			{"readline", new Native((Operand[] o) => new Literal(Console.ReadLine())) },
 			{"max", new Native((Operand[] o) => new Literal(o.Max(x => x.Value))) },
-			{"type", new Native((Operand[] o) => new Literal(o[0].Type.Name)) }
+			{"gettype", new Native((Operand[] o) => new Literal(o[0].Type.Name)) }
 		};
 
 		public static Dictionary<string, AST.Type> NativeTypes = new Dictionary<string, AST.Type>() {

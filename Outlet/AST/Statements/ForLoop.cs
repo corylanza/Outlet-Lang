@@ -29,7 +29,7 @@ namespace Outlet.AST {
 			Operand c = Collection.Eval(exec);
 			if (c is ICollection collect) {
 				foreach (Operand o in collect.Values()) {
-					exec.Add(LoopVar, o);
+					exec.Add(LoopVar, Primitive.Object, o);
 					Body.Execute(exec);
 					exec = new Scope(scope);
 				}

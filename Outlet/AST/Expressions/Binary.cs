@@ -8,9 +8,9 @@ namespace Outlet.AST {
 	public class Binary : Expression {
 
         private Expression left, right;
-        private Operator op;
+        private BinaryOperator op;
 
-        public Binary(Expression left, Operator op, Expression right) {
+        public Binary(Expression left, BinaryOperator op, Expression right) {
             this.left = left;
             this.right = right;
             this.op = op;

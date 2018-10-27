@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class TupleType : Type {
 
-		private readonly Type[] Types;
+		public readonly Type[] Types;
 
 		public TupleType(params Type[] types) : base("", Primitive.Object, null) {
 			Types = types;
@@ -18,7 +18,11 @@ namespace Outlet.AST {
 		}
 
 		public override bool Equals(Operand b) {
-			throw new NotImplementedException();
+			if(b is TupleType t && t.Types.Length == Types.Length) {
+				for(int i = 0; i < Types.Length; i++) {
+					if (!Types[i].Equals(t.Types[i])) return false;
+				} return true;
+			} return false;
 		}
 
 		public override string ToString() {

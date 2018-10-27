@@ -24,14 +24,16 @@ namespace Outlet.Parsing {
 				cur = tokens.Dequeue();
 				switch (cur) {
 					case Identifier id:
-						output.Push(id);
+						if (output.Count == 1 && stack.Count == 0) {
+							tokens.AddFirst(id);
+							done = true;
+						} else output.Push(id);
 						break;
 					case Literal l:
 						output.Push(l);
 						break;
 					case AST.Type type:
 						output.Push(type);
-						if(tokens.First() is Identifier tti) Console.WriteLine("yes");
 						break;
 					case Keyword k:
 						if (k == Keyword.True) output.Push(new Literal(true));
@@ -110,25 +112,13 @@ namespace Outlet.Parsing {
 		public static void ReduceOperator(Stack<Expression> output, Stack<IToken> stack) {
 			if (stack.Count > 0 && stack.Peek() is Operator op) {
 				stack.Pop();
-				if (op == Operator.Dot) {
+				if(op is BinaryOperator binop) {
 					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
 					Expression temp = output.Pop();
-					output.Push(new Deref(output.Pop(), temp));
-				} else if (op == Operator.Equal) {
-					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
-					Expression temp = output.Pop();
-					output.Push(new Assign(output.Pop(), temp));
-				} else if (op == Operator.LogicalAnd || op == Operator.LogicalOr) {
-					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
-					Expression temp = output.Pop();
-					output.Push(new ShortCircuit(output.Pop(), op, temp));
-				} else if (op.Arity == Arity.Binary) {
-					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
-					Expression temp = output.Pop();
-					output.Push(new Binary(output.Pop(), op, temp));
-				} else {
+					output.Push(binop.Construct(output.Pop(), temp));
+				}else if(op is UnaryOperator unop){
 					if (output.Count < 1) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
-					output.Push(new Unary(output.Pop(), op));
+					output.Push(new Unary(output.Pop(), unop));
 				}
 			} else throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
 

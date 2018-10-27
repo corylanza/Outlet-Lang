@@ -21,30 +21,30 @@ namespace Outlet.Parsing {
 				else throw new OutletException("Syntax Error: " + error);
 			}
 			
-            VariableDeclaration VarDeclaration() {
-                Identifier name = ConsumeType<Identifier>("Expected variable identifier");
+            VariableDeclaration VarDeclaration(Expression type, Identifier name) {
+                //Identifier name = ConsumeType<Identifier>("Expected variable identifier");
                 Expression initializer = null;
                 if(Match(Operator.Equal)) initializer = NextExpression(tokens);
                 else Consume(Delimeter.SemiC, "expected either ; or an initializer after declaring a variable");
-                return new VariableDeclaration(name, initializer);
+                return new VariableDeclaration(type, name, initializer);
             }
-            FunctionDeclaration FunctionDef() {
-                Identifier name = ConsumeType<Identifier>("Expected function identifier"); ;
-                Consume(Delimeter.LeftParen, "expected ( after function name");
-                List <Identifier> argnames = new List<Identifier>();
+            FunctionDeclaration FunctionDef(Expression type, Identifier name) {
+                //Identifier name = ConsumeType<Identifier>("Expected function identifier"); ;
+                //Consume(Delimeter.LeftParen, "expected ( after function name");
+                List <(Expression, Identifier)> argnames = new List<(Expression, Identifier)>();
                 while(tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
                     do {
-                        if(tokens.First() is Identifier argname) {
-                            tokens.Dequeue();
-                            argnames.Add(argname);
-                        } else throw new OutletException("Only identifiers can be used as args");
+						if (NextExpression(tokens) is Expression paramtype && tokens.Count > 0 && tokens.First() is Identifier paramid) {
+							tokens.Dequeue();
+							argnames.Add((paramtype, paramid));
+						} else throw new OutletException("function parameters expected in type id format");
                     } while(Match(Delimeter.Comma));
                 }
                 Consume(Delimeter.RightParen, " expected ) after function args");
                 Consume(Operator.Equal, " expected = after function name");
 				// TODO check for => and call nextexpression if true
                 Statement body = NextStatement(tokens);
-                return new FunctionDeclaration(name, argnames, body);
+                return new FunctionDeclaration(type, name, argnames, body);
             }
 			ClassDeclaration ClassDef(){
 				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
@@ -65,6 +65,7 @@ namespace Outlet.Parsing {
 				List<Declaration> statics = new List<Declaration>();
 				if (Match(Delimeter.LeftCurly)) {
 					while (true) {
+						/*
 						if (Match(Keyword.Func)) instance.Add(FunctionDef());
 						else if (Match(Keyword.Var)) instance.Add(VarDeclaration());
 						else if (Match(Keyword.Static)) {
@@ -73,15 +74,21 @@ namespace Outlet.Parsing {
 							else throw new OutletException("expected either variable or function declaration after static keyword");
 						}
 						else if (Match(Delimeter.RightCurly)) break;
-						else throw new OutletException("expected } after class definition");
+						else throw new OutletException("expected } after class definition");*/
 					}
 				}
 				return new ClassDeclaration(name, instance, statics);
 			}
-            if(Match(Keyword.Var)) return VarDeclaration();
-            if(Match(Keyword.Func)) return FunctionDef();
+            //if(Match(Keyword.Var)) return VarDeclaration();
+            //if(Match(Keyword.Func)) return FunctionDef();
             if (Match(Keyword.Class)) return ClassDef();
-            return NextStatement(tokens);
+			Statement next = NextStatement(tokens);
+            if(next is Expression o && tokens.Count > 0 && tokens.First() is Identifier id) {
+				tokens.Dequeue();
+				if (Match(Delimeter.LeftParen)) return FunctionDef(o, id);
+				else return VarDeclaration(o, id);
+			}
+			return next;
         }
 
         public static Statement NextStatement(LinkedList<IToken> tokens) {

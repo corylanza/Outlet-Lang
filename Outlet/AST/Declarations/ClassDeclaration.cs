@@ -19,7 +19,7 @@ namespace Outlet.AST {
 
 		public override void Execute(Scope scope) {
 			Class c = new Class(Name, scope, InstanceDecls, StaticDecls);
-			scope.Add(Name, c);
+			scope.Add(Name, Primitive.MetaType, c);
 		}
 
 		public override void Resolve(Scope scope) {

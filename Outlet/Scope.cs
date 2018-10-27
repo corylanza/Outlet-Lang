@@ -8,8 +8,8 @@ using Outlet.AST;
 namespace Outlet {
 	public class Scope {
 
-		public Dictionary<string, bool> Defined = new Dictionary<string, bool>();
-		public Dictionary<string, Operand> Variables = new Dictionary<string, Operand>();
+		private Dictionary<string, bool> Defined = new Dictionary<string, bool>();
+		private Dictionary<string, (AST.Type Type, Operand Value)> Variables = new Dictionary<string, (AST.Type, Operand)>();
 
 		public bool Repl = false;
 		public Scope Parent;
@@ -46,17 +46,20 @@ namespace Outlet {
 		}
 
 		public Operand Get(int level, string s) {
-			if (level == 0) return Variables[s];
+			if (level == 0) return Variables[s].Value;
 			else return Parent.Get(level - 1, s);
 		}
 
-		public void Add(string id, Operand v) {
-			Variables[id] = v;
+		public void Add(string id, AST.Type t, Operand v) {
+			Variables[id] = (t, v);
 		}
 
 		public void Assign(int level, string id, Operand v) {
-			if (level == 0) Variables[id] = v;
-			else Parent.Assign(level - 1, id, v);
+			if (level == 0) {
+				AST.Type t = Variables[id].Type;
+				if(v.Type.Is(t)) Variables[id] = (t, v);
+				else throw new OutletException("cannot convert type " + v.Type.ToString() + " to type " + t.ToString());
+			} else Parent.Assign(level - 1, id, v);
 		}
 	}
 }

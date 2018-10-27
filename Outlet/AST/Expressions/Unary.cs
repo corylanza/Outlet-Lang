@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Unary : Expression {
 		private Expression input;
-		private Operator op;
+		private UnaryOperator op;
 
-		public Unary(Expression input, Operator op) {
+		public Unary(Expression input, UnaryOperator op) {
 			this.input = input;
 			this.op = op;
 		}

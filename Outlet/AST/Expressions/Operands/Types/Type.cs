@@ -17,10 +17,12 @@ namespace Outlet.AST {
 			Name = name;
 			Parent = parent;
 			Default = def;
+			Type = Primitive.MetaType;
 		}
 
+		// this must be in each class
 		public bool Is(Type t) {
-			if (ReferenceEquals(this, t)) return true;
+			if (Equals(t)) return true;
 			if (!(Parent is null)) return Parent.Is(t);
 			return false;
 		}
