@@ -27,6 +27,6 @@ namespace Outlet.AST {
             foreach(Expression e in Args) e.Resolve(scope);
         }
 
-        public override string ToString() => Caller.ToString(); 
+		public override string ToString() => Caller.ToString() + "(" + Args.ToList().ToListString() + ")";
 	}
 }

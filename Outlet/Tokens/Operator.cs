@@ -11,6 +11,8 @@ namespace Outlet {
 	public abstract class Operator : IToken {
 
 		//1: ++, --
+		public static Operator PostInc = new UnaryOperator("++", 1, Side.Left, (l) => new Literal(l.Value++));
+		public static Operator PostDec = new UnaryOperator("--", 1, Side.Left, (l) => new Literal(l.Value--));
 		public static Operator Dot =		new BinaryOperator(".",  1, Side.Left,  (l, r) => null); // TODO
 		//2: pre ++ and --, unary + and -, ~, &, sizeof
 		public static Operator Negative =	new UnaryOperator("-",   2, Side.Right, (l) => -l); //TODO
@@ -35,6 +37,9 @@ namespace Outlet {
 		public static Operator BitOr =		new BinaryOperator("|",  10, Side.Left, (l, r) => new Literal(l.Value | r.Value));
 		public static Operator LogicalAnd = new BinaryOperator("&&", 11, Side.Left, (l, r) => null);
 		public static Operator LogicalOr =	new BinaryOperator("||", 12, Side.Left, (l, r) => null);
+		public static Operator Question =	new BinaryOperator("?", 13, Side.Right, (l, r) => null);
+		public static Operator Ternary =	new BinaryOperator("", 13, Side.Right, (l, r) => null);
+		public static Operator FuncEqual =  new BinaryOperator("=>", 14, Side.Right, (l, r) => null);
 		public static Operator Equal =		new BinaryOperator("=",  14, Side.Right, (l, r) => null);
 		public static Operator PlusEqual =	new BinaryOperator("+=", 14, Side.Right, (l, r) => l + r);
 		public static Operator MinusEqual = new BinaryOperator("-=", 14, Side.Right, (l, r) => l + r);
@@ -66,6 +71,7 @@ namespace Outlet {
 
 		public Expression Construct(Expression l, Expression r) {
 			if (this == Dot) return new Deref(l, r);
+			if (this == FuncEqual) return new Lambda(l, r);
 			if (this == Equal) return new Assign(l, r);
 			if (this == LogicalAnd || this == LogicalOr) return new ShortCircuit(l, this, r);
 			return new Binary(l, this, r);

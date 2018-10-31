@@ -25,15 +25,11 @@ namespace Outlet.Parsing {
 				switch (cur) {
 					case Identifier id:
 						if (output.Count == 1 && stack.Count == 0) {
-							tokens.AddFirst(id);
-							done = true;
+							return new Declarator(output.Pop(), id);
 						} else output.Push(id);
 						break;
 					case Literal l:
 						output.Push(l);
-						break;
-					case AST.Type type:
-						output.Push(type);
 						break;
 					case Keyword k:
 						if (k == Keyword.True) output.Push(new Literal(true));
@@ -48,6 +44,15 @@ namespace Outlet.Parsing {
 								ReduceOperator(output, stack);
 							}
 						stack.Push(o);
+						break;
+					case Delimeter colon when colon == Delimeter.Colon:
+						while(stack.Count > 0 && stack.Peek() != Operator.Question) {
+							ReduceOperator(output, stack);
+						}
+						if(stack.Count > 0) {
+							stack.Pop();
+							stack.Push(Operator.Ternary);
+						}
 						break;
 					case Delimeter d when d == Delimeter.LeftParen:
 						while (lesserPrecedence(Operator.Dot)) {
@@ -112,7 +117,10 @@ namespace Outlet.Parsing {
 		public static void ReduceOperator(Stack<Expression> output, Stack<IToken> stack) {
 			if (stack.Count > 0 && stack.Peek() is Operator op) {
 				stack.Pop();
-				if(op is BinaryOperator binop) {
+				if(op == Operator.Ternary) {
+					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+					output.Push(new Ternary(output.Pop(), output.Pop(), output.Pop()));
+				} else if(op is BinaryOperator binop) {
 					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
 					Expression temp = output.Pop();
 					output.Push(binop.Construct(output.Pop(), temp));

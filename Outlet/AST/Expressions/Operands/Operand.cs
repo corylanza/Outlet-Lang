@@ -29,6 +29,11 @@ namespace Outlet.AST {
 		public override int GetHashCode() => base.GetHashCode();
 		public override void Resolve(Scope scope) {	}
 
+		public bool Cast(Type t) {
+			if (Type.Is(t)) return true;
+			throw new OutletException("cannot convert type " + Type.ToString() + " to type " + t.ToString());
+		}
+
 		//public abstract dynamic NewValue { get; set; }
 		public abstract bool Equals(Operand b);
 		public abstract override string ToString();

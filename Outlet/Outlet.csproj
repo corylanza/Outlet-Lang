@@ -79,7 +79,9 @@
     <Compile Include="AST\Declarations\FunctionDeclaration.cs" />
     <Compile Include="AST\Expressions\Assign.cs" />
     <Compile Include="AST\Expressions\Binary.cs" />
+    <Compile Include="AST\Expressions\Declarator.cs" />
     <Compile Include="AST\Expressions\Deref.cs" />
+    <Compile Include="AST\Expressions\Lambda.cs" />
     <Compile Include="AST\Expressions\ListLiteral.cs" />
     <Compile Include="AST\Expressions\Operands\Instance.cs" />
     <Compile Include="AST\Expressions\Operands\List.cs" />
@@ -88,6 +90,7 @@
     <Compile Include="AST\Expressions\Operands\Types\Primitive.cs" />
     <Compile Include="AST\Expressions\Operands\Types\TupleType.cs" />
     <Compile Include="AST\Expressions\ShortCircuit.cs" />
+    <Compile Include="AST\Expressions\Ternary.cs" />
     <Compile Include="AST\Expressions\TupleLiteral.cs" />
     <Compile Include="AST\Statements\ForLoop.cs" />
     <Compile Include="AST\Statements\IfStatement.cs" />

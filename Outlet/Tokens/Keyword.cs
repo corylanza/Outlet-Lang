@@ -19,10 +19,11 @@ namespace Outlet {
 		public static readonly Keyword While = new Keyword("while");
 		public static readonly Keyword Return = new Keyword("return");
 		public static readonly Keyword Static = new Keyword("static");
-		public static readonly Keyword Func = new Keyword("func");
+		//public static readonly Keyword Void = new Keyword("void");
+		//public static readonly Keyword Func = new Keyword("func");
 		public static readonly Keyword Class = new Keyword("class");
 		public static readonly Keyword Operator = new Keyword("operator");
-		public string Name;
+		public readonly string Name;
 		private Keyword(string name) {
 			Name = name;
 		}

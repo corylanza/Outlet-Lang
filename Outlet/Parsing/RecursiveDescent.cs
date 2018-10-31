@@ -21,30 +21,26 @@ namespace Outlet.Parsing {
 				else throw new OutletException("Syntax Error: " + error);
 			}
 			
-            VariableDeclaration VarDeclaration(Expression type, Identifier name) {
-                //Identifier name = ConsumeType<Identifier>("Expected variable identifier");
+            VariableDeclaration VarDeclaration(Declarator decl) {
                 Expression initializer = null;
                 if(Match(Operator.Equal)) initializer = NextExpression(tokens);
                 else Consume(Delimeter.SemiC, "expected either ; or an initializer after declaring a variable");
-                return new VariableDeclaration(type, name, initializer);
+                return new VariableDeclaration(decl, initializer);
             }
-            FunctionDeclaration FunctionDef(Expression type, Identifier name) {
-                //Identifier name = ConsumeType<Identifier>("Expected function identifier"); ;
-                //Consume(Delimeter.LeftParen, "expected ( after function name");
-                List <(Expression, Identifier)> argnames = new List<(Expression, Identifier)>();
+            FunctionDeclaration FunctionDef(Declarator decl) {
+                List <Declarator> argnames = new List<Declarator>();
                 while(tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
                     do {
-						if (NextExpression(tokens) is Expression paramtype && tokens.Count > 0 && tokens.First() is Identifier paramid) {
-							tokens.Dequeue();
-							argnames.Add((paramtype, paramid));
+						if (NextExpression(tokens) is Declarator paramdecl) {
+							argnames.Add(paramdecl);
 						} else throw new OutletException("function parameters expected in type id format");
                     } while(Match(Delimeter.Comma));
                 }
                 Consume(Delimeter.RightParen, " expected ) after function args");
-                Consume(Operator.Equal, " expected = after function name");
+                Consume(Operator.FuncEqual, " expected => after function name");
 				// TODO check for => and call nextexpression if true
                 Statement body = NextStatement(tokens);
-                return new FunctionDeclaration(type, name, argnames, body);
+                return new FunctionDeclaration(decl, argnames, body);
             }
 			ClassDeclaration ClassDef(){
 				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
@@ -83,10 +79,9 @@ namespace Outlet.Parsing {
             //if(Match(Keyword.Func)) return FunctionDef();
             if (Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement(tokens);
-            if(next is Expression o && tokens.Count > 0 && tokens.First() is Identifier id) {
-				tokens.Dequeue();
-				if (Match(Delimeter.LeftParen)) return FunctionDef(o, id);
-				else return VarDeclaration(o, id);
+            if(next is Declarator d) {
+				if (Match(Delimeter.LeftParen)) return FunctionDef(d);
+				else return VarDeclaration(d);
 			}
 			return next;
         }

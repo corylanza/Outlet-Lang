@@ -44,6 +44,7 @@ namespace Outlet.Lexing {
 			SetRange(CharType.And, 38, 39);// &
 			SetRange(CharType.Or, 124, 125); // |
 			SetRange(CharType.OneChar, 94, 95); // ^ xor
+			SetRange(CharType.Question, 63, 64); // ? ternary
         }
 
         public static CharType Get(int c) {
@@ -60,6 +61,7 @@ namespace Outlet.Lexing {
         NewLine,
         Dot,
         Quo,
+		Question,
         OneChar, // single character operators ()[]{},;
         // operators that could possibly be followed by an equals sign *%!
         Plus,

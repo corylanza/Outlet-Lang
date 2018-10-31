@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Assign : Expression {
 
-		private readonly Expression Left;
-		private readonly Expression Right;
+		private readonly Expression Left, Right;
 
 		public Assign(Expression left, Expression right) {
 			Left = left;

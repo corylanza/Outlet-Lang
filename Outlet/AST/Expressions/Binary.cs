@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Binary : Expression {
 
-        private Expression left, right;
-        private BinaryOperator op;
+        private readonly Expression left, right;
+        private readonly BinaryOperator op;
 
         public Binary(Expression left, BinaryOperator op, Expression right) {
             this.left = left;

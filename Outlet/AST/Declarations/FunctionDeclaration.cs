@@ -7,46 +7,34 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public class FunctionDeclaration : Declaration {
 		
-        public readonly string ID;
-		private readonly List<(Expression Type, Identifier ID)> ArgNames;
+        private readonly Declarator Decl;
+		private readonly List<Declarator> Args;
 		private readonly Statement Body;
-		private readonly Expression Type;
-		//private readonly Function Func;
 
-		public FunctionDeclaration(Expression type, Identifier id, List<(Expression, Identifier)> argnames, Statement body) {
-            ID = id.Name;
-			ArgNames = argnames;
+		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) {
+			Decl = decl;
+			Args = argnames;
 			Body = body;
-			Type = type;
 		}
 
 		public Function Construct(Scope closure) {
-			Operand t = Type.Eval(closure);
-			List<(Type, string)> args = new List<(Type, string)>();
-			foreach(var arg in ArgNames) {
-				Operand pt = arg.Type.Eval(closure);
-				if (pt is Type ptype) args.Add((ptype, arg.ID.Name));
-				else throw new OutletException(arg.Type.ToString() + " is not a valid type");
-			}
-			if(t is Type type) return new Function(closure, ID, type, args, Body);
-			throw new OutletException(Type.ToString() + " is not a valid type");
+			List<(Type, string)> args = Args.Select(x => (x.GetType(closure), x.ID)).ToList();
+			return new Function(closure, Decl.ID, Decl.GetType(closure), args, Body);
 		}
 
 		public override void Resolve(Scope scope) {
-			scope.Define(ID);
+			scope.Define(Decl.ID);
 			Scope exec = new Scope(scope);
-			foreach (var arg in ArgNames) {
-				exec.Define(arg.ID.Name);
-			}
+			Args.ForEach(x => exec.Define(x.ID));
 			Body.Resolve(exec);
 		}
 
 		public override void Execute(Scope scope) {
-            scope.Add(ID, null, Construct(scope));
+            scope.Add(Decl.ID, null, Construct(scope));
         }
 
         public override string ToString() {
-			string s = "func "+ID+"(";
+			string s = "func "+Decl.ID+"(";
 			return s+")";
         }
     }

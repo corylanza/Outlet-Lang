@@ -18,7 +18,15 @@ namespace Outlet {
 		};
 
 		public static Dictionary<string, AST.Type> NativeTypes = new Dictionary<string, AST.Type>() {
-			{"list", AST.Type.List }
+			{"int", Primitive.Int },
+			{"float", Primitive.Float },
+			{"bool", Primitive.Bool },
+			{"string", Primitive.String },
+			{"object", Primitive.Object },
+			{"list", Primitive.List },
+			{"type", Primitive.MetaType },
+			{"void", Primitive.Void },
+			{ "func", Primitive.FuncType },
 		};
 	}
 }

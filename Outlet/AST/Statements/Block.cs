@@ -26,7 +26,7 @@ namespace Outlet.AST {
 
 		public override string ToString() {
 			string s = "{\n";
-			foreach (Declaration d in Lines) s += d.ToString()+'\n';
+			foreach (Declaration d in Lines) s += d.ToString()+";\n";
 			return s+"}";
 		}
 	}

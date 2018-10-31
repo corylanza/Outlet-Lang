@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class OList : Operand, ICallable, IDereferenceable, ICollection {
 		public OList(params Operand[] vals) {
-			Type = Type.List;
+			Type = Primitive.List;
 			Value = vals;
 		}
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public abstract class Type : Operand, IDereferenceable {
 
-		public static Type List = new Class("list", null, new List<Declaration>(), new List<Declaration>());
+		
 
 		public readonly string Name;
 		public readonly Type Parent;

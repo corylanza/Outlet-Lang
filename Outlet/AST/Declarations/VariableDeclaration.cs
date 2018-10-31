@@ -7,37 +7,32 @@ using Outlet.AST;
 
 namespace Outlet.AST {
 	public class VariableDeclaration : Declaration {
-		
-		private readonly string ID;
-		private readonly Expression Type;
+
+		private readonly Declarator Decl;
 		private readonly Expression Initializer;
 
-		public VariableDeclaration(Expression type, Identifier id, Expression initializer) {
-			ID = id.Name;
-			Type = type;
+		public VariableDeclaration(Declarator decl, Expression initializer) {
+			Decl = decl;
 			Initializer = initializer;
 		}
 
 		public override void Resolve(Scope scope) {
-            scope.Declare(ID);
-			Type.Resolve(scope);
+            scope.Declare(Decl.ID);
+			Decl.Resolve(scope);
             Initializer?.Resolve(scope);
-            scope.Define(ID);
+            scope.Define(Decl.ID);
 		}
 
 		public override void Execute(Scope scope) {
-			Operand t = Type.Eval(scope);
 			Operand initial = Initializer?.Eval(scope);
-			if (t is Type type) {
-				Type initType = initial?.Type;
-				if (initial is null || initType.Is(type)) scope.Add(ID, type, initial);
-				else throw new OutletException("cannot convert type " + initType.ToString() + " to type " + type.ToString());
-			} 
-			else throw new OutletException(Type.ToString()+" is not a valid type");
+			Type type = Decl.GetType(scope);
+			Type initType = initial?.Type;
+			if (initial is null || initType.Is(type)) scope.Add(Decl.ID, type, initial);
+			else throw new OutletException("cannot convert type "+initType.ToString() + " to type "+type.ToString());
 		}
 
 		public override string ToString() {
-			string s = "var " + ID.ToString();
+			string s = Decl.ToString();
 			if (Initializer is null) return s;
 			else return s + " = " + Initializer.ToString();
 		}

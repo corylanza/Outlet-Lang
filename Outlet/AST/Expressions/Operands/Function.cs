@@ -19,6 +19,7 @@ namespace Outlet.AST {
             Name = id;
 			ReturnType = type;
             ArgNames = argnames;
+			Type = Primitive.FuncType;
             Body = body;
 			Closure = closure;
         }
@@ -27,18 +28,18 @@ namespace Outlet.AST {
 			Scope exec = new Scope(Closure);
 			Operand returnval = null;
  			for (int i = 0; i < args.Length; i++) {
-				Operand param = args[i];
-				Type paramType = ArgNames[i].Type;
-				if(param.Type.Is(paramType)) exec.Add(ArgNames[i].ID, ArgNames[i].Type, args[i]);
-				else throw new OutletException("cannot convert type " + param.Type.ToString() + " to type " + paramType.ToString());
-			} try {
+				args[i].Cast(ArgNames[i].Type);
+				exec.Add(ArgNames[i].ID, ArgNames[i].Type, args[i]);
+			}
+			try {
 				if (Body is Expression e) returnval = e.Eval(exec);
 				else Body.Execute(exec);
 			} catch (Return r) {
 				returnval = r.Value;
 			}
-			if (returnval.Type.Is(ReturnType)) return returnval;
-			else throw new OutletException("cannot convert type " + returnval.Type.ToString() + " to type " + ReturnType.ToString());	
+			if (ReferenceEquals(ReturnType, Primitive.Void)) return null;
+			returnval.Cast(ReturnType);
+			return returnval;
 		}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
@@ -50,7 +51,10 @@ namespace Outlet.AST {
 
     public class Native : Function, ICallable {
         private readonly Func<Operand[], Operand> Underlying;
-        public Native(Func<Operand[], Operand> func)  { Underlying = func; }
+        public Native(Func<Operand[], Operand> func)  {
+			Underlying = func;
+			Type = Primitive.FuncType;
+		}
         public override Operand Call(params Operand[] args) => Underlying(args);
     }
 }

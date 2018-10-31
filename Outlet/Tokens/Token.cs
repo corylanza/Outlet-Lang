@@ -14,17 +14,9 @@ namespace Outlet {
 
 
 		private static Dictionary<string, IToken> Tokens = new Dictionary<string, IToken>() {
-			// Primitives
-			{"int", Primitive.Int },
-			{"float", Primitive.Float },
-			{"bool", Primitive.Bool },
-			{"string", Primitive.String },
-			{"object", Primitive.Object },
-			{"type", Primitive.MetaType },
 			// Keywords
 			{"class", Keyword.Class },
 			{"static", Keyword.Static },
-			{ "func", Keyword.Func },
 			{ "var", Keyword.Var },
 			{ "operator", Keyword.Operator },
 			{"if", Keyword.If },
@@ -38,6 +30,8 @@ namespace Outlet {
             {"false", Keyword.False },
 			{ "null", Keyword.Null },
 			// Operators
+			{"++", Operator.PostInc },
+			{"--", Operator.PostDec },
 			{"+", Operator.Plus },
 			{"-", Operator.Minus },
 			{"/", Operator.Divide },
@@ -57,6 +51,7 @@ namespace Outlet {
 			{"not", Operator.Not },
 			{"!", Operator.Not },
 			{"=", Operator.Equal },
+			{"=>", Operator.FuncEqual },
 			{"+=", Operator.PlusEqual },
 			{"-=", Operator.MinusEqual },
 			{"/=", Operator.DivEqual },
@@ -68,6 +63,7 @@ namespace Outlet {
 			{"==", Operator.BoolEquals },
 			{"is", Operator.Is },
 			{"isnt", Operator.Isnt },
+			{"?", Operator.Question },
 			{".", Operator.Dot },
 			// Delimeters
 			{"(", Delimeter.LeftParen },
@@ -81,29 +77,6 @@ namespace Outlet {
 			{";", Delimeter.SemiC },
 		};
 	}
-
-	/*
-	public enum TokenType {
-		None = 0,
-		// One Character
-		LeftParen, RightParen, LeftBrace, RightBrace,
-		LeftCurly, RightCurly, Colon,
-		Comma, Dot, SemiC,
-
-		// Operators that can have = appended
-		Plus, Minus, Divide, Multiply, LT, GT, Not, Equal,
-		PlusEqual, MinusEqual, MultEqual, DividedEqual, LTE, GTE, NotEqual, BoolEquals,
-
-		// multichar
-		Identifier, OString, OInt, OFloat,
-
-		// keywords
-		If, Else, Null, For, While, Return, True, False,
-		// functions, increment ops, bitshifts, and logical ops not represented yet
-
-
-		EOF
-	}*/
 
 	public interface IToken {}
 

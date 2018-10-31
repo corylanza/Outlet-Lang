@@ -71,5 +71,14 @@ namespace Outlet {
 			throw new Exception("lists of differing length");
 		}
 
+		public static string ToListString<T>(this List<T> list) {
+			string s = "";
+			for(int i = 0; i < list.Count; i++) {
+				s += list[i].ToString();
+				if (i != list.Count - 1) s += ", ";
+			}
+			return s;
+		}
+
     }
 }

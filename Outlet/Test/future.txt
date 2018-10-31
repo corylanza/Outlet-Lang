@@ -1,2 +1,6 @@
 ﻿factorial(1): int = 1
 factorial(int n): int = n*factorial(n-1) 
+
+function composition using operators
+e.g. even and greaterthantwo are both functions that return bools, 
+using && between them creates a new function that returns if they both return true 

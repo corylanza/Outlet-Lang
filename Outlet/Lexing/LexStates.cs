@@ -34,6 +34,7 @@ namespace Outlet.Lexing {
 		static State forwardslash = machine.AddState(true, true, TokenizeOp);
         static State lt = machine.AddState(true, true, TokenizeOp);
         static State gt = machine.AddState(true, true, TokenizeOp);
+		static State equal = machine.AddState(true, true, TokenizeOp);
         static State preequal = machine.AddState(true, true, TokenizeOp); // operators that a = can be added to
         static State finalop = machine.AddState(true, true, TokenizeOp); //no more chars can be added to this op
 
@@ -81,10 +82,15 @@ namespace Outlet.Lexing {
             start.SetTransition(CharType.LT, lt);
             start.SetTransition(CharType.GT, gt);
             start.SetTransition(CharType.OpEq, preequal);
-            start.SetTransition(CharType.Equals, preequal);
-            preequal.SetTransition(CharType.Equals, finalop);
+			start.SetTransition(CharType.Equals, equal);
+			start.SetTransition(CharType.Question, finalop);
+			equal.SetTransition(CharType.GT, finalop);
+			equal.SetTransition(CharType.Equals, finalop);
+			preequal.SetTransition(CharType.Equals, finalop);
             plus.SetTransition(CharType.Equals, finalop);
-            minus.SetTransition(CharType.Equals, finalop);
+			plus.SetTransition(CharType.Plus, finalop);
+			minus.SetTransition(CharType.Equals, finalop);
+			minus.SetTransition(CharType.Minus, finalop);
 			and.SetTransition(CharType.And, finalop);
 			and.SetTransition(CharType.Equals, finalop);
 			or.SetTransition(CharType.Or, finalop);

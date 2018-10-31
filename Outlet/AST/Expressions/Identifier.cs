@@ -13,6 +13,7 @@ namespace Outlet.AST {
 
         public override Operand Eval(Scope scope) {
 			if (resolveLevel == -1) {
+				if (ForeignFunctions.NativeTypes.ContainsKey(Name)) return ForeignFunctions.NativeTypes[Name];
 				if (ForeignFunctions.NativeFunctions.ContainsKey(Name)) return ForeignFunctions.NativeFunctions[Name];
 				else throw new OutletException("Variable "+Name+" could not be resolved, possibly global variable(unimplemented)");
 			} else return scope.Get(resolveLevel, Name);
