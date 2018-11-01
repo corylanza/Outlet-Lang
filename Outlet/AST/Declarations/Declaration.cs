@@ -9,7 +9,7 @@ namespace Outlet.AST {
 
 		public abstract void Resolve(Scope scope);
 
-		//public abstract void TypeCheck();
+		//public abstract Type TypeCheck();
 
 		public abstract void Execute(Scope scope);
 

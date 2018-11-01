@@ -35,7 +35,7 @@ namespace Outlet.Lexing {
             SetRange(CharType.Plus, 43, 44); // +
             SetRange(CharType.Minus, 45, 46); // -
             SetRange(CharType.ForwardSlash, 47, 48); // /
-            SetRange(CharType.OpEq, 42, 43); // *
+            SetRange(CharType.Asterisk, 42, 43); // *
             SetRange(CharType.OpEq, 37, 38); // %
             SetRange(CharType.OpEq, 33, 34); // !
             SetRange(CharType.LT, 60, 61); // *
@@ -44,6 +44,7 @@ namespace Outlet.Lexing {
 			SetRange(CharType.And, 38, 39);// &
 			SetRange(CharType.Or, 124, 125); // |
 			SetRange(CharType.OneChar, 94, 95); // ^ xor
+			SetRange(CharType.OneChar, 126, 127); // ^ xor
 			SetRange(CharType.Question, 63, 64); // ? ternary
         }
 
@@ -66,6 +67,7 @@ namespace Outlet.Lexing {
         // operators that could possibly be followed by an equals sign *%!
         Plus,
         Minus,
+		Asterisk,
         OpEq, 
         Equals, //  =
         LT,

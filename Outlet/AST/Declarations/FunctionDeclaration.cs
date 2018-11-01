@@ -24,8 +24,9 @@ namespace Outlet.AST {
 
 		public override void Resolve(Scope scope) {
 			scope.Define(Decl.ID);
+			Decl.Resolve(scope);
 			Scope exec = new Scope(scope);
-			Args.ForEach(x => exec.Define(x.ID));
+			Args.ForEach(x => { x.Resolve(scope); exec.Define(x.ID); });
 			Body.Resolve(exec);
 		}
 

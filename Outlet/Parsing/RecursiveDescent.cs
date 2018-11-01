@@ -37,46 +37,36 @@ namespace Outlet.Parsing {
                     } while(Match(Delimeter.Comma));
                 }
                 Consume(Delimeter.RightParen, " expected ) after function args");
-                Consume(Operator.FuncEqual, " expected => after function name");
+                Consume(Operator.Lambda, " expected => after function name");
 				// TODO check for => and call nextexpression if true
                 Statement body = NextStatement(tokens);
                 return new FunctionDeclaration(decl, argnames, body);
             }
 			ClassDeclaration ClassDef(){
 				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
-				/*
-				 * Consume(Delimeter.LeftParen, "expected ( after function name");
-				List<Identifier> argnames = new List<Identifier>();
-				while (tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
-					do {
-						if (tokens.First() is Identifier argname) {
-							tokens.Dequeue();
-							argnames.Add(argname);
-						} else throw new OutletException("Only identifiers can be used as args");
-					} while (Match(Delimeter.Comma));
-				}
-				Consume(Delimeter.RightParen, " expected ) after function args");
-				*/
 				List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				if (Match(Delimeter.LeftCurly)) {
 					while (true) {
-						/*
-						if (Match(Keyword.Func)) instance.Add(FunctionDef());
-						else if (Match(Keyword.Var)) instance.Add(VarDeclaration());
-						else if (Match(Keyword.Static)) {
-							if (Match(Keyword.Var)) statics.Add(VarDeclaration());
-							else if (Match(Keyword.Func)) statics.Add(FunctionDef());
-							else throw new OutletException("expected either variable or function declaration after static keyword");
+						if (Match(Delimeter.RightCurly)) break;
+						if (tokens.Count == 0) throw new OutletException("expected } after class definition");
+						if (Match(Keyword.Static)) {
+							Statement nextfield = NextStatement(tokens);
+							if (nextfield is Declarator df) {
+								if (Match(Delimeter.LeftParen)) statics.Add(FunctionDef(df));
+								else statics.Add(VarDeclaration(df));
+							} else throw new OutletException("statement: "+nextfield.ToString()+" must be inside a function body");
+						} else {
+							Statement nextfield = NextStatement(tokens);
+							if (nextfield is Declarator df) {
+								if (Match(Delimeter.LeftParen)) instance.Add(FunctionDef(df));
+								else instance.Add(VarDeclaration(df));
+							} else throw new OutletException("statement: " + nextfield.ToString() + " must be inside a function body");
 						}
-						else if (Match(Delimeter.RightCurly)) break;
-						else throw new OutletException("expected } after class definition");*/
 					}
 				}
 				return new ClassDeclaration(name, instance, statics);
 			}
-            //if(Match(Keyword.Var)) return VarDeclaration();
-            //if(Match(Keyword.Func)) return FunctionDef();
             if (Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement(tokens);
             if(next is Declarator d) {

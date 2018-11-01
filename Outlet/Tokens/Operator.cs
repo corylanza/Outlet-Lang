@@ -9,14 +9,17 @@ namespace Outlet {
 	public enum Side { Left, Right }
 
 	public abstract class Operator : IToken {
-
-		//1: ++, --
-		public static Operator PostInc = new UnaryOperator("++", 1, Side.Left, (l) => new Literal(l.Value++));
-		public static Operator PostDec = new UnaryOperator("--", 1, Side.Left, (l) => new Literal(l.Value--));
-		public static Operator Dot =		new BinaryOperator(".",  1, Side.Left,  (l, r) => null); // TODO
-		//2: pre ++ and --, unary + and -, ~, &, sizeof
-		public static Operator Negative =	new UnaryOperator("-",   2, Side.Right, (l) => -l); //TODO
-		public static Operator Not =		new UnaryOperator("!",   2, Side.Right, (l) => !l); //TODO
+		
+		public static Operator PostInc =	new UnaryOperator("++", 1, Side.Left, (l) => new Literal(l.Value++));
+		public static Operator PostDec =	new UnaryOperator("--", 1, Side.Left, (l) => new Literal(l.Value--));
+		public static Operator Dot =		new BinaryOperator(".",  1, Side.Left,  (l, r) => null);
+		public static Operator PreInc =		new UnaryOperator("++", 1, Side.Left, (l) => new Literal(++l.Value));
+		public static Operator PreDec =		new UnaryOperator("--", 1, Side.Left, (l) => new Literal(--l.Value));
+		//public static Operator UnaryPlus =  new UnaryOperator("+", 2, Side.Right, (l) => new Literal(+l.Value));
+		public static Operator Complement = new UnaryOperator("~", 2, Side.Right, (l) => new Literal(~l.Value));
+		//public static Operator UnaryAnd =   new UnaryOperator("&", 2, Side.Right, (l) => null);
+		public static Operator Negative =	new UnaryOperator("-",   2, Side.Right, (l) => -l);
+		public static Operator Not =		new UnaryOperator("!",   2, Side.Right, (l) => !l);
 		public static Operator Times =		new BinaryOperator("*",  3, Side.Left,  (l, r) => l * r);
 		public static Operator Divide =		new BinaryOperator("/",  3, Side.Left,  (l, r) => l / r);
 		public static Operator Modulus =	new BinaryOperator("%",  3, Side.Left,  (l, r) => l % r);
@@ -38,8 +41,8 @@ namespace Outlet {
 		public static Operator LogicalAnd = new BinaryOperator("&&", 11, Side.Left, (l, r) => null);
 		public static Operator LogicalOr =	new BinaryOperator("||", 12, Side.Left, (l, r) => null);
 		public static Operator Question =	new BinaryOperator("?", 13, Side.Right, (l, r) => null);
-		public static Operator Ternary =	new BinaryOperator("", 13, Side.Right, (l, r) => null);
-		public static Operator FuncEqual =  new BinaryOperator("=>", 14, Side.Right, (l, r) => null);
+		public static Operator Ternary =	new BinaryOperator("ternary", 13, Side.Right, (l, r) => null);
+		public static Operator Lambda =		new BinaryOperator("=>", 14, Side.Right, (l, r) => null);
 		public static Operator Equal =		new BinaryOperator("=",  14, Side.Right, (l, r) => null);
 		public static Operator PlusEqual =	new BinaryOperator("+=", 14, Side.Right, (l, r) => l + r);
 		public static Operator MinusEqual = new BinaryOperator("-=", 14, Side.Right, (l, r) => l + r);
@@ -69,9 +72,10 @@ namespace Outlet {
 		
 		public Operand PerformOp(Operand l, Operand r) => BinaryFunc(l, r);
 
-		public Expression Construct(Expression l, Expression r) {
+		// Right param is first due to shunting yard popping the right operand first
+		public Expression Construct(Expression r, Expression l) {
 			if (this == Dot) return new Deref(l, r);
-			if (this == FuncEqual) return new Lambda(l, r);
+			if (this == Lambda) return new Lambda(l, r);
 			if (this == Equal) return new Assign(l, r);
 			if (this == LogicalAnd || this == LogicalOr) return new ShortCircuit(l, this, r);
 			return new Binary(l, this, r);
@@ -88,12 +92,5 @@ namespace Outlet {
 
 		public Operand PerformOp(Operand e) => UnaryFunc(e);
 	}
-	/*
-	internal class Operation {
-		public Operation(AST.Type left, Operator op, AST.Type right, Func<Operand, Operand, Operand> operation) {
-
-		}
-	}*/
-
 
 }

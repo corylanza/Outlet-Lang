@@ -1,36 +1,34 @@
 ﻿class person {
 
-	var Name = "";
-	var Age = 0;
-	static var count = 0;
+	string Name;
+	int Age = 0;
+	static int count = 0;
 
-	func person(n, a) = {
+	void person(string n, int a) => {
 		Name = n;
 		Age = a;
 		make();
 		print("contructed "+Name+" "+Age+" count "+count);
 	}
 
-	func greet() = "hello i am "+Name;
+	(string, int) deconstruct() => (Name, Age);
 
-	static func make() = { count = count + 1; }
+	void greet() => print("hello i am " + Name);
+
+	static void make() => count++;
+
 }
 
 class math {
-	static func fac(n) = {
-		if(n <= 1) return 1;
-		return n*fac(n-1);
-	}
-	static func pow(b, e) = {
-		if(e == 0) return 1;
-		return b*pow(b, e-1);
-	}
+	static int fac(int n) => n == 1 ? 1 : n*fac(n-1);
+	static int pow(int b, int e) => e == 0 ? 1 : b*pow(b, e-1);
 }
 print(math.fac(5));
 print(math.pow(10,3));
 print(person.count);
-var a = person("cory", 20);
-var b = person("jenna", 21);
-print(a);
-print(b);
+person a = person("cory", 20);
+person b = person("jenna", 21);
+a.greet();
+b.greet();
+print(a.deconstruct());
 print(person.count);

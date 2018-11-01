@@ -39,10 +39,12 @@ namespace Outlet.Lexing {
         static State finalop = machine.AddState(true, true, TokenizeOp); //no more chars can be added to this op
 
 
-        //static State comment = machine.AddState(true, true, NoToken);
+        static State comment = machine.AddState(false, false, NoToken);
+		static State commentesc = machine.AddState(false, false, NoToken);
+		static State commentend = machine.AddState(true, false, NoToken);
 
 
-        static void InitStates() {
+		static void InitStates() {
             start.SetTransition(CharType.Letter, id);
             start.SetTransition(CharType.Number, number);
             start.SetTransition(CharType.OneChar, finalop);
@@ -53,11 +55,12 @@ namespace Outlet.Lexing {
             id.SetTransition(CharType.Letter, id);
             // comments
             start.SetTransition(CharType.ForwardSlash, forwardslash);
-            //forwardslash.SetTransition(CharType.ForwardSlash, comment);
-            //comment.setDefault
-            //comment.SetTransition(CharType.NewLine, start);
-            // Ints and floats
-            number.SetTransition(CharType.Number, number);
+            forwardslash.SetTransition(CharType.Asterisk, comment);
+			comment.SetDefualt(comment);
+			comment.SetTransition(CharType.Asterisk, commentesc);
+			commentesc.SetTransition(CharType.ForwardSlash, commentend);
+			// Ints and floats
+			number.SetTransition(CharType.Number, number);
             number.SetTransition(CharType.Dot, dot);
             dot.SetTransition(CharType.Number, sfloat);
             // Strings
@@ -77,6 +80,7 @@ namespace Outlet.Lexing {
             // Operators
             start.SetTransition(CharType.Plus, plus);
             start.SetTransition(CharType.Minus, minus);
+			start.SetTransition(CharType.Asterisk, preequal);
 			start.SetTransition(CharType.And, and);
 			start.SetTransition(CharType.Or, or);
             start.SetTransition(CharType.LT, lt);

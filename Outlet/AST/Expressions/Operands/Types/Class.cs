@@ -11,13 +11,11 @@ namespace Outlet.AST {
 		
 		private readonly List<Declaration> InstanceDecls;
 		private Scope Scope;
-		//private readonly List<Declaration> StaticDecls;
 		
 		public Class(string name, Scope closure, Decls instance, Decls statics) : base(name, Primitive.Object, null) {
 			InstanceDecls = instance;
 			Scope = new Scope(closure);
 			foreach(Declaration d in statics) {
-				d.Resolve(Scope);
 				d.Execute(Scope);
 			}
 		}
@@ -29,7 +27,7 @@ namespace Outlet.AST {
 				d.Execute(exec);
 			}
 			(exec.Get(0, Name) as Function).Call(args);
-			return new Instance(this, exec);//, ArgNames.TupleZip(args.ToList()));
+			return new Instance(this, exec);
 		}
 
 		public override Operand Dereference(Identifier field) {

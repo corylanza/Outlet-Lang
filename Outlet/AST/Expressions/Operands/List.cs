@@ -31,6 +31,10 @@ namespace Outlet.AST {
 			return false;
 		}
 
+		public static OList operator +(OList a, OList b) {
+			return new OList(a.Values().Union(b.Values()).ToArray());
+		}
+
 		public override string ToString() {
 			if (Value.Length == 0) return "List()";
 			 string s = "List(";

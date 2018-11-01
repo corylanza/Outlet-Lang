@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Literal : Operand, IToken {
 
+		//null
+		public Literal() {
+			Type = Primitive.Object;
+			Value = null;
+		}
+
 		public Literal(int value) {
 			Type = Primitive.Int;
 			Value = value;
@@ -29,6 +35,6 @@ namespace Outlet.AST {
 
 		public override bool Equals(Operand b) => Value.Equals(b.Value);
 
-		public override string ToString() => Value.ToString();
+		public override string ToString() => (Value ?? "null").ToString();
 	}
 }

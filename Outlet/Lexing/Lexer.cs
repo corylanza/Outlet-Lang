@@ -23,15 +23,21 @@ namespace Outlet.Lexing {
 				CharType c = CharClass.Get(b);
                 if(machine.Peek(c)) {
                     machine.NextState(c);
-                } else if(machine.Cur.Accepting) { 
-                    if(machine.Cur.Output != NoToken) tokens.AddLast(machine.Cur.Output(buffer));
+                } else if(machine.Cur.Accepting) {
+					if (machine.Cur.Output != NoToken) {
+						IToken toadd = machine.Cur.Output(buffer);
+						if (toadd != null) tokens.AddLast(toadd);
+					}
                     buffer = "";
                     machine.Cur = start.Transition(c);
                 } else throw new Exception("illegal");
                 if(machine.Cur.Keep) buffer += (char) b;
             }
-            if(!machine.Cur.Accepting && buffer.Length > 0) throw new Exception("illegal");
-            else if(buffer.Length > 0) tokens.AddLast(machine.Cur.Output(buffer));
+			if (!machine.Cur.Accepting && buffer.Length > 0) throw new Exception("illegal");
+			else if (buffer.Length > 0) {
+				IToken toadd = machine.Cur.Output(buffer);
+				if (toadd != null) tokens.AddLast(toadd);
+			}
             return tokens;
 		}
 

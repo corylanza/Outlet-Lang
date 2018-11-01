@@ -20,6 +20,7 @@ namespace Outlet.AST {
         }
 
         public override void Resolve(Scope scope) {
+			// eventually Find should return (int, Type) tuple for type check
             resolveLevel = scope.Find(Name);
         } 
 

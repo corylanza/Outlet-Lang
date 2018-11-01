@@ -23,11 +23,11 @@ namespace Outlet.AST {
 		}
 
 		public Operand Dereference(Identifier field) {
-			return Fields[field.Name];
+			return Scope.Get(0, field.Name);
 		}
 
 		public override bool Equals(Operand b) {
-			throw new NotImplementedException();
+			return ReferenceEquals(this, b);
 		}
 
 		public override string ToString() {

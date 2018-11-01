@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public abstract class Type : Operand, IDereferenceable {
 
-		
-
 		public readonly string Name;
 		public readonly Type Parent;
 		public readonly object Default;
@@ -24,7 +22,7 @@ namespace Outlet.AST {
 		public bool Is(Type t) {
 			if (Equals(t)) return true;
 			if (!(Parent is null)) return Parent.Is(t);
-			return false;
+			return true;
 		}
 
 		public abstract Operand Dereference(Identifier feld);
@@ -35,9 +33,7 @@ namespace Outlet.AST {
 			return null;
 		}
 
-		public override void Resolve(Scope scope) {
-			//throw new NotImplementedException("resolving not implemented for types");
-		}
+		public override void Resolve(Scope scope) {	}
 	}
 
 }

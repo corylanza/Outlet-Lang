@@ -8,6 +8,7 @@ using Outlet.AST;
 namespace Outlet.Parsing {
 	public static partial class Parser {
 		public static Expression NextExpression(LinkedList<IToken> tokens) {
+			#region preliminary definitons
 			bool done = false;
 			Stack<Expression> output = new Stack<Expression>();
 			Stack<IToken> stack = new Stack<IToken>();
@@ -19,6 +20,8 @@ namespace Outlet.Parsing {
 				i is Keyword k && (k == Keyword.True || k == Keyword.False || k == Keyword.Null) ||
 				i is Delimeter d && (d != Delimeter.LeftCurly || d != Delimeter.RightCurly));
 			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Asssoc == Side.Left);
+			#endregion
+
 			while (ValidToken() && !done) {
 				last = cur;
 				cur = tokens.Dequeue();
@@ -34,25 +37,41 @@ namespace Outlet.Parsing {
 					case Keyword k:
 						if (k == Keyword.True) output.Push(new Literal(true));
 						else if (k == Keyword.False) output.Push(new Literal(false));
-						else throw new NotImplementedException("null is not implemented");
+						else output.Push(new Literal());//throw new NotImplementedException("null is not implemented");
 						break;
 					case Operator o:
-						if (o.Name == "-" && IsUnary(last)) {
+						if (o.Name == "-" && IsPreUnary(last)) {
 							o = Operator.Negative;
-						} //else if (IsUnary(last)) throw new Exception("unary operator: " +o.Name);
-						else while (lesserPrecedence(o)) {
-								ReduceOperator(output, stack);
-							}
+						}
+						if (o.Name == "++" && IsPreUnary(last)) {
+							o = Operator.PreInc;
+						}
+						if (o.Name == "--" && IsPreUnary(last)) {
+							o = Operator.PreDec;
+						}
+						/*bool b = IsBinary(last);
+						bool pre = IsPreUnary(last);
+						bool post = IsPostUnary(tokens.Head());
+						if (pre && post) throw new Exception("BOTH");
+						if (pre) Console.WriteLine("preunary" + o.ToString());
+						else if (post) Console.WriteLine("postunary" + o.ToString());
+						else Console.WriteLine("binary" + o.ToString());
+						if (IsPreUnary(last)) throw new Exception("preunary operator: " +o.Name);
+						if (IsPostUnary(tokens.First())) throw new Exception("postunary operator: " + o.Name);
+						else*/
+						while (lesserPrecedence(o)) {
+							ReduceOperator(output, stack);
+						}
 						stack.Push(o);
 						break;
 					case Delimeter colon when colon == Delimeter.Colon:
 						while(stack.Count > 0 && stack.Peek() != Operator.Question) {
 							ReduceOperator(output, stack);
 						}
-						if(stack.Count > 0) {
+						if (stack.Count > 0) {
 							stack.Pop();
 							stack.Push(Operator.Ternary);
-						}
+						} else throw new OutletException("expected ? before : in ternary operator");
 						break;
 					case Delimeter d when d == Delimeter.LeftParen:
 						while (lesserPrecedence(Operator.Dot)) {
@@ -73,7 +92,8 @@ namespace Outlet.Parsing {
 						while (stack.Count > 0 && !(stack.Peek() is Delimeter d && (d.Name == "(" || d.Name == "["))) {
 							ReduceOperator(output, stack);
 						}
-						arity.Push(arity.Pop() + 1);
+						if (stack.Count > 0) arity.Push(arity.Pop() + 1);
+						else throw new OutletException("Cannot have a comma without being in a grouping or list expression");
 						break;
 					case Delimeter right when right == Delimeter.RightParen:
 						while (stack.Count > 0 && !(stack.Peek() is Delimeter d && d.Name == "(")) {
@@ -81,7 +101,8 @@ namespace Outlet.Parsing {
 						}
 						if (stack.Count == 0) {
 							tokens.AddFirst(cur);
-							done = true;
+							if (output.Count == 1) return output.Pop();
+							else throw new OutletException("invalid expression before )");
 						} else {
 							int a = arity.Pop();
 							Expression[] tuple = new Expression[a];
@@ -91,10 +112,11 @@ namespace Outlet.Parsing {
 						}
 						break;
 					case Delimeter rightb when rightb == Delimeter.RightBrace:
-						while (stack.Peek() != Delimeter.LeftBrace) {
+						while (stack.Count > 0 && stack.Peek() != Delimeter.LeftBrace) {
 							ReduceOperator(output, stack);
 						}
-						stack.Pop();
+						if (stack.Count > 0) stack.Pop();
+						else throw new OutletException("expected [ before ] in list literal");
 						int addnum = arity.Pop();
 						Expression[] list = new Expression[addnum];
 						for (int i = 0; i < addnum; i++) {
@@ -111,25 +133,24 @@ namespace Outlet.Parsing {
 				}
 			}
 			while (stack.Count > 0) ReduceOperator(output, stack);
-			return output.Pop();
+			if(output.Count == 1) return output.Pop();
+			throw new OutletException("Expression invalid, more operands than needed operators");
 		}
 
 		public static void ReduceOperator(Stack<Expression> output, Stack<IToken> stack) {
 			if (stack.Count > 0 && stack.Peek() is Operator op) {
 				stack.Pop();
 				if(op == Operator.Ternary) {
-					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+					if (output.Count < 3) throw new OutletException("Syntax Error: ternary operator expects 3 operands");
 					output.Push(new Ternary(output.Pop(), output.Pop(), output.Pop()));
 				} else if(op is BinaryOperator binop) {
-					if (output.Count < 2) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
-					Expression temp = output.Pop();
-					output.Push(binop.Construct(output.Pop(), temp));
+					if (output.Count < 2) throw new OutletException("Syntax Error: binary operator "+binop.ToString()+" expects 2 operands");
+					output.Push(binop.Construct(output.Pop(), output.Pop()));
 				}else if(op is UnaryOperator unop){
-					if (output.Count < 1) throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
+					if (output.Count < 1) throw new OutletException("Syntax Error: unary operator "+unop.ToString()+" expects 1 operand");
 					output.Push(new Unary(output.Pop(), unop));
 				}
-			} else throw new OutletException("Syntax Error: cannot evalute expression due to imbalanced operators/operands");
-
+			} else throw new OutletException("Expression invalid, more operators than needed operands");
 		}
 	}
 }
