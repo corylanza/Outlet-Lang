@@ -17,9 +17,13 @@ namespace Outlet.AST {
 		public static Primitive String = new Primitive("string", Object, "");
 		public static Primitive List = new Primitive("list", Object, "");
 
-		private Primitive(string name, Type parent, object def) : base(name, parent, def) {	}
+		private readonly string Name;
 
-		public override Operand Dereference(Identifier feld) {
+		private Primitive(string name, Type parent, object def) : base(parent, def) {
+			Name = name;
+		}
+
+		public override Operand Dereference(string field) {
 			throw new NotImplementedException();
 		}
 

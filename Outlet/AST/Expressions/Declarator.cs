@@ -10,9 +10,9 @@ namespace Outlet.AST {
 		public readonly Expression Type;
 		public readonly string ID;
 
-		public Declarator(Expression type, Identifier id) {
+		public Declarator(Expression type, string id) {
 			Type = type;
-			ID = id.Name;
+			ID = id;
 		}
 
 		public Type GetType(Scope scope) {

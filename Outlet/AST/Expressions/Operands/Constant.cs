@@ -5,30 +5,30 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Literal : Operand, IToken {
+	public class Constant : Operand {
 
 		//null
-		public Literal() {
+		public Constant() {
 			Type = Primitive.Object;
 			Value = null;
 		}
 
-		public Literal(int value) {
+		public Constant(int value) {
 			Type = Primitive.Int;
 			Value = value;
 		}
 
-		public Literal(string value) {
+		public Constant(string value) {
 			Type = Primitive.String;
 			Value = value;
 		}
 
-		public Literal(float value) {
+		public Constant(float value) {
 			Type = Primitive.Float;
 			Value = value;
 		}
 
-		public Literal(bool value) {
+		public Constant(bool value) {
 			Type = Primitive.Bool;
 			Value = value;
 		}

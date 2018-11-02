@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Outlet.Tokens;
 
 namespace Outlet.AST {
 	public class ShortCircuit : Expression {
@@ -11,7 +12,7 @@ namespace Outlet.AST {
 		private readonly Expression Right;
 		private readonly bool isand; // if true the operator is and, if not it is or
 
-		public ShortCircuit(Expression left, Operator op, Expression right) {
+		public ShortCircuit(Expression left, BinaryOperator op, Expression right) {
 			Left = left;
 			Right = right;
 			if (op == Operator.LogicalAnd) isand = true;
@@ -24,13 +25,13 @@ namespace Outlet.AST {
 			if (isand) {
 				if (b) {
 					bool r = Right.Eval(scope).Value;
-					return new Literal(r);
-				} return new Literal(false);
+					return new Constant(r);
+				} return new Constant(false);
 			} else {
 				if (!b) {
 					bool r = Right.Eval(scope).Value;
-					return new Literal(r);
-				} return new Literal(true);
+					return new Constant(r);
+				} return new Constant(true);
 			}
 		}
 

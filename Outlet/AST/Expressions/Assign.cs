@@ -15,12 +15,11 @@ namespace Outlet.AST {
 		}
 
 		public override Operand Eval(Scope scope) {
-			if(Left is Identifier id) {
+			if(Left is IAssignable id) {
 				Operand val = Right.Eval(scope);
-				scope.Assign(id.resolveLevel, id.Name, val);
+				id.Assign(scope, val);
 				return val;
-			}
-			throw new OutletException("invalid left side of assignment expression");
+			} throw new OutletException("cannot assign to the left side of this expression");
 		}
 
 		public override void Resolve(Scope scope) {

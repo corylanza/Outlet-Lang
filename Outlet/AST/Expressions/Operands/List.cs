@@ -11,9 +11,9 @@ namespace Outlet.AST {
 			Value = vals;
 		}
 
-		public Operand Dereference(Identifier field) {
-			if (field.Name == "length") return new Literal(Value.Length);
-			throw new OutletException("field "+field.Name+" not defined");
+		public Operand Dereference(string field) {
+			if (field == "length") return new Constant(Value.Length);
+			throw new OutletException("field "+field+" not defined");
 		}
 
 		public Operand Call(params Operand[] args) => Value[args[0].Value];

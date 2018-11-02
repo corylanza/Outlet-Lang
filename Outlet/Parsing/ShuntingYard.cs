@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Outlet.Tokens;
 using Outlet.AST;
 
 namespace Outlet.Parsing {
 	public static partial class Parser {
-		public static Expression NextExpression(LinkedList<IToken> tokens) {
+		public static Expression NextExpression(LinkedList<Token> tokens) {
 			#region preliminary definitons
 			bool done = false;
 			Stack<Expression> output = new Stack<Expression>();
-			Stack<IToken> stack = new Stack<IToken>();
+			Stack<Token> stack = new Stack<Token>();
 			Stack<int> arity = new Stack<int>();
-			IToken cur = null, last = null;
+			Token cur = null, last = null;
 			bool ValidToken() =>
-				tokens.Count > 0 && tokens.First() is IToken i &&
-				(i is Identifier || i is Operand || i is Operator ||
-				i is Keyword k && (k == Keyword.True || k == Keyword.False || k == Keyword.Null) ||
-				i is Delimeter d && (d != Delimeter.LeftCurly || d != Delimeter.RightCurly));
+				tokens.Count > 0 && tokens.First() is Token i && (!(i is Keyword) ||
+				 (i is Keyword k && (k == Keyword.True || k == Keyword.False || k == Keyword.Null) ||
+				!(i is Delimeter) || i is Delimeter d && (d != Delimeter.LeftCurly || d != Delimeter.RightCurly)));
 			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Asssoc == Side.Left);
 			#endregion
 
@@ -28,16 +28,16 @@ namespace Outlet.Parsing {
 				switch (cur) {
 					case Identifier id:
 						if (output.Count == 1 && stack.Count == 0) {
-							return new Declarator(output.Pop(), id);
-						} else output.Push(id);
+							return new Declarator(output.Pop(), id.Name);
+						} else output.Push(new Variable(id.Name));
 						break;
 					case Literal l:
-						output.Push(l);
+						output.Push(new Constant(l.Value));
 						break;
 					case Keyword k:
-						if (k == Keyword.True) output.Push(new Literal(true));
-						else if (k == Keyword.False) output.Push(new Literal(false));
-						else output.Push(new Literal());//throw new NotImplementedException("null is not implemented");
+						if (k == Keyword.True) output.Push(new Constant(true));
+						else if (k == Keyword.False) output.Push(new Constant(false));
+						else output.Push(new Constant());//throw new NotImplementedException("null is not implemented");
 						break;
 					case Operator o:
 						if (o.Name == "-" && IsPreUnary(last)) {
@@ -77,7 +77,7 @@ namespace Outlet.Parsing {
 						while (lesserPrecedence(Operator.Dot)) {
 							ReduceOperator(output, stack);
 						}
-						if (!(last is null || last is Operator || last is Delimeter dl && dl.Name != ")")) {
+						if (!(last is null || last is Operator || last is Delimeter dl && !(dl.Name == ")" || dl.Name == "]"))) {
 							stack.Push(Delimeter.FuncParen);
 						} else stack.Push(d);
 						if (tokens.Count > 0 && tokens.First() == Delimeter.RightParen) arity.Push(0);
@@ -137,7 +137,7 @@ namespace Outlet.Parsing {
 			throw new OutletException("Expression invalid, more operands than needed operators");
 		}
 
-		public static void ReduceOperator(Stack<Expression> output, Stack<IToken> stack) {
+		public static void ReduceOperator(Stack<Expression> output, Stack<Token> stack) {
 			if (stack.Count > 0 && stack.Peek() is Operator op) {
 				stack.Pop();
 				if(op == Operator.Ternary) {

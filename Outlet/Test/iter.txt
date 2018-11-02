@@ -1,0 +1,10 @@
+﻿func getiter(list a) => {
+	int i = 0;
+	int next() => {
+		if(i < a.length) {
+			int temp = a(i);
+			i = i+1;
+			return temp;
+		} else return 0; 
+	} return next; 
+}

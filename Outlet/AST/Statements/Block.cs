@@ -21,7 +21,6 @@ namespace Outlet.AST {
         public override void Execute(Scope scope) {
 			Scope exec = new Scope(scope);
 			foreach (Declaration d in Lines) d.Execute(exec);
-
 		}
 
 		public override string ToString() {

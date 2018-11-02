@@ -37,6 +37,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -46,12 +47,14 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Outlet.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'REPL|AnyCPU'">
     <OutputPath>bin\REPL\</OutputPath>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'File|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -62,6 +65,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -104,15 +108,17 @@
     <Compile Include="OutletException.cs" />
     <Compile Include="Tokens\Delimeter.cs" />
     <Compile Include="AST\Expressions\FunctionCall.cs" />
-    <Compile Include="AST\Expressions\Identifier.cs" />
-    <Compile Include="AST\Expressions\Operands\Literal.cs" />
+    <Compile Include="AST\Expressions\Variable.cs" />
+    <Compile Include="AST\Expressions\Operands\Constant.cs" />
     <Compile Include="AST\Declarations\VariableDeclaration.cs" />
     <Compile Include="AST\Statements\Block.cs" />
     <Compile Include="AST\Expressions\Operands\Tuple.cs" />
     <Compile Include="AST\Expressions\Operands\Types\Type.cs" />
     <Compile Include="AST\Expressions\Unary.cs" />
     <Compile Include="AST\Expressions\Operands\Function.cs" />
+    <Compile Include="Tokens\Identifier.cs" />
     <Compile Include="Tokens\Keyword.cs" />
+    <Compile Include="Tokens\Literal.cs" />
     <Compile Include="Tokens\Operator.cs" />
     <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Parsing\RecursiveDescent.cs" />
@@ -130,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -149,6 +156,7 @@
     <Content Include="Test\file.txt" />
     <Content Include="Test\file2.txt" />
     <Content Include="Test\future.txt" />
+    <Content Include="Test\iter.txt" />
     <Content Include="Test\list.txt" />
     <Content Include="Test\mutualrec.txt" />
   </ItemGroup>

@@ -6,29 +6,29 @@ using System.Threading.Tasks;
 
 namespace Outlet.AST {
 	public class WhileLoop : Statement {
-		private Expression Condition;
-		private Statement Iftrue;
+		private readonly Expression Condition;
+		private readonly Statement Body;
 
-		public WhileLoop(Expression condition, Statement iftrue) {
+		public WhileLoop(Expression condition, Statement body) {
 			Condition = condition;
-			Iftrue = iftrue;
+			Body = body;
 		}
 
 		public override void Resolve(Scope scope) {
             Scope exec = new Scope(scope);
 			Condition.Resolve(exec);
-			Iftrue.Resolve(exec);
+			Body.Resolve(exec);
 		}
 
 		public override void Execute(Scope scope) {
             Scope exec = new Scope(scope);
             while (Condition.Eval(exec).Value is bool b && b) {
-                Iftrue.Execute(exec);
+                Body.Execute(exec);
                 exec = new Scope(scope);
 			}
 		}
 
-		public override string ToString() => "if ...";
+		public override string ToString() => "while("+Condition.ToString()+") "+Body.ToString();
 
 	}
 }

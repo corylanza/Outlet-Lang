@@ -4,19 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.AST;
+using Outlet.Tokens;
 
 namespace Outlet.Parsing {
 	public static partial class Parser {
 
-		private static bool IsBinary(IToken last) => 
+		private static bool IsBinary(Token last) => 
 			last is Operand || last == Delimeter.RightParen || last == Delimeter.RightBrace;
-		private static bool IsPreUnary(IToken last) => 
+		private static bool IsPreUnary(Token last) => 
 			last is null || last is Operator || last == Delimeter.LeftParen || last == Delimeter.LeftBrace || last == Delimeter.Comma;
-		private static bool IsPostUnary(IToken next) =>
+		private static bool IsPostUnary(Token next) =>
 			next is null || next is Operator || next == Delimeter.RightParen ||
 			next == Delimeter.Comma || next == Delimeter.RightBrace || next == Delimeter.SemiC;
 
-		public static Declaration Parse(LinkedList<IToken> tokens) {
+		public static Declaration Parse(LinkedList<Token> tokens) {
 			List<Declaration> lines = new List<Declaration>();
 			while(tokens.Count > 0) {
 				lines.Add(NextDeclaration(tokens));

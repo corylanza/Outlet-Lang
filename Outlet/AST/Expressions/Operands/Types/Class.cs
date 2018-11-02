@@ -8,11 +8,13 @@ using Decls = System.Collections.Generic.List<Outlet.AST.Declaration>;
 namespace Outlet.AST {
 
 	public class Class : Type, ICallable {
-		
+
+		private readonly string Name;
 		private readonly List<Declaration> InstanceDecls;
 		private Scope Scope;
 		
-		public Class(string name, Scope closure, Decls instance, Decls statics) : base(name, Primitive.Object, null) {
+		public Class(string name, Scope closure, Decls instance, Decls statics) : base(Primitive.Object, null) {
+			Name = name;
 			InstanceDecls = instance;
 			Scope = new Scope(closure);
 			foreach(Declaration d in statics) {
@@ -30,8 +32,8 @@ namespace Outlet.AST {
 			return new Instance(this, exec);
 		}
 
-		public override Operand Dereference(Identifier field) {
-			return Scope.Get(0, field.Name);
+		public override Operand Dereference(string field) {
+			return Scope.Get(0, field);
 		}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);

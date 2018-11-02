@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Outlet.Lexing;
 using Outlet.Parsing;
+using Outlet.Tokens;
 using Outlet.AST;
 
 namespace Outlet {
@@ -18,7 +19,7 @@ namespace Outlet {
         public static void RunFile(string path) {
             byte[] file = File.ReadAllBytes(path);
             byte[] bytes = file.Skip(3).ToArray();
-            LinkedList<IToken> lexout = Lexer.Scan(bytes);
+            LinkedList<Token> lexout = Lexer.Scan(bytes);
             Declaration program = Parser.Parse(lexout);
 			Scope s = new Scope(null);
 			program.Resolve(s);
@@ -37,7 +38,7 @@ namespace Outlet {
 				}
                 byte[] bytes = Encoding.ASCII.GetBytes(input);
                 try {
-                    LinkedList<IToken> lexout = Lexer.Scan(bytes);
+                    LinkedList<Token> lexout = Lexer.Scan(bytes);
                     Declaration program = Parser.Parse(lexout);
                     program.Resolve(s);
                     //Console.WriteLine("Parsed: " + program.ToString());

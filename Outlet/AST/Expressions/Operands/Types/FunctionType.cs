@@ -9,12 +9,12 @@ namespace Outlet.AST {
 
 		private readonly Type Args, Return;
 
-		public FunctionType(Type args, Type returntype) : base("", Primitive.FuncType, null) {
+		public FunctionType(Type args, Type returntype) : base(Primitive.FuncType, null) {
 			Args = args;
 			Return = returntype;
 		}
 
-		public override Operand Dereference(Identifier feld) {
+		public override Operand Dereference(string field) {
 			throw new NotImplementedException();
 		}
 

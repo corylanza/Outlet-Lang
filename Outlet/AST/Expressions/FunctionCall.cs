@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class FunctionCall : Expression {
 
-		private Expression Caller;
-		private Expression[] Args;
+		private readonly Expression Caller;
+		private readonly Expression[] Args;
 
 		public FunctionCall(Expression caller, params Expression[] args) {
 			Caller = caller;
@@ -28,5 +28,6 @@ namespace Outlet.AST {
         }
 
 		public override string ToString() => Caller.ToString() + "(" + Args.ToList().ToListString() + ")";
+
 	}
 }

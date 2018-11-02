@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.Util;
-using Outlet.AST;
+using Outlet.Tokens;
 using State = Outlet.Util.State<Outlet.Lexing.CharType, Outlet.Lexing.Lexer.Tokenizer>;
 
 namespace Outlet.Lexing {
@@ -105,16 +105,16 @@ namespace Outlet.Lexing {
 			gt.SetTransition(CharType.GT, preequal);
         }
 
-        public delegate IToken Tokenizer(string text);
+        public delegate Token Tokenizer(string text);
 
-        private static IToken TokenizeID(string text) {
+        private static Token TokenizeID(string text) {
             if(Token.ContainsKey(text)) return Token.Get(text);
             else return new Identifier(text);
         }
-        private static IToken TokenizeOp(string text) => Token.Get(text);
-        private static IToken TokenizeString(string text) => new Literal(text);
-        private static IToken TokenizeInt(string text) => new Literal(int.Parse(text));
-        private static IToken TokenizeFloat(string text) => new Literal(float.Parse(text));
-        private static IToken NoToken(string text) => null;
+        private static Token TokenizeOp(string text) => Token.Get(text);
+        private static Token TokenizeString(string text) => new StringLiteral(text);
+        private static Token TokenizeInt(string text) => new IntLiteral(text);
+        private static Token TokenizeFloat(string text) => new FloatLiteral(text);
+        private static Token NoToken(string text) => null;
     }
 }

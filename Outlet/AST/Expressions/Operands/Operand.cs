@@ -10,20 +10,6 @@ namespace Outlet.AST {
 		public dynamic Value;
 		public Type Type;
 
-		public static Operand operator -(Operand a) => new Literal(-a.Value);
-		public static Operand operator !(Operand a) => new Literal(!a.Value);
-		public static Operand operator *(Operand a, Operand b) => new Literal(a.Value * b.Value);
-		public static Operand operator /(Operand a, Operand b) => new Literal(a.Value / b.Value);
-		public static Operand operator %(Operand a, Operand b) => new Literal(a.Value % b.Value);
-		public static Operand operator +(Operand a, Operand b) => new Literal(a.Value + b.Value);
-		public static Operand operator -(Operand a, Operand b) => new Literal(a.Value - b.Value);
-		public static Operand operator <(Operand a, Operand b) => new Literal(a.Value < b.Value);
-		public static Operand operator >(Operand a, Operand b) => new Literal(a.Value > b.Value);
-		public static Operand operator <=(Operand a, Operand b) => new Literal(a.Value <= b.Value);
-		public static Operand operator >=(Operand a, Operand b) => new Literal(a.Value >= b.Value);
-		public static Operand operator ==(Operand a, Operand b) => new Literal(a.Equals(b));
-		public static Operand operator !=(Operand a, Operand b) => new Literal(!a.Equals(b));
-
 		public override Operand Eval(Scope scope) => this;
 		public override bool Equals(object obj) => obj is Operand o && Equals(o);
 		public override int GetHashCode() => base.GetHashCode();
@@ -33,8 +19,7 @@ namespace Outlet.AST {
 			if (Type.Is(t)) return true;
 			throw new OutletException("cannot convert type " + Type.ToString() + " to type " + t.ToString());
 		}
-
-		//public abstract dynamic NewValue { get; set; }
+		
 		public abstract bool Equals(Operand b);
 		public abstract override string ToString();
 	}
@@ -43,9 +28,12 @@ namespace Outlet.AST {
 		Operand Call(params Operand[] args);
 	}
 	public interface IDereferenceable {
-		Operand Dereference(Identifier field);
+		Operand Dereference(string field);
 	}
 	public interface ICollection {
 		Operand[] Values();
+	}
+	public interface IAssignable {
+		void Assign(Scope s, Operand value);
 	}
 }

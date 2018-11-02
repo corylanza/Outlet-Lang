@@ -7,23 +7,20 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Instance : Operand, IDereferenceable {
 		
-		private readonly Dictionary<string, Operand> Fields = new Dictionary<string, Operand>();
+		//private readonly Dictionary<string, Operand> Fields = new Dictionary<string, Operand>();
 		private readonly Scope Scope;
 
 		public Instance(Class type, Scope closure) {
 			Type = type;
 			Scope = closure;
-			/*
-			foreach((Identifier id, Operand o) in fields) {
-				Scope.Add(id.Name, o);
-				//Fields.Add(id.Name, o);
-			}
-			Fields.Add("toString", new Native((args) => new Literal(ToString())));
-			*/
 		}
 
-		public Operand Dereference(Identifier field) {
-			return Scope.Get(0, field.Name);
+		public Operand Dereference(string field) {
+			return Scope.Get(0, field);
+		}
+
+		public void Assign(string field, Operand o) {
+			Scope.Assign(0, field, o);
 		}
 
 		public override bool Equals(Operand b) {
@@ -31,7 +28,7 @@ namespace Outlet.AST {
 		}
 
 		public override string ToString() {
-			string s = Type.Name+" instance";
+			string s = Type.ToString()+" instance";
 			return s;
 		}
 	}

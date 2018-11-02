@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Outlet.AST;
 
-namespace Outlet {
+namespace Outlet.Tokens {
 
-	public static class Token {
+	public abstract class Token {
+
+		//public Token(int linenumber, int posinline) { }
 
 		public static bool ContainsKey(string text) => Tokens.ContainsKey(text);
-		public static IToken Get(string text) => Tokens[text];
+		public static Token Get(string text) => Tokens[text];
 
 
-		private static Dictionary<string, IToken> Tokens = new Dictionary<string, IToken>() {
+		private static Dictionary<string, Token> Tokens = new Dictionary<string, Token>() {
 			// Keywords
 			{"class", Keyword.Class },
 			{"static", Keyword.Static },
@@ -26,7 +27,7 @@ namespace Outlet {
 			{"in", Keyword.In },
 			{"while", Keyword.While },
 			{"return", Keyword.Return },
-            {"true", Keyword.True }, // TODO FIX THIS
+            {"true", Keyword.True },
             {"false", Keyword.False },
 			{ "null", Keyword.Null },
 			// Operators
@@ -78,8 +79,4 @@ namespace Outlet {
 			{";", Delimeter.SemiC },
 		};
 	}
-
-	public interface IToken {}
-
-	
 }

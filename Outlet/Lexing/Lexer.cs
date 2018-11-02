@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.Util;
+using Outlet.Tokens;
 //using State = Outlet.Util.State<Outlet.Lexing.CharType, Outlet.TokenType>;
 
 namespace Outlet.Lexing {
@@ -14,10 +15,10 @@ namespace Outlet.Lexing {
             InitStates();
         }
 
-        public static LinkedList<IToken> Scan(byte[] charStream) {
+        public static LinkedList<Token> Scan(byte[] charStream) {
 			machine.Cur = start; 
 			string buffer = "";
-			LinkedList<IToken> tokens = new LinkedList<IToken>();
+			LinkedList<Token> tokens = new LinkedList<Token>();
 			for (int i = 0; i < charStream.Length; i++) {
                 byte b = charStream[i];
 				CharType c = CharClass.Get(b);
@@ -25,7 +26,7 @@ namespace Outlet.Lexing {
                     machine.NextState(c);
                 } else if(machine.Cur.Accepting) {
 					if (machine.Cur.Output != NoToken) {
-						IToken toadd = machine.Cur.Output(buffer);
+						Token toadd = machine.Cur.Output(buffer);
 						if (toadd != null) tokens.AddLast(toadd);
 					}
                     buffer = "";
@@ -35,7 +36,7 @@ namespace Outlet.Lexing {
             }
 			if (!machine.Cur.Accepting && buffer.Length > 0) throw new Exception("illegal");
 			else if (buffer.Length > 0) {
-				IToken toadd = machine.Cur.Output(buffer);
+				Token toadd = machine.Cur.Output(buffer);
 				if (toadd != null) tokens.AddLast(toadd);
 			}
             return tokens;

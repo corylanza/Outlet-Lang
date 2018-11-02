@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet {
-	public class Keyword : IToken {
+namespace Outlet.Tokens {
+	public class Keyword : Token {
 
 		public static readonly Keyword True = new Keyword("true");
 		public static readonly Keyword False = new Keyword("false");

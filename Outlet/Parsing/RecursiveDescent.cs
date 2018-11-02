@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Outlet.Tokens;
 using Outlet.AST;
 
 namespace Outlet.Parsing {
     public static partial class Parser {
 
-        public static Declaration NextDeclaration(LinkedList<IToken> tokens) {
-            bool Match(IToken s) {
+        public static Declaration NextDeclaration(LinkedList<Token> tokens) {
+            bool Match(Token s) {
 				if (tokens.Count > 0 && tokens.First() == s) {
 					tokens.RemoveFirst(); return true;
 				} else return false; }
-            void Consume(IToken s, string error) {
+            void Consume(Token s, string error) {
 				if (tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error);
 			}
-			T ConsumeType<T>(string error) {
+			T ConsumeType<T>(string error) where T : Token {
 				if (tokens.Count > 0 && tokens.Dequeue() is T t) return t;
 				else throw new OutletException("Syntax Error: " + error);
 			}
@@ -65,7 +66,7 @@ namespace Outlet.Parsing {
 						}
 					}
 				}
-				return new ClassDeclaration(name, instance, statics);
+				return new ClassDeclaration(name.Name, instance, statics);
 			}
             if (Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement(tokens);
@@ -76,16 +77,16 @@ namespace Outlet.Parsing {
 			return next;
         }
 
-        public static Statement NextStatement(LinkedList<IToken> tokens) {
-            bool Match(IToken s) {
+        public static Statement NextStatement(LinkedList<Token> tokens) {
+            bool Match(Token s) {
 				if (tokens.Count > 0 && tokens.First() == s) {
 					tokens.Dequeue(); return true;
 				} else return false;
 			}
-            void Consume(IToken s, string error) {
+            void Consume(Token s, string error) {
 				if (tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error);
 			}
-			T ConsumeType<T>(string error) {
+			T ConsumeType<T>(string error) where T : Token {
 				if (tokens.Count > 0 && tokens.Dequeue() is T t) return t;
 				else throw new OutletException("Syntax Error: " + error);
 			}
@@ -115,12 +116,14 @@ namespace Outlet.Parsing {
             }
             Statement ForLoop() {
                 Consume(Delimeter.LeftParen, "Expected ( after for");
-                Identifier loopvar = ConsumeType<Identifier>("expected interator identifer");
-                Consume(Keyword.In, "expected in after for loop variable");
-                Expression collection = NextExpression(tokens);
-                Consume(Delimeter.RightParen, "Expected ) after for loop collection");
-                Statement body = NextStatement(tokens);
-                return new ForLoop(loopvar, collection, body);
+				Statement s = NextStatement(tokens);
+				if(s is Declarator loopvar) {
+					Consume(Keyword.In, "expected in after for loop variable");
+					Expression collection = NextExpression(tokens);
+					Consume(Delimeter.RightParen, "Expected ) after for loop collection");
+					Statement body = NextStatement(tokens);
+					return new ForLoop(loopvar, collection, body);
+				} throw new OutletException("expected type followed by an identifier to use as a loop variable");
             }
             Statement Return() {
                 Expression e = NextExpression(tokens);

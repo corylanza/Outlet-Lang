@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet {
-	public class Delimeter : IToken {
+namespace Outlet.Tokens {
+	public class Delimeter : Token {
 
 		public static readonly Delimeter FuncParen = new Delimeter("(");
 		public static readonly Delimeter LeftParen = new Delimeter("(");

@@ -28,6 +28,6 @@ namespace Outlet.AST {
 		}
 
 
-		public override string ToString() => "if ...";
+		public override string ToString() => "if("+Condition.ToString()+") "+Iftrue.ToString() + (Iffalse != null ? " else "+Iffalse.ToString() : "");
 	}
 }

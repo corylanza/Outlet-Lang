@@ -1,0 +1,428 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Outlet.AST.ClassDeclaration" Collapsed="true">
+    <Position X="3.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAACAAAQEAAAAAAQAAAAAAAEAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Declarations\ClassDeclaration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Declaration" Collapsed="true">
+    <Position X="35" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Declarations\Declaration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.FunctionDeclaration" Collapsed="true">
+    <Position X="5.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAgAQEAAABAAAAAAAAAAAAAAAIAAAEAAA=</HashCode>
+      <FileName>AST\Declarations\FunctionDeclaration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.VariableDeclaration" Collapsed="true">
+    <Position X="8" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAQEAAAAAAAAAAAAAAAAAAAIAAAABAA=</HashCode>
+      <FileName>AST\Declarations\VariableDeclaration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Assign" Collapsed="true">
+    <Position X="37.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAAAAAAAAACACAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Assign.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Binary" Collapsed="true">
+    <Position X="44" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAAAAIAAAAAAAIAAAAgAA=</HashCode>
+      <FileName>AST\Expressions\Binary.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Declarator" Collapsed="true">
+    <Position X="48.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAgAAEAAAAAAAAAAAAAAEAAQAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Declarator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Deref" Collapsed="true">
+    <Position X="53" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAAAAAAAAACACAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Deref.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Expression" Collapsed="true">
+    <Position X="32.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Expression.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.FunctionCall" Collapsed="true">
+    <Position X="10.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIgCAAAAEAAAAAAAAAAAAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>AST\Expressions\FunctionCall.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Identifier" Collapsed="true">
+    <Position X="12.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAQAAAAAAAAAAAAAEAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Identifier.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.AST.Lambda" Collapsed="true">
+    <Position X="35" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAAAAAAAAACACAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Lambda.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.ListLiteral" Collapsed="true">
+    <Position X="39.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAAAAAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>AST\Expressions\ListLiteral.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Function" Collapsed="true">
+    <Position X="28.25" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAAAAEgAEBAAQAABAAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Function.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.AST.Native" Collapsed="true">
+    <Position X="28.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>AST\Expressions\Operands\Function.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.AST.Instance" Collapsed="true">
+    <Position X="32.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAACAEgCAAAAAAAAAAAAAAAAAAAAAAgAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Instance.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.AST.OList" Collapsed="true">
+    <Position X="14.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAAAAEwCAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\List.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.AST.Literal" Collapsed="true">
+    <Position X="17" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Literal.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.AST.Operand" Collapsed="true">
+    <Position X="23.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAIACAAAAEgAAAAAAAAAAAAIAAAQAgAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Operand.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.OTuple" Collapsed="true">
+    <Position X="30.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Tuple.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Class" Collapsed="true">
+    <Position X="26" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAQAAAAAAAACAEgCAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Types\Class.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.AST.FunctionType" Collapsed="true">
+    <Position X="19.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEgCAAAAAAAAAAAAAAAAAAEAAEAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Types\FunctionType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Primitive" Collapsed="true">
+    <Position X="21.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAkwGAAAAQAIAAAAAAAAAAAAAAiACI=</HashCode>
+      <FileName>AST\Expressions\Operands\Types\Primitive.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.TupleType" Collapsed="true">
+    <Position X="23.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAAAAAAAAEgCAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Types\TupleType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Type" Collapsed="true">
+    <Position X="22.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAgAAAACAAYAAAAABAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Types\Type.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.AST.ShortCircuit" Collapsed="true">
+    <Position X="41.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAABAAAAAACACAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\ShortCircuit.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Ternary" Collapsed="true">
+    <Position X="46.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAAAAAAAAAAAAAAAAAGAA=</HashCode>
+      <FileName>AST\Expressions\Ternary.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.TupleLiteral" Collapsed="true">
+    <Position X="50.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAAAAAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>AST\Expressions\TupleLiteral.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Unary" Collapsed="true">
+    <Position X="55.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIACAAAAEAAAAAAAAAAAAABAAAAAIAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Unary.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Block" Collapsed="true">
+    <Position X="57.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAQEAAAAAAAAAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Statements\Block.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.ForLoop" Collapsed="true">
+    <Position X="59.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgACAQAQEAAABAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Statements\ForLoop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.IfStatement" Collapsed="true">
+    <Position X="62" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAQEAAAAAAAAAAAAAAAAAAAAAAAAGAA=</HashCode>
+      <FileName>AST\Statements\IfStatement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.ReturnStatement" Collapsed="true">
+    <Position X="64.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAQEAAAAAAAAAAAAAAAAAAAAAgAAAAA=</HashCode>
+      <FileName>AST\Statements\Return.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Return" Collapsed="true">
+    <Position X="5.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>AST\Statements\Return.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Statement" Collapsed="true">
+    <Position X="38.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Statements\Statement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.WhileLoop" Collapsed="true">
+    <Position X="66.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAQEAAABAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Statements\WhileLoop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.AST.Overloads" Collapsed="true">
+    <Position X="72.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAACAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interpreting\Overloads.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Checking.Checker" Collapsed="true">
+    <Position X="70.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Checking\Checker.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.ForeignFunctions" Collapsed="true">
+    <Position X="74.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>ForeignFunctions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Scope" Collapsed="true">
+    <Position X="70.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIIAAQAAAAAQABAAAAAQCAAAAAIAAAAAAQAAAAABAA=</HashCode>
+      <FileName>Interpreting\Scope.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.OutletException" Collapsed="true">
+    <Position X="5.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>OutletException.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Program" Collapsed="true">
+    <Position X="69" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAACBAAACAg=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Delimeter" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="72.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAACAAAAAEAAAEACQAAAAACAAAAAAABAABAMg=</HashCode>
+      <FileName>Tokens\Delimeter.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Outlet.Keyword" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="69" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACBAAACAAAAAAQIABAQAIAAAAAAEAAoAEAAAICA=</HashCode>
+      <FileName>Tokens\Keyword.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Outlet.Operator" Collapsed="true">
+    <Position X="1.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAoAAACBEQAAACCEhAAFBgQxDCBAEAJEAGBDAASgAUA=</HashCode>
+      <FileName>Tokens\Operator.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Outlet.BinaryOperator" Collapsed="true">
+    <Position X="0.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAEAAAEA=</HashCode>
+      <FileName>Tokens\Operator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.UnaryOperator" Collapsed="true">
+    <Position X="2.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAEA=</HashCode>
+      <FileName>Tokens\Operator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Token" Collapsed="true">
+    <Position X="69" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAEAABAAAAAAAAAAAAAAAAAAAAAAAABAAA=</HashCode>
+      <FileName>Tokens\Token.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Lexing.CharClass" Collapsed="true">
+    <Position X="69" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAEAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Lexing\CharType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Lexing.Lexer" Collapsed="true">
+    <Position X="70.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIQDASACACCAQAAwAEEIBBAAACBAIAAABAMQIAAADiA=</HashCode>
+      <FileName>Lexing\Lexer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Parsing.Parser" Collapsed="true">
+    <Position X="74.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAhAAAAAEAAAIAAAAAAAAgAAgAABAAQIAAAACAAAAA=</HashCode>
+      <FileName>Parsing\Parser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Util.State&lt;Tin, Tout&gt;" Collapsed="true">
+    <Position X="72.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAAAAAAABAAIAIEAAABAAABABAAACAAAAAA=</HashCode>
+      <FileName>Util\State.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Outlet.Util.StateMachine&lt;Tin, Tout&gt;" Collapsed="true">
+    <Position X="74.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAIAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAA=</HashCode>
+      <FileName>Util\StateMachine.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Outlet.AST.ICallable" Collapsed="true">
+    <Position X="69" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Operand.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Outlet.AST.IDereferenceable" Collapsed="true">
+    <Position X="72.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Operand.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Outlet.AST.ICollection" Collapsed="true">
+    <Position X="70.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>AST\Expressions\Operands\Operand.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Outlet.IToken" Collapsed="true">
+    <Position X="74.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Tokens\Token.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="Outlet.Side" Collapsed="true">
+    <Position X="70.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACACAAAAAAAA=</HashCode>
+      <FileName>Tokens\Operator.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Outlet.Lexing.CharType" Collapsed="true">
+    <Position X="69" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>JAIAAAAAACAACAAAkEQAAAABSIEAAAAkASACAAAAABA=</HashCode>
+      <FileName>Lexing\CharType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

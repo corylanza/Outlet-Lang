@@ -5,14 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Deref : Expression {
+	public class Deref : Expression, IAssignable {
 
 		private readonly Expression Left;
-		private readonly Identifier Right;
+		private readonly string Right;
 
 		public Deref(Expression left, Expression right) {
 			Left = left;
-			if (right is Identifier id) Right = id;
+			if (right is Variable id) Right = id.Name;
 			else throw new OutletException("expected identifier following dereferencing " + left.ToString());
 		}
 
@@ -24,11 +24,15 @@ namespace Outlet.AST {
 
 		public override void Resolve(Scope scope) {
 			Left.Resolve(scope);
-			Right.Resolve(scope);
 		}
 
-		public override string ToString() {
-			throw new NotImplementedException();
+		public void Assign(Scope s, Operand value) {
+			Operand i = Left.Eval(s);
+			if(i is Instance instance) {
+				instance.Assign(Right, value);
+			} else throw new OutletException(Left.ToString()+ " is not an instance only instances have fields that can be assigned to");
 		}
+
+		public override string ToString() => Left.ToString() + "." + Right.ToString();
 	}
 }

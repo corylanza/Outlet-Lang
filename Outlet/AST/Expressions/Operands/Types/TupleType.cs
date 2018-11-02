@@ -9,11 +9,11 @@ namespace Outlet.AST {
 
 		public readonly Type[] Types;
 
-		public TupleType(params Type[] types) : base("", Primitive.Object, null) {
+		public TupleType(params Type[] types) : base(Primitive.Object, null) {
 			Types = types;
 		}
 
-		public override Operand Dereference(Identifier feld) {
+		public override Operand Dereference(string field) {
 			throw new NotImplementedException();
 		}
 

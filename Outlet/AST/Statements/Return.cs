@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ReturnStatement : Statement {
 
-		private Expression E;
+		private readonly Expression E;
 
 		public ReturnStatement(Expression e) {
 			E = e;

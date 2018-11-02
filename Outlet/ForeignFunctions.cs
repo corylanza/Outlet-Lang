@@ -12,9 +12,9 @@ namespace Outlet {
 									foreach(Operand op in o){
 										Console.WriteLine(op.ToString());
 									} return null; }) },
-			{"readline", new Native((Operand[] o) => new Literal(Console.ReadLine())) },
-			{"max", new Native((Operand[] o) => new Literal(o.Max(x => x.Value))) },
-			{"gettype", new Native((Operand[] o) => new Literal(o[0].Type.Name)) }
+			{"readline", new Native((Operand[] o) => new Constant(Console.ReadLine())) },
+			{"max", new Native((Operand[] o) => new Constant(o.Max(x => x.Value))) },
+			{"gettype", new Native((Operand[] o) => new Constant(o[0].Type.ToString())) },
 		};
 
 		public static Dictionary<string, AST.Type> NativeTypes = new Dictionary<string, AST.Type>() {

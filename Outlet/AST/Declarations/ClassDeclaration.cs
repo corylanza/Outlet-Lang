@@ -11,8 +11,8 @@ namespace Outlet.AST {
 		private readonly List<Declaration> InstanceDecls;
 		private readonly List<Declaration> StaticDecls;
 
-		public ClassDeclaration(Identifier name, List<Declaration> instance, List<Declaration> statics) {
-			Name = name.Name;
+		public ClassDeclaration(string name, List<Declaration> instance, List<Declaration> statics) {
+			Name = name;
 			InstanceDecls = instance;
 			StaticDecls = statics;
 		}
