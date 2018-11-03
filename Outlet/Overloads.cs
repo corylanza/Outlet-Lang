@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Outlet.AST;
 
 namespace Outlet {
-	public class Overloads {
+	public class Overloads<T> {
 
-		public Overloads(string name) {
+		public Overloads(params T[] t) {
 
 		}
 

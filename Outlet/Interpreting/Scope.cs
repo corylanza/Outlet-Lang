@@ -28,7 +28,8 @@ namespace Outlet {
 		}
 
 		public void Define(string s) {
-			Defined[s] = true;
+            if (Defined.ContainsKey(s) && Defined[s]) throw new OutletException("variable " + s + " already defined in this scope");
+            Defined[s] = true;
 		}
 
 		public int Find(string s) {

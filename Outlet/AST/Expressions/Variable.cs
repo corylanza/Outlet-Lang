@@ -29,7 +29,8 @@ namespace Outlet.AST {
 			if (resolveLevel == -1) {
 				if (ForeignFunctions.NativeTypes.ContainsKey(Name)) return;
 				if (ForeignFunctions.NativeFunctions.ContainsKey(Name)) return;
-			} throw new OutletException("variable "+Name+ " could not be resolved");
+                throw new OutletException("variable " + Name + " could not be resolved");
+            } 
 		}
 
         public override string ToString() => Name;

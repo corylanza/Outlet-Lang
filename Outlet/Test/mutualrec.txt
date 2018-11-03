@@ -1,8 +1,8 @@
-﻿func even(n) = {
+﻿bool even(int n) => {
 	if(n == 0) return true;
 	return !odd(n-1);
 }
-func odd(n) = {
+bool odd(int n) => {
 	if(n == 1) return true;
 	return !even(n-1);
 }

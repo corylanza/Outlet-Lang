@@ -99,6 +99,7 @@
     <Compile Include="AST\Expressions\Ternary.cs" />
     <Compile Include="AST\Expressions\TupleLiteral.cs" />
     <Compile Include="Checking\Checker.cs" />
+    <Compile Include="Operation.cs" />
     <Compile Include="Overloads.cs" />
     <Compile Include="AST\Statements\ForLoop.cs" />
     <Compile Include="AST\Statements\IfStatement.cs" />
