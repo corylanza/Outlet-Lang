@@ -99,7 +99,7 @@
     <Compile Include="AST\Expressions\Ternary.cs" />
     <Compile Include="AST\Expressions\TupleLiteral.cs" />
     <Compile Include="Checking\Checker.cs" />
-    <Compile Include="Interpreting\Overloads.cs" />
+    <Compile Include="Overloads.cs" />
     <Compile Include="AST\Statements\ForLoop.cs" />
     <Compile Include="AST\Statements\IfStatement.cs" />
     <Compile Include="AST\Statements\Return.cs" />
@@ -107,7 +107,7 @@
     <Compile Include="ForeignFunctions.cs" />
     <Compile Include="OutletException.cs" />
     <Compile Include="Tokens\Delimeter.cs" />
-    <Compile Include="AST\Expressions\FunctionCall.cs" />
+    <Compile Include="AST\Expressions\Call.cs" />
     <Compile Include="AST\Expressions\Variable.cs" />
     <Compile Include="AST\Expressions\Operands\Constant.cs" />
     <Compile Include="AST\Declarations\VariableDeclaration.cs" />

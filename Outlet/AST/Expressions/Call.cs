@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace Outlet.AST {
-	public class FunctionCall : Expression {
+	public class Call : Expression {
 
 		private readonly Expression Caller;
 		private readonly Expression[] Args;
 
-		public FunctionCall(Expression caller, params Expression[] args) {
+		public Call(Expression caller, params Expression[] args) {
 			Caller = caller;
 			Args = args;
 		}

@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Outlet.AST;
 
-namespace Outlet.AST {
+namespace Outlet {
 	public class Overloads {
 
 		public Overloads(string name) {

@@ -107,7 +107,7 @@ namespace Outlet.Parsing {
 							int a = arity.Pop();
 							Expression[] tuple = new Expression[a];
 							for (int i = 0; i < a; i++) tuple[a - 1 - i] = output.Pop();
-							if (stack.Pop() == Delimeter.FuncParen) output.Push(new FunctionCall(output.Pop(), tuple));
+							if (stack.Pop() == Delimeter.FuncParen) output.Push(new Call(output.Pop(), tuple));
 							else output.Push(new TupleLiteral(tuple));
 						}
 						break;
