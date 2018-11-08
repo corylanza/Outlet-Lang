@@ -8,8 +8,8 @@ using Outlet.Tokens;
 namespace Outlet.AST {
 	public class ShortCircuit : Expression {
 
-		private readonly Expression Left;
-		private readonly Expression Right;
+		public readonly Expression Left;
+		public readonly Expression Right;
 		private readonly bool isand; // if true the operator is and, if not it is or
 
 		public ShortCircuit(Expression left, BinaryOperator op, Expression right) {
@@ -38,6 +38,10 @@ namespace Outlet.AST {
 		public override void Resolve(Scope scope) {
 			Left.Resolve(scope);
 			Right.Resolve(scope);
+		}
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() {

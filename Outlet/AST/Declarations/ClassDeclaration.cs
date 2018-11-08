@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ClassDeclaration : Declaration {
 
-		private readonly string Name;
-		private readonly List<Declaration> InstanceDecls;
-		private readonly List<Declaration> StaticDecls;
+		public readonly string Name;
+		public readonly List<Declaration> InstanceDecls;
+		public readonly List<Declaration> StaticDecls;
 
 		public ClassDeclaration(string name, List<Declaration> instance, List<Declaration> statics) {
 			Name = name;
@@ -23,15 +23,20 @@ namespace Outlet.AST {
 		}
 
 		public override void Resolve(Scope scope) {
-			scope.Define(Name);
+			scope.Define(Primitive.MetaType, Name);
 			Scope staticExec = new Scope(scope);
 			foreach (Declaration d in StaticDecls) {
 				d.Resolve(staticExec);
 			}
 			Scope instanceExec = new Scope(staticExec);
-			foreach(Declaration d in InstanceDecls) {
+			instanceExec.Define(Primitive.MetaType, "this");
+			foreach (Declaration d in InstanceDecls) {
 				d.Resolve(instanceExec);
 			}
+		}
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() {

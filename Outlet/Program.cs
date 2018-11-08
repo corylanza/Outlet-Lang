@@ -8,6 +8,7 @@ using Outlet.Lexing;
 using Outlet.Parsing;
 using Outlet.Tokens;
 using Outlet.AST;
+using Outlet.Checking;
 
 namespace Outlet {
 	public static class Program {
@@ -28,10 +29,11 @@ namespace Outlet {
         }
 
         public static void REPL() {
-			Scope s = new Scope(true);
+			Scope s = new Scope();
 
 			while (true) {
-                Console.WriteLine("<enter an expression>");
+				Console.ForegroundColor = ConsoleColor.White;
+				Console.WriteLine("<enter an expression>");
 				string input = "";
 				while (input.Length == 0 || input.Count((c) => c == '{') != input.Count((c) => c == '}')) { 
 					input += Console.ReadLine();
@@ -40,7 +42,9 @@ namespace Outlet {
                 try {
                     LinkedList<Token> lexout = Lexer.Scan(bytes);
                     Declaration program = Parser.Parse(lexout);
-                    program.Resolve(s);
+                    //program.Resolve(s);
+					Checker c = new Checker();
+					program.Accept(c);
                     //Console.WriteLine("Parsed: " + program.ToString());
                     if(program is Expression e) {
                         Operand result = e.Eval(s);
@@ -53,7 +57,6 @@ namespace Outlet {
                 } catch (OutletException ex) {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(ex.Message);
-                    Console.ForegroundColor = ConsoleColor.White;
                 } finally {
 					//s.Lines.Clear();
 				}

@@ -134,6 +134,7 @@
     <Compile Include="Tokens\Token.cs" />
     <Compile Include="Util\State.cs" />
     <Compile Include="Util\StateMachine.cs" />
+    <Compile Include="Visitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

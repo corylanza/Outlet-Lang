@@ -13,6 +13,8 @@ namespace Outlet.AST {
 
 		public abstract void Execute(Scope scope);
 
+		public abstract T Accept<T>(IVisitor<T> visitor);
+
 		public abstract override string ToString();
     }
 }

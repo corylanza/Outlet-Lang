@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-    public class FunctionDeclaration : Declaration {
-		
-        private readonly Declarator Decl;
-		private readonly List<Declarator> Args;
-		private readonly Statement Body;
+	public class FunctionDeclaration : Declaration {
+
+		public readonly Declarator Decl;
+		public readonly List<Declarator> Args;
+		public readonly Statement Body;
 
 		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) {
 			Decl = decl;
@@ -23,20 +23,24 @@ namespace Outlet.AST {
 		}
 
 		public override void Resolve(Scope scope) {
-			scope.Define(Decl.ID);
+			scope.Define(Decl.GetType(scope), Decl.ID);
 			Decl.Resolve(scope);
 			Scope exec = new Scope(scope);
-			Args.ForEach(x => { x.Resolve(scope); exec.Define(x.ID); });
+			Args.ForEach(x => { x.Resolve(scope); exec.Define(x.GetType(scope), x.ID); });
 			Body.Resolve(exec);
 		}
 
 		public override void Execute(Scope scope) {
-            scope.Add(Decl.ID, null, Construct(scope));
-        }
+			scope.Add(Decl.ID, null, Construct(scope));
+		}
 
-        public override string ToString() {
-			string s = "func "+Decl.ID+"(";
-			return s+")";
-        }
-    }
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
+		}
+
+		public override string ToString() {
+			string s = "func " + Decl.ID + "(";
+			return s + ")";
+		}
+	}
 }

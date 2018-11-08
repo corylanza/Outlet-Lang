@@ -15,6 +15,10 @@ namespace Outlet.AST {
 		public override int GetHashCode() => base.GetHashCode();
 		public override void Resolve(Scope scope) {	}
 
+		public override T Accept<T>(IVisitor<T> visitor) {
+			throw new OutletException("unvisitable type, not part of AST");
+		}
+
 		public bool Cast(Type t) {
 			if (Type.Is(t)) return true;
 			throw new OutletException("cannot convert type " + Type.ToString() + " to type " + t.ToString());

@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class FunctionType : Type {
 
-		private readonly Type Args, Return;
+		public readonly (Type type, string id)[] Args;
+		public readonly Type ReturnType;
 
-		public FunctionType(Type args, Type returntype) : base(Primitive.FuncType, null) {
+		public FunctionType((Type, string)[] args, Type returntype) : base(Primitive.FuncType, null) {
 			Args = args;
-			Return = returntype;
+			ReturnType = returntype;
 		}
 
 		public override Operand Dereference(string field) {
@@ -22,6 +23,6 @@ namespace Outlet.AST {
 			throw new NotImplementedException();
 		}
 
-		public override string ToString() => Args.ToString() + " => " + Return.ToString();
+		public override string ToString() => "("+Args.Select(arg => arg.type).ToList().ToListString()+")" + " => " + ReturnType.ToString();
 	}
 }

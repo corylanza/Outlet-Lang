@@ -18,7 +18,7 @@ namespace Outlet.AST {
 			Operand l = Left.Eval(scope);
 			Operand r = Right.Eval(scope);
 			if(l is Type lt && r is Type rt) {
-				return new FunctionType(lt, rt);
+				//return new FunctionType(lt, rt);
 			}
 			//Function f = new Function(scope, "", )
 			throw new NotImplementedException();
@@ -28,6 +28,10 @@ namespace Outlet.AST {
 			Left.Resolve(scope);
 			Right.Resolve(scope);
 			//Scope exec = new Scope(scope);
+		}
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() {

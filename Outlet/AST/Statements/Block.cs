@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Block : Statement {
 		
-        private readonly List<Declaration> Lines = new List<Declaration>();
+        public readonly List<Declaration> Lines = new List<Declaration>();
 
 		public Block(List<Declaration> lines) {
 			Lines = lines;
@@ -21,6 +21,10 @@ namespace Outlet.AST {
         public override void Execute(Scope scope) {
 			Scope exec = new Scope(scope);
 			foreach (Declaration d in Lines) d.Execute(exec);
+		}
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() {

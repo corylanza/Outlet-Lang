@@ -13,6 +13,7 @@ namespace Outlet.AST {
 		public Instance(Class type, Scope closure) {
 			Type = type;
 			Scope = closure;
+			Scope.Add("this", type, this);
 		}
 
 		public Operand Dereference(string field) {

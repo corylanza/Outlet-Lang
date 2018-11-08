@@ -17,6 +17,10 @@ namespace Outlet.AST {
 
 		public override void Execute(Scope scope) => throw new Return(E.Eval(scope));
 
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
+		}
+
 		public override string ToString() => "return " + E.ToString();
 	}
 

@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Outlet.AST {
 	public class WhileLoop : Statement {
-		private readonly Expression Condition;
-		private readonly Statement Body;
+		public readonly Expression Condition;
+		public readonly Statement Body;
 
 		public WhileLoop(Expression condition, Statement body) {
 			Condition = condition;
@@ -26,6 +26,10 @@ namespace Outlet.AST {
                 Body.Execute(exec);
                 exec = new Scope(scope);
 			}
+		}
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() => "while("+Condition.ToString()+") "+Body.ToString();

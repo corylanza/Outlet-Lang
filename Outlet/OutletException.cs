@@ -9,4 +9,8 @@ namespace Outlet {
 		public OutletException() { }
 		public OutletException(string s) : base(s) { }
 	}
+
+	public class CheckerException : OutletException {
+		public CheckerException(string s) : base("Checking error: "+s) { }
+	}
 }

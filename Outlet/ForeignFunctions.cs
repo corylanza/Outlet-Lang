@@ -4,20 +4,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.AST;
+using Type = Outlet.AST.Type;
 
 namespace Outlet {
 	public static class ForeignFunctions {
+
+		private static readonly Type Int = Primitive.Int;
+		private static readonly Type Float = Primitive.Float;
+		private static readonly Type Void = Primitive.Void;
+		private static readonly Type String = Primitive.String;
+		private static readonly Type Bool = Primitive.Bool;
+		private static readonly Type Object = Primitive.Object;
+
+		public static FunctionType MakeType(params Type[] t) {
+			if (t.Length == 0) throw new Exception("Foreign Function type invalid");
+			return new FunctionType(t.Take(t.Length - 1).Select(x => (x, "")).ToArray(), t.Last());
+		}
+
 		public static Dictionary<string, Function> NativeFunctions = new Dictionary<string, Function>() {
-			{"print", new Native((Operand[] o) => {
+			{"print", new Native(MakeType(String, Void), (Operand[] o) => {
 									foreach(Operand op in o){
 										Console.WriteLine(op.ToString());
 									} return null; }) },
-			{"readline", new Native((Operand[] o) => new Constant(Console.ReadLine())) },
-			{"max", new Native((Operand[] o) => new Constant(o.Max(x => x.Value))) },
-			{"gettype", new Native((Operand[] o) => new Constant(o[0].Type.ToString())) },
+			{"readline", new Native(MakeType(String), (Operand[] o) => new Constant(Console.ReadLine())) },
+			{"max", new Native(MakeType(Int, Int, Int), (Operand[] o) => new Constant(o.Max(x => x.Value))) },
+			{"gettype", new Native(MakeType(Object, String), (Operand[] o) => new Constant(o[0].Type.ToString())) },
 		};
 
-		public static Dictionary<string, AST.Type> NativeTypes = new Dictionary<string, AST.Type>() {
+		public static Dictionary<string, Type> NativeTypes = new Dictionary<string, Type>() {
 			{"int", Primitive.Int },
 			{"float", Primitive.Float },
 			{"bool", Primitive.Bool },

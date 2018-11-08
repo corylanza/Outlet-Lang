@@ -8,7 +8,7 @@ namespace Outlet.AST {
 	public class Variable : Expression, IAssignable {
 
 		public readonly string Name;
-        private int resolveLevel = -1;
+        public int resolveLevel = -1;
 		public Variable(string name) { Name = name; }
 
 		public void Assign(Scope s, Operand value) {
@@ -25,7 +25,7 @@ namespace Outlet.AST {
 
 		public override void Resolve(Scope scope) {
 			// eventually Find should return (int, Type) tuple for type check
-			resolveLevel = scope.Find(Name);
+			resolveLevel = scope.Find(Name).Item2;
 			if (resolveLevel == -1) {
 				if (ForeignFunctions.NativeTypes.ContainsKey(Name)) return;
 				if (ForeignFunctions.NativeFunctions.ContainsKey(Name)) return;
@@ -33,6 +33,10 @@ namespace Outlet.AST {
             } 
 		}
 
-        public override string ToString() => Name;
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
+		}
+
+		public override string ToString() => Name;
 	}
 }

@@ -3,8 +3,8 @@
 namespace Outlet.AST {
 	public class Call : Expression {
 
-		private readonly Expression Caller;
-		private readonly Expression[] Args;
+		public readonly Expression Caller;
+		public readonly Expression[] Args;
 
 		public Call(Expression caller, params Expression[] args) {
 			Caller = caller;
@@ -22,6 +22,10 @@ namespace Outlet.AST {
 			Caller.Resolve(scope);
             foreach(Expression e in Args) e.Resolve(scope);
         }
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
+		}
 
 		public override string ToString() => Caller.ToString() + "(" + Args.ToList().ToListString() + ")";
 

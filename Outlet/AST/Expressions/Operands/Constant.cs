@@ -33,6 +33,10 @@ namespace Outlet.AST {
 			Value = value;
 		}
 
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
+		}
+
 		public override bool Equals(Operand b) => Value.Equals(b.Value);
 
 		public override string ToString() => (Value ?? "null").ToString();

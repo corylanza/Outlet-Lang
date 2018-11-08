@@ -19,6 +19,10 @@ namespace Outlet.AST {
 			foreach (Expression e in Args) e.Resolve(scope);
 		}
 
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
+		}
+
 		public override string ToString() => "[" + Args.ToList().ToListString() + "]";
 	}
 }

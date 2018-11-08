@@ -29,6 +29,10 @@ namespace Outlet.AST {
 			Type.Resolve(scope);
 		}
 
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
+		}
+
 		public override string ToString() => Type.ToString() + " " + ID;
 	}
 }

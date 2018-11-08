@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Assign : Expression {
 
-		private readonly Expression Left, Right;
+		public readonly Expression Left, Right;
 
 		public Assign(Expression left, Expression right) {
 			Left = left;
@@ -25,6 +25,10 @@ namespace Outlet.AST {
 		public override void Resolve(Scope scope) {
 			Left.Resolve(scope);
 			Right.Resolve(scope);
+		}
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() => Left.ToString() + " = " + Right.ToString();

@@ -20,7 +20,7 @@ namespace Outlet.AST {
 		public override void Resolve(Scope scope) {
             Scope exec = new Scope(scope);
 			LoopVar.Resolve(exec);
-            exec.Define(LoopVar.ID);
+            exec.Define(LoopVar.GetType(scope), LoopVar.ID);
             Collection.Resolve(exec);
             Body.Resolve(exec);
 		}
@@ -37,6 +37,10 @@ namespace Outlet.AST {
 					exec = new Scope(scope);
 				}
 			} else throw new OutletException("for loops can only loop over collections");
+		}
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() => "for(" + LoopVar + " in " + Collection.ToString() + ")" + Body.ToString();

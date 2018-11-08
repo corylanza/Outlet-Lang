@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Ternary : Expression {
 
-		private readonly Expression Condition, IfTrue, IfFalse;
+		public readonly Expression Condition, IfTrue, IfFalse;
 
 		public Ternary(Expression iffalse, Expression iftrue, Expression condition) {
 			Condition = condition;
@@ -26,6 +26,10 @@ namespace Outlet.AST {
 			Condition.Resolve(scope);
 			IfTrue.Resolve(scope);
 			IfFalse.Resolve(scope);
+		}
+
+		public override T Accept<T>(IVisitor<T> visitor) {
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() => Condition.ToString() + " ? " + IfTrue.ToString() + " : " + IfFalse.ToString();
