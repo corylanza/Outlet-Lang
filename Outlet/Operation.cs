@@ -7,9 +7,24 @@ using Outlet.AST;
 using Type = Outlet.AST.Type;
 
 namespace Outlet {
-    public class Operation {
-        public Operation(Type l, Type r, Type res, Func<Operand, Operand, Operand> f) {
+    public class UnaryOperation {
 
+		public readonly Type Input, Result;
+		private readonly Func<Operand, Operand> Native;
+		private readonly Function UserDefined;
+
+        public UnaryOperation(Type input, Type result, Func<Operand, Operand> f) {
+			Input = input;
+			Result = result;
+			Native = f;
         }
+
+		public UnaryOperation(Type input, Type result, Function f) {
+			Input = input;
+			Result = result;
+			UserDefined = f;
+		}
+
+		public Operand Perform(Operand o) => Native(o);
     }
 }

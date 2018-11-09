@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class TupleLiteral : Expression {
 
-		private readonly Expression[] Args;
+		public readonly Expression[] Args;
 
 		public TupleLiteral(params Expression[] vals) {
 			Args = vals;

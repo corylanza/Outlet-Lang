@@ -8,14 +8,17 @@ using Outlet.Tokens;
 namespace Outlet.AST {
 	public class Unary : Expression {
 		public Expression Expr;
+		public UnaryOperation Oper;
+		public Overload<UnaryOperation> Overloads;
 		public UnaryOperator Op;
 
-		public Unary(Expression input, UnaryOperator op) {
-			this.Expr = input;
-			this.Op = op;
+		public Unary(Expression input, UnaryOperator op, Overload<UnaryOperation> overloads) {
+			Expr = input;
+			Overloads = overloads;
+			Op = op;
 		}
 
-		public override Operand Eval(Scope scope) => Op.PerformOp(Expr.Eval(scope));
+		public override Operand Eval(Scope scope) => Oper.Perform(Expr.Eval(scope));//Op.PerformOp(Expr.Eval(scope));
 
         public override void Resolve(Scope scope) {
             Expr.Resolve(scope);

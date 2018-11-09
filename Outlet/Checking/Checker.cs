@@ -144,13 +144,18 @@ namespace Outlet.Checking {
 		}
 
 		public Type Visit(TupleLiteral t) {
-			throw new NotImplementedException();
+			if(t.Args.Length == 1) return t.Args[0].Accept(this);
+			else return new TupleType(t.Args.Select(arg => arg.Accept(this)).ToArray());
 		}
 
 		public Type Visit(Unary u) {
 			Type input = u.Expr.Accept(this);
-			//u.Op
-			throw new NotImplementedException();
+			UnaryOperation op = null;
+			foreach(UnaryOperation uo in u.Overloads.Cadidates()) {
+				if(input.Is(uo.Input)) { op = uo; break; }
+			}
+			u.Oper = op ?? throw new OutletException("operator doesn't work on this type");
+			return op.Result;
 		}
 
 		public Type Visit(Variable v) {

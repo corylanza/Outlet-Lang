@@ -148,7 +148,7 @@ namespace Outlet.Parsing {
 					output.Push(binop.Construct(output.Pop(), output.Pop()));
 				}else if(op is UnaryOperator unop){
 					if (output.Count < 1) throw new OutletException("Syntax Error: unary operator "+unop.ToString()+" expects 1 operand");
-					output.Push(new Unary(output.Pop(), unop));
+					output.Push(new Unary(output.Pop(), unop, unop.Overloads));
 				}
 			} else throw new OutletException("Expression invalid, more operators than needed operands");
 		}

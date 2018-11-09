@@ -84,9 +84,12 @@ namespace Outlet.Tokens {
 
 	public class UnaryOperator : Operator {
 
+		public Overload<UnaryOperation> Overloads;
 		private readonly Func<Operand, Operand> UnaryFunc;
 
 		public UnaryOperator(string name, int p, Side a, Func<Operand, Operand> func) : base(name, p, a) {
+			Overloads = new Overload<UnaryOperation>(new UnaryOperation(Primitive.Int, Primitive.Int, (l) => new Constant(-l.Value)),
+													 new UnaryOperation(Primitive.String, Primitive.String, (l) => new Constant("olleh")));
 			UnaryFunc = func;
 		}
 
