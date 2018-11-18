@@ -23,6 +23,23 @@ namespace Outlet.AST {
 			Name = name;
 		}
 
+		public override bool Is(Type t) {
+			if(Equals(t)) return true;
+			if(!(Parent is null)) return Parent.Is(t);
+			return false;
+		}
+
+		public override bool Is(Type t, out int level) {
+			level = 0;
+			if(Equals(t)) return true;
+			if(!(Parent is null) && Parent.Is(t, out int l)) {
+				level = l+1;
+				return true;
+			}
+			level = -1;
+			return false;
+		}
+
 		public override Operand Dereference(string field) {
 			throw new NotImplementedException();
 		}

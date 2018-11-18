@@ -10,13 +10,20 @@ namespace Outlet.Checking {
 	public class Checker : IVisitor<Type> {
 
 		#region Helpers
-		public static Stack<Scope> Scopes = new Stack<Scope>();
+
+		public static Stack<FunctionType> CurrentFunctions = new Stack<FunctionType>();
+
+		public static readonly Stack<Scope> Scopes = new Stack<Scope>();
 
 		static Checker() {
-			Scopes.Push(new Scope(null));
+			Scopes.Push(Scope.Global);
 		}
 
-		public Scope Scope() => Scopes.Peek();
+		public static void Declare(Type t, string s) => Scopes.Peek().Declare(t, s);
+		public static void Define(Type t, string s) => Scopes.Peek().Define(t, s);
+		public static void DefineType(Type t, string s) => Scopes.Peek().DefineType(t, s);
+		public static (Type, int) Find(string s) => Scopes.Peek().Find(s);
+		public static Type FindType(int level, string s) => Scopes.Peek().FindType(level, s);
 
 		public Scope EnterScope() {
 			if(Scopes.Count == 0) Scopes.Push(new Scope(null));
@@ -26,22 +33,32 @@ namespace Outlet.Checking {
 
 		public void ExitScope() => Scopes.Pop();
 
-		public static void Cast(Type a, Type b, string message = "cannot convert type {0} to type {1}") {
-			if(!a.Is(b)) throw new CheckerException(string.Format(message, a, b));
+		public static void Cast(Type from, Type to, string message = "cannot convert type {0} to type {1}") {
+			if(!from.Is(to)) throw new CheckerException(string.Format(message, from, to));
 		}
 
 		private readonly Type Bool = Primitive.Bool;
 
+		private Type TypeLiteral(Expression e) {
+			if(e is Variable v) {
+				v.Accept(this);	// resolves the type literal so it can be found when interpreted
+				return FindType(v.resolveLevel, v.Name);
+			}
+			if(e is TupleLiteral tl) return new TupleType(tl.Args.Select(arg => TypeLiteral(arg)).ToArray());
+			throw new CheckerException("declaration requires valid type");
+		}
+
+
 		#endregion
 
 		public Type Visit(ClassDeclaration c) {
-			Scope().Define(Primitive.MetaType, c.Name);
+			Define(Primitive.MetaType, c.Name);
 			EnterScope();
 			foreach(Declaration d in c.StaticDecls) {
 				d.Accept(this);
 			}
 			EnterScope();
-			Scope().Define(Primitive.MetaType, "this");
+			Define(Primitive.MetaType, "this");
 			foreach(Declaration d in c.InstanceDecls) {
 				d.Accept(this);
 			}
@@ -56,32 +73,40 @@ namespace Outlet.Checking {
 			(Type type, string id)[] args = f.Args.Select(arg => (arg.Accept(this), arg.ID)).ToArray();
 			FunctionType ft = new FunctionType(args, returntype);
 			// define the header using the function type from above
-			Scope().Define(ft, f.Decl.ID);
+			Define(ft, f.Decl.ID);
 			// enter the function scope and define the args;
 			EnterScope();
-			Array.ForEach(args, arg => Scope().Define(arg.type, arg.id));
+			Array.ForEach(args, arg => Define(arg.type, arg.id));
 			// check the body now that its header and args have been defined
 			// TODO will need a variable to track what return type is needed by this function and is used by conditionals to check that its a valid definition
-			f.Body.Accept(this);
+			Type body = f.Body.Accept(this);
+			if(body == null || body == Primitive.Void) {
+				if(ft.ReturnType != Primitive.Void) throw new CheckerException("not all code paths return a value");
+			} else Cast(body, ft.ReturnType, "function definition invalid, expected {1}, returned {0}");
+			/*else {
+				CurrentFunctions.Push(ft);
+				Type ret = f.Body.Accept(this);
+				if(ret.)
+			}*/
 			ExitScope();
 			return null;
 		}
 
 		public Type Visit(VariableDeclaration v) {
 			Type decl = v.Decl.Accept(this);
-			Scope().Declare(decl, v.Decl.ID);
+			Declare(decl, v.Decl.ID);
 			Type init = v.Initializer?.Accept(this);
 			Cast(init, decl);
-			Scope().Define(decl, v.Decl.ID);
+			if(decl == Primitive.MetaType) DefineType(TypeLiteral(v.Initializer), v.Decl.ID);
+			else Define(decl, v.Decl.ID);
 			return null;
 		}
 
 		public Type Visit(Declarator d) {
-			// THIS NEEDS MAJOR REWORK, CURRENTLY ACCEPTS NON TYPES AS TYPES....................................
-			return d.Type.Accept(this);
+			return TypeLiteral(d.Type);
 		}
 
-		public Type Visit(Constant c) => c.Type;
+		public Type Visit(Const c) => c.Type;
 
 		public Type Visit(Assign a) {
 			Type l = a.Left.Accept(this);
@@ -91,10 +116,11 @@ namespace Outlet.Checking {
 		}
 
 		public Type Visit(Binary b) {
-			Type l = b.Left.Accept(this);
-			Type r = b.Right.Accept(this);
-			if(l == r) return l;
-			throw new NotImplementedException();
+			Type left = b.Left.Accept(this);
+			Type right = b.Right.Accept(this);
+			var op = b.Overloads.Best(left, right);
+			b.Oper = op ?? throw new OutletException("binary operator not defined for "+left.ToString()+ " "+b.Op+" "+right.ToString());
+			return op.Result;
 		}
 
 		public Type Visit(Call c) {
@@ -104,7 +130,7 @@ namespace Outlet.Checking {
 				if(argtypes.Length != functype.Args.Length) throw new OutletException("not even of the same length");
 				for(int i = 0; i < c.Args.Length; i++) {
 					if(!argtypes[i].Is(functype.Args[i].type))
-						throw new OutletException("cannot convert: "+c.ToString()+ " to: "+functype.ToString());
+						throw new OutletException("cannot convert: "+argtypes.ToList().ToListString()+ " to: "+functype.ToString());
 				}
 				return functype.ReturnType;
 			}
@@ -122,7 +148,6 @@ namespace Outlet.Checking {
 
 		public Type Visit(ListLiteral l) {
 			return Primitive.List;
-			//throw new NotImplementedException();
 		}
 
 		public Type Visit(ShortCircuit s) {
@@ -140,58 +165,68 @@ namespace Outlet.Checking {
 			Cast(cond, Bool, "Ternary condition requires a boolean, found a {0}");
 			if(iftrue.Is(iffalse)) return iffalse;
 			if(iffalse.Is(iftrue)) return iftrue;
-			throw new OutletException("types in branches of ternary statement are not compatible");
+			return Primitive.Object;
 		}
 
 		public Type Visit(TupleLiteral t) {
 			if(t.Args.Length == 1) return t.Args[0].Accept(this);
-			else return new TupleType(t.Args.Select(arg => arg.Accept(this)).ToArray());
+			var types = t.Args.Select(arg => arg.Accept(this)).ToArray();
+			if(types.All(type => type == Primitive.MetaType)) return Primitive.MetaType;
+			else return new TupleType(types);
 		}
 
 		public Type Visit(Unary u) {
 			Type input = u.Expr.Accept(this);
-			UnaryOperation op = null;
-			foreach(UnaryOperation uo in u.Overloads.Cadidates()) {
-				if(input.Is(uo.Input)) { op = uo; break; }
-			}
-			u.Oper = op ?? throw new OutletException("operator doesn't work on this type");
+			var op = u.Overloads.Best(input);
+			u.Oper = op ?? throw new OutletException("unary operator "+u.Op+" is not defined for type "+input.ToString());
 			return op.Result;
 		}
 
 		public Type Visit(Variable v) {
-			(Type t, int l) = Scope().Find(v.Name);
+			(Type t, int l) = Find(v.Name);
 			v.resolveLevel = l;
 			if(l == -1) {
-				if(ForeignFunctions.NativeTypes.ContainsKey(v.Name)) return ForeignFunctions.NativeTypes[v.Name];
-				if(ForeignFunctions.NativeFunctions.ContainsKey(v.Name)) return ForeignFunctions.NativeFunctions[v.Name].Type;
 				throw new OutletException("variable " + v.Name + " could not be resolved");
 			}
 			return t;
 		}
 
 		public Type Visit(Block b) {
-			Scope exec = EnterScope();
+			EnterScope();
+			Type ret = null;
 			foreach(Declaration d in b.Lines) {
-				d.Accept(this);
+				Type temp = d.Accept(this);
+				if(ret != null) throw new CheckerException("unreachable code detected");
+				if(d is Statement && !(d is Expression) && temp != null) {
+					ret = temp;
+				}
 			}
 			ExitScope();
-			return null;
+			return ret;
 		}
 
 		public Type Visit(ForLoop f) {
-			throw new NotImplementedException();
+			Type collection = f.Collection.Accept(this);
+			Type loopvar = f.LoopVar.Accept(this);
+			Type body = f.Accept(this);
+			return null;
 		}
 
 		public Type Visit(IfStatement i) {
 			Type cond = i.Condition.Accept(this);
 			Cast(cond, Bool, "if statement condition requires a boolean, found a {0}");
-			i.Iftrue.Accept(this);
-			i.Iffalse?.Accept(this);
+			Type iftrue = i.Iftrue.Accept(this);
+			Type iffalse = i.Iffalse?.Accept(this);
+			if(i.Iftrue is Statement && !(i.Iftrue is Expression) && iftrue != null) {
+				if(i.Iffalse is Statement && !(i.Iffalse is Expression) && iffalse != null) {
+					return iftrue;
+				}
+			}
 			return null;
 		}
 
 		public Type Visit(ReturnStatement r) {
-			throw new NotImplementedException();
+			return r.Expr.Accept(this);
 		}
 
 		public Type Visit(WhileLoop w) {

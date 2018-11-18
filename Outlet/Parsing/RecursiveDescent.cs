@@ -70,20 +70,19 @@ namespace Outlet.Parsing {
 				}
 				return new ClassDeclaration(name.Name, instance, statics);
 			}
-			Declaration OperatorOverload() {
+			Declaration OperatorOverload(Expression type) {
 				Operator op = ConsumeType<Operator>("expected operator to overload");
 				if(op is UnaryOperator uo) {
-					//uo.Overloads.Add(null);
+					//uo.Overloads.Add(new UnOp();
 				}
 				throw new NotImplementedException("operator overloading not implemented");
 			}
 			if(Match(Keyword.Class)) return ClassDef();
-			if(Match(Keyword.Operator)) return OperatorOverload();
 			Statement next = NextStatement(tokens);
 			if(next is Declarator d) {
 				if(Match(Delimeter.LeftParen)) return FunctionDef(d);
 				else return VarDeclaration(d);
-			}
+			} else if(Match(Keyword.Operator) && next is Expression e) return OperatorOverload(e);
 			return next;
 		}
 
@@ -115,8 +114,7 @@ namespace Outlet.Parsing {
 				Expression condition = NextExpression(tokens);
 				Consume(Delimeter.RightParen, "Expected ) after if condition");
 				Statement iftrue = NextStatement(tokens);
-				Statement ifelse = null;
-				if(Match(Keyword.Else)) ifelse = NextStatement(tokens);
+				Statement ifelse = Match(Keyword.Else) ? NextStatement(tokens) : null;
 				return new IfStatement(condition, iftrue, ifelse);
 			}
 			Statement WhileLoop() {
@@ -139,8 +137,7 @@ namespace Outlet.Parsing {
 				throw new OutletException("expected type followed by an identifier to use as a loop variable");
 			}
 			Statement Return() {
-				Expression e = NextExpression(tokens);
-				return new ReturnStatement(e);
+				return new ReturnStatement(NextExpression(tokens));
 			}
 
 			if(Match(Delimeter.LeftCurly)) return Scope();

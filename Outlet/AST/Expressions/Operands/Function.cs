@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Function : Operand, ICallable {
+	public class Function : Operand, IOverloadable, ICallable {
 
 		private readonly string Name;
-		private readonly List<(Type Type, string ID)> ArgNames;
-		private readonly Statement Body;
-		private readonly Scope Closure;
-		private readonly Type ReturnType;
+		public readonly List<(Type Type, string ID)> ArgNames;
+		public readonly Statement Body;
+		public readonly Scope Closure;
+		public readonly Type ReturnType;
 
 		protected Function() { }
 
@@ -19,7 +19,7 @@ namespace Outlet.AST {
 			Name = id;
 			ReturnType = type;
 			ArgNames = argnames;
-			Type = Primitive.FuncType;
+			Type = new FunctionType(ArgNames.ToArray(), ReturnType);// Primitive.FuncType;
 			Body = body;
 			Closure = closure;
 		}
@@ -32,8 +32,8 @@ namespace Outlet.AST {
 				exec.Add(ArgNames[i].ID, ArgNames[i].Type, args[i]);
 			}
 			try {
-				if(Body is Expression e) returnval = e.Eval(exec);
-				else Body.Execute(exec);
+				//if(Body is Expression e) returnval = e.Eval(exec);
+				//else Body.Execute(exec);
 			} catch(Return r) {
 				returnval = r.Value;
 			}
@@ -47,13 +47,21 @@ namespace Outlet.AST {
 		public override string ToString() {
 			return "function: " + Name?.ToString();
 		}
+
+		public bool Valid(params Type[] inputs) {
+			throw new NotImplementedException();
+		}
+
+		public int Level(params Type[] inputs) {
+			throw new NotImplementedException();
+		}
 	}
 
 	public class Native : Function, ICallable {
 		private readonly Func<Operand[], Operand> Underlying;
 		public Native(FunctionType type, Func<Operand[], Operand> func) {
 			Underlying = func;
-			Type = type;//Primitive.FuncType;
+			Type = type;
 		}
 		public override Operand Call(params Operand[] args) => Underlying(args);
 	}

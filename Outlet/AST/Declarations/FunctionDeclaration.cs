@@ -16,7 +16,7 @@ namespace Outlet.AST {
 			Args = argnames;
 			Body = body;
 		}
-
+		/*
 		public Function Construct(Scope closure) {
 			List<(Type, string)> args = Args.Select(x => (x.GetType(closure), x.ID)).ToList();
 			return new Function(closure, Decl.ID, Decl.GetType(closure), args, Body);
@@ -32,7 +32,7 @@ namespace Outlet.AST {
 
 		public override void Execute(Scope scope) {
 			scope.Add(Decl.ID, null, Construct(scope));
-		}
+		}*/
 
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);

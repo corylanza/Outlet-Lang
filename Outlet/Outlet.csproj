@@ -98,8 +98,11 @@
     <Compile Include="AST\Expressions\ShortCircuit.cs" />
     <Compile Include="AST\Expressions\Ternary.cs" />
     <Compile Include="AST\Expressions\TupleLiteral.cs" />
+    <Compile Include="AST\Declarations\Program.cs" />
     <Compile Include="Checking\Checker.cs" />
+    <Compile Include="Interpreting\Interpreter.cs" />
     <Compile Include="Operation.cs" />
+    <Compile Include="Optimizing\ConstOptimizer.cs" />
     <Compile Include="Overloads.cs" />
     <Compile Include="AST\Statements\ForLoop.cs" />
     <Compile Include="AST\Statements\IfStatement.cs" />
@@ -130,7 +133,7 @@
     <Compile Include="Lexing\Lexer.cs" />
     <Compile Include="Lexing\LexStates.cs" />
     <Compile Include="AST\Statements\Statement.cs" />
-    <Compile Include="Interpreting\Scope.cs" />
+    <Compile Include="Scope.cs" />
     <Compile Include="Tokens\Token.cs" />
     <Compile Include="Util\State.cs" />
     <Compile Include="Util\StateMachine.cs" />

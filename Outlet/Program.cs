@@ -9,6 +9,8 @@ using Outlet.Parsing;
 using Outlet.Tokens;
 using Outlet.AST;
 using Outlet.Checking;
+using Outlet.Optimizing;
+using Outlet.Interpreting;
 
 namespace Outlet {
 	public static class Program {
@@ -22,14 +24,18 @@ namespace Outlet {
             byte[] bytes = file.Skip(3).ToArray();
             LinkedList<Token> lexout = Lexer.Scan(bytes);
             Declaration program = Parser.Parse(lexout);
-			Scope s = new Scope(null);
-			program.Resolve(s);
-			program.Execute(s);
+			Checker c = new Checker();
+			Interpreter eval = new Interpreter();
+			program.Accept(c);
+			program.Accept(eval);
+			//Scope s = new Scope(null);
+			//program.Resolve(s);
+			//program.Execute(s);
 			while (true) ;
         }
 
         public static void REPL() {
-			Scope s = new Scope();
+			//Scope s = new Scope();
 
 			while (true) {
 				Console.ForegroundColor = ConsoleColor.White;
@@ -42,25 +48,15 @@ namespace Outlet {
                 try {
                     LinkedList<Token> lexout = Lexer.Scan(bytes);
                     Declaration program = Parser.Parse(lexout);
-                    //program.Resolve(s);
 					Checker c = new Checker();
+					Interpreter eval = new Interpreter();
 					program.Accept(c);
-                    //Console.WriteLine("Parsed: " + program.ToString());
-                    if(program is Expression e) {
-                        Operand result = e.Eval(s);
-                        if(!(result is null)) {
-                            Console.WriteLine("Expression returned " + result);
-                        }
-                    } else {
-                        program.Execute(s);
-                    }
-                } catch (OutletException ex) {
+					Operand res = program.Accept(eval);
+					if(res != null) Console.WriteLine("Expression returned " + res);
+				} catch (OutletException ex) {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(ex.Message);
-                } finally {
-					//s.Lines.Clear();
-				}
-               
+                } 
             }
         }
 
@@ -82,6 +78,19 @@ namespace Outlet {
 				if (i != list.Count - 1) s += ", ";
 			}
 			return s;
+		}
+
+		public static T MinElement<T>(this IEnumerable<T> list, Func<T, int> f) {
+			int min = int.MaxValue;
+			T res = default;
+			foreach(T t in list) {
+				int cur = f(t);
+				if(cur <= min) {
+					min = cur;
+					res = t;
+				}
+			}
+			return res;
 		}
 	}
 }

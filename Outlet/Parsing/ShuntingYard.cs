@@ -16,10 +16,11 @@ namespace Outlet.Parsing {
 			Stack<int> arity = new Stack<int>();
 			Token cur = null, last = null;
 			bool ValidToken() =>
-				tokens.Count > 0 && tokens.First() is Token i && (!(i is Keyword) ||
-				 (i is Keyword k && (k == Keyword.True || k == Keyword.False || k == Keyword.Null) ||
-				!(i is Delimeter) || i is Delimeter d && (d != Delimeter.LeftCurly || d != Delimeter.RightCurly)));
-			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Asssoc == Side.Left);
+				tokens.Count > 0 && tokens.First() is Token i && 
+				((i is Keyword k && (k == Keyword.True || k == Keyword.False || k == Keyword.Null)) ||
+				(i is Delimeter d && (d != Delimeter.LeftCurly || d != Delimeter.RightCurly)) || 
+				i is Literal || i is Operator || i is Identifier);
+			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Assoc == Side.Left);
 			#endregion
 
 			while (ValidToken() && !done) {
@@ -32,16 +33,22 @@ namespace Outlet.Parsing {
 						} else output.Push(new Variable(id.Name));
 						break;
 					case Literal l:
-						output.Push(new Constant(l.Value));
+						output.Push(new Const(l.Value));
 						break;
 					case Keyword k:
-						if (k == Keyword.True) output.Push(new Constant(true));
-						else if (k == Keyword.False) output.Push(new Constant(false));
-						else output.Push(new Constant());//throw new NotImplementedException("null is not implemented");
+						if (k == Keyword.True) output.Push(new Const(true));
+						else if (k == Keyword.False) output.Push(new Const(false));
+						else output.Push(new Const());//throw new NotImplementedException("null is not implemented");
 						break;
 					case Operator o:
 						if (o.Name == "-" && IsPreUnary(last)) {
 							o = Operator.Negative;
+						}
+						if(o.Name == "&" && IsPreUnary(last)) {
+							o = Operator.UnaryAnd;
+						}
+						if(o.Name == "+" && IsPreUnary(last)) {
+							o = Operator.UnaryPlus;
 						}
 						if (o.Name == "++" && IsPreUnary(last)) {
 							o = Operator.PreInc;
@@ -148,7 +155,7 @@ namespace Outlet.Parsing {
 					output.Push(binop.Construct(output.Pop(), output.Pop()));
 				}else if(op is UnaryOperator unop){
 					if (output.Count < 1) throw new OutletException("Syntax Error: unary operator "+unop.ToString()+" expects 1 operand");
-					output.Push(new Unary(output.Pop(), unop, unop.Overloads));
+					output.Push(new Unary(unop.Name, output.Pop(), unop.Overloads));
 				}
 			} else throw new OutletException("Expression invalid, more operators than needed operands");
 		}

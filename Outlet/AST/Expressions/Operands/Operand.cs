@@ -10,10 +10,10 @@ namespace Outlet.AST {
 		public dynamic Value;
 		public Type Type;
 
-		public override Operand Eval(Scope scope) => this;
+		//public override Operand Eval(Scope scope) => this;
 		public override bool Equals(object obj) => obj is Operand o && Equals(o);
 		public override int GetHashCode() => base.GetHashCode();
-		public override void Resolve(Scope scope) {	}
+		//public override void Resolve(Scope scope) {	}
 
 		public override T Accept<T>(IVisitor<T> visitor) {
 			throw new OutletException("unvisitable type, not part of AST");
@@ -37,7 +37,8 @@ namespace Outlet.AST {
 	public interface ICollection {
 		Operand[] Values();
 	}
+	/*
 	public interface IAssignable {
 		void Assign(Scope s, Operand value);
-	}
+	}*/
 }

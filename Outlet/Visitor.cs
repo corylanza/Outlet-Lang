@@ -11,7 +11,7 @@ namespace Outlet {
 		T Visit(FunctionDeclaration f);
 		T Visit(VariableDeclaration v);
 
-		T Visit(Constant c);
+		T Visit(Const c);
 		T Visit(Assign a);
 		T Visit(Binary b);
 		T Visit(Call c);

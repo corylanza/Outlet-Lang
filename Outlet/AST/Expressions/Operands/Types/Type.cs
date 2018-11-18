@@ -17,21 +17,21 @@ namespace Outlet.AST {
 		}
 
 		// this must be in each class
+
+		public abstract bool Is(Type t);
+
+		public abstract bool Is(Type t, out int level);
+
+		/*
 		public bool Is(Type t) {
 			if (Equals(t)) return true;
 			if (!(Parent is null)) return Parent.Is(t);
 			return false;
-		}
+		}*/
 
 		public abstract Operand Dereference(string field);
 
-		public static Type Construct(Operand o) {
-			if (o is Constant l) return l.Type;
-			//if (o is OTuple t) return new TupleType(t.Value.Select(x => Construct(x.Type)))
-			return null;
-		}
-
-		public override void Resolve(Scope scope) {	}
+		//public override void Resolve(Scope scope) {	}
 	}
 
 }

@@ -13,7 +13,7 @@ namespace Outlet.AST {
 			Left = l;
 			Right = r;
 		}
-
+		/*
 		public override Operand Eval(Scope scope) {
 			Operand l = Left.Eval(scope);
 			Operand r = Right.Eval(scope);
@@ -28,7 +28,7 @@ namespace Outlet.AST {
 			Left.Resolve(scope);
 			Right.Resolve(scope);
 			//Scope exec = new Scope(scope);
-		}
+		}*/
 
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);

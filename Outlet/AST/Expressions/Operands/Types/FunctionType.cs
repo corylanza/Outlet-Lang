@@ -15,6 +15,14 @@ namespace Outlet.AST {
 			ReturnType = returntype;
 		}
 
+		public override bool Is(Type t) {
+			return t.Is(Primitive.FuncType);
+		}
+
+		public override bool Is(Type t, out int level) {
+			throw new NotImplementedException();
+		}
+
 		public override Operand Dereference(string field) {
 			throw new NotImplementedException();
 		}

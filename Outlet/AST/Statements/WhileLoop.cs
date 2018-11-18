@@ -13,7 +13,7 @@ namespace Outlet.AST {
 			Condition = condition;
 			Body = body;
 		}
-
+		/*
 		public override void Resolve(Scope scope) {
             Scope exec = new Scope(scope);
 			Condition.Resolve(exec);
@@ -26,7 +26,7 @@ namespace Outlet.AST {
                 Body.Execute(exec);
                 exec = new Scope(scope);
 			}
-		}
+		}*/
 
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);

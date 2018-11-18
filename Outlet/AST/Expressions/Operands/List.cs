@@ -12,7 +12,7 @@ namespace Outlet.AST {
 		}
 
 		public Operand Dereference(string field) {
-			if (field == "length") return new Constant(Value.Length);
+			if (field == "length") return new Const(Value.Length);
 			throw new OutletException("field "+field+" not defined");
 		}
 

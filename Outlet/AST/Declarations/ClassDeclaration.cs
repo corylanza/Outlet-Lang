@@ -16,7 +16,7 @@ namespace Outlet.AST {
 			InstanceDecls = instance;
 			StaticDecls = statics;
 		}
-
+		/*
 		public override void Execute(Scope scope) {
 			Class c = new Class(Name, scope, InstanceDecls, StaticDecls);
 			scope.Add(Name, Primitive.MetaType, c);
@@ -34,7 +34,7 @@ namespace Outlet.AST {
 				d.Resolve(instanceExec);
 			}
 		}
-
+		*/
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);
 		}

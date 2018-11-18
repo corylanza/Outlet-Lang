@@ -15,7 +15,7 @@ namespace Outlet.AST {
 			Decl = decl;
 			Initializer = initializer;
 		}
-
+		/*
 		public override void Resolve(Scope scope) {
             scope.Declare(Decl.GetType(scope), Decl.ID);
 			Decl.Resolve(scope);
@@ -30,7 +30,7 @@ namespace Outlet.AST {
 			if (initial is null || initType.Is(type)) scope.Add(Decl.ID, type, initial);
 			else throw new OutletException("cannot convert type "+initType.ToString() + " to type "+type.ToString());
 		}
-
+		*/
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);
 		}

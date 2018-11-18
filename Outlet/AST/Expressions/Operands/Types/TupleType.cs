@@ -13,6 +13,19 @@ namespace Outlet.AST {
 			Types = types;
 		}
 
+		public override bool Is(Type t) {
+			if(t is TupleType tt && tt.Types.Length == Types.Length){
+				for(int i = 0; i < Types.Length; i++) {
+					if(!Types[i].Is(tt.Types[1])) return false;
+				}
+				return true;
+			} return false;
+		}
+
+		public override bool Is(Type t, out int level) {
+			throw new NotImplementedException();
+		}
+
 		public override Operand Dereference(string field) {
 			throw new NotImplementedException();
 		}

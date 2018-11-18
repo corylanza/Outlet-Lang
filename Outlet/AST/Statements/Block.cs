@@ -12,7 +12,7 @@ namespace Outlet.AST {
 		public Block(List<Declaration> lines) {
 			Lines = lines;
 		}
-
+		/*
 		public override void Resolve(Scope scope) {
 			Scope exec = new Scope(scope);
 			foreach (Declaration d in Lines) d.Resolve(exec);
@@ -22,7 +22,7 @@ namespace Outlet.AST {
 			Scope exec = new Scope(scope);
 			foreach (Declaration d in Lines) d.Execute(exec);
 		}
-
+		*/
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);
 		}

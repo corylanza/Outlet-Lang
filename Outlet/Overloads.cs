@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.AST;
+using Type = Outlet.AST.Type;
 
 namespace Outlet {
-	public class Overload<T> {
+	public class Overload<T> where T : IOverloadable {
 
 		private List<T> Overloads = new List<T>(); 
 
@@ -21,8 +22,17 @@ namespace Outlet {
 		// all functions that use the same name and 
 		public List<T> Cadidates() => Overloads;
 		// checks valid arg num and that each arg has a valid conversion
-		public List<T> Viable() => null;// Overloads.Where();
+		public List<T> Viable(params Type[] inputs) => Overloads.Where(x => x.Valid(inputs)).ToList();
 		// finds closest match
-		public T Best() => Overloads[1];
+		public T Best(params Type[] inputs) {
+			var viable = Viable(inputs);
+			if(viable.Count == 1) return viable[0];
+			return viable.MinElement(x => x.Level(inputs));
+		}
+	}
+
+	public interface IOverloadable {
+		bool Valid(params Type[] inputs);
+		int Level(params Type[] inputs);
 	}
 }

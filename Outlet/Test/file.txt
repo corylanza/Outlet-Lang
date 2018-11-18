@@ -1,10 +1,10 @@
-﻿var a = "global";
+﻿string a = "global";
 {
-  func showA() = {
+  void showA() => {
     print(a);
   }
 
   showA();
-  var a = "block";
+  string a = "block";
   showA();
 }
