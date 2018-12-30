@@ -42,7 +42,7 @@ else {
 // While Loops:
 while(a > 0) {
   print("while loops are pretty normal");
-  --a'
+  --a;
 } 
 // For Loops:
 for(int i in array){
