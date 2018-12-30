@@ -1,13 +1,13 @@
-﻿func MakePoint(int x, int y) => {
-	int closure(string method) => {
+﻿(string) => int MakePoint(int x, int y) {
+	int closure(string method) {
 		if(method == "x") return x;
 		else return y;
 	} return closure;
 }
-var point = MakePoint(1, 2);
+(string) => int point = MakePoint(1, 2);
 print(point("x"));
 print(point("y"));
-var point2 = MakePoint(3, 4);
+(string) => int point2 = MakePoint(3, 4);
 print(point2("x"));
 print(point2("y"));
 print(point("x"));

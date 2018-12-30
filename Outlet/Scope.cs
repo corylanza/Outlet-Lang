@@ -65,14 +65,14 @@ namespace Outlet {
 			} else return (null, -1);
 		}
 
-		public Operand Get(int level, string s) {
-			if(level == 0) return Variables[s].Value;
-			else return Parent.Get(level - 1, s);
-		}
-
 		public Type FindType(int level, string s) {
 			if(level == 0) return DefinedTypes[s];
 			else return Parent.FindType(level - 1, s);
+		}
+
+		public Operand Get(int level, string s) {
+			if(level == 0) return Variables[s].Value;
+			else return Parent.Get(level - 1, s);
 		}
 
 		public void Add(string id, Type t, Operand v) {

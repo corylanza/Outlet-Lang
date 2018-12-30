@@ -1,10 +1,15 @@
-﻿func getiter(list a) => {
+﻿(int) => int getiter(int[] a) {
 	int i = 0;
-	int next() => {
-		if(i < a.length) {
-			int temp = a(i);
+	int next(int c) {
+		if(i < 10) {
+			int temp = a[i];
 			i = i+1;
 			return temp;
 		} else return 0; 
 	} return next; 
 }
+(int) => int iter = getiter([0,2,3,4]);
+print(iter(2));
+print(iter(2));
+print(iter(2));
+print(iter(2));

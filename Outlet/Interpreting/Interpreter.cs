@@ -13,21 +13,27 @@ namespace Outlet.Interpreting {
 
 		public static Stack<Scope> Scopes = new Stack<Scope>();
 
-		static Interpreter() {
+		public static Operand Interpret(Declaration program) => program.Accept(Hidden);
+		private static readonly Interpreter Hidden = new Interpreter();
+		private Interpreter() {
 			Scopes.Push(Scope.Global);
 		}
 
-		public Scope CurScope() => Scopes.Peek();
+		public static Scope CurScope() => Scopes.Peek();
 
-		public Scope EnterScope() {
+		public static Scope EnterScope() {
 			if(Scopes.Count == 0) Scopes.Push(new Scope(null));
 			else Scopes.Push(new Scope(Scopes.Peek()));
 			return Scopes.Peek();
 		}
 
-		public void ExitScope() => Scopes.Pop();
+		public static void ExitScope() => Scopes.Pop();
 
 		#endregion
+
+		public Operand Visit(AST.Program p) {
+			return null;
+		}
 
 		public Operand Visit(ClassDeclaration c) {
 			EnterScope();
@@ -41,15 +47,14 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(FunctionDeclaration f) {
-			var args = f.Args.Select(x => ((Type)x.Accept(this), x.ID)).ToList();
-			var func = new Function(CurScope(), f.Decl.ID, (Type) f.Decl.Accept(this), args, f.Body);
-			CurScope().Add(f.Decl.ID, null, func);
+			var func = new Function(CurScope(), f.Decl.ID, f.Type, f.Body);
+			CurScope().Add(f.Decl.ID, func.Type, func);
 			return null;
 		}
 
 		public Operand Visit(VariableDeclaration v) {
-			Operand initial = v.Initializer?.Accept(this);
 			Type type = (Type) v.Decl.Accept(this);
+			Operand initial = v.Initializer?.Accept(this) ?? new Const(type.Default);
 			Type initType = initial?.Type;
 			CurScope().Add(v.Decl.ID, type, initial);
 			return null;
@@ -62,6 +67,13 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(Const c) => c;
+
+		public Operand Visit(Access a) {
+			Operand col = a.Collection.Accept(this);
+			if(col is Type at && a.Index.Length == 0) return new ArrayType(at);
+			AST.Array c = (AST.Array) a.Collection.Accept(this);
+			return c.Values()[a.Index[0].Accept(this).Value];
+		}
 
 		public Operand Visit(Assign a) {
 			Operand val = a.Right.Accept(this);
@@ -87,12 +99,14 @@ namespace Outlet.Interpreting {
 				for(int i = 0; i < args.Length; i++) {
 					exec.Add(f.ArgNames[i].ID, f.ArgNames[i].Type, args[i]);
 				}
+				returnval = f.Body.Accept(this);/*
 				try {
-					if(f.Body is Expression e) returnval = e.Accept(this);
-					else f.Body.Accept(this);
+					
+					//if(f.Body is Expression e) returnval = e.Accept(this);
+					//else f.Body.Accept(this);
 				} catch(Return r) {
-					returnval = r.Value;
-				}
+					//returnval = r.Value;
+				}*/
 				ExitScope();
 				return returnval;
 			}
@@ -103,11 +117,20 @@ namespace Outlet.Interpreting {
 			throw new NotImplementedException();
 		}
 
+		public Operand Visit(Is i) {
+			bool val = i.Left.Accept(this).Type.Is((Type)i.Right.Accept(this));
+			return new Const(i.NotIsnt ? val : !val); 
+		}
+
 		public Operand Visit(Lambda l) {
+			Operand left = l.Left.Accept(this);
+			Operand right = l.Right.Accept(this);
+			if(left is TupleType tt && right is Type r)
+				return new FunctionType(tt.Types.Select(x => (x, "")).ToArray(), r);
 			throw new NotImplementedException();
 		}
 
-		public Operand Visit(ListLiteral l) => new OList(l.Args.Select(arg => arg.Accept(this)).ToArray());
+		public Operand Visit(ListLiteral l) => new AST.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());
 
 		public Operand Visit(ShortCircuit s) {
 			bool b = s.Left.Accept(this).Value;
@@ -124,9 +147,9 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(TupleLiteral t) {
-			if(t.Args.Length == 1) return t.Args[0].Accept(this);
 			IEnumerable<Operand> evaled = t.Args.Select(arg => arg.Accept(this));
 			if(evaled.All(elem => elem is Type)) return new TupleType(evaled.Select(elem => elem as Type).ToArray());
+			if(t.Args.Length == 1) return t.Args[0].Accept(this);
 			else return new OTuple(evaled.ToArray());
 		}
 
@@ -140,7 +163,17 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(Block b) {
 			EnterScope();
-			b.Lines.ForEach(line => line.Accept(this));
+			foreach(FunctionDeclaration fd in b.Functions) {
+				fd.Accept(this);
+			}
+			foreach(Declaration line in b.Lines) {
+				if(line is FunctionDeclaration) continue;
+				var ret = line.Accept(this);
+				if(line is Statement s && !(s is Expression) && ret != null) {
+					ExitScope();
+					return ret;
+				}
+			}
 			ExitScope();
 			return null;
 		}
@@ -163,13 +196,18 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(IfStatement i) {
-			if(i.Condition.Accept(this).Value is bool b && b) i.Iftrue.Accept(this);
-			else i.Iffalse?.Accept(this);
+			if(i.Condition.Accept(this).Value is bool b && b) {
+				var ret = i.Iftrue.Accept(this);
+				if(i.Iftrue is Statement s && !(s is Expression)) return ret;
+			} else {
+				var ret = i.Iffalse?.Accept(this);
+				if(i.Iffalse != null && i.Iffalse is Statement s && !(s is Expression)) return ret;
+			}
 			return null;
 		}
 
 		public Operand Visit(ReturnStatement r) {
-			throw new Return(r.Expr.Accept(this));
+			return r.Expr.Accept(this);
 		}
 
 		public Operand Visit(WhileLoop w) {

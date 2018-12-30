@@ -1,0 +1,16 @@
+﻿class Person {
+	string name;
+	Job job;
+	Person Person(string s, string j) => {
+		name = s;
+		job = Job(j, this);
+	}
+}
+class Job {
+	string name;
+	Person person;
+	Job Job(string s, Person p) => {
+		name = s;
+		person = p;
+	}
+}

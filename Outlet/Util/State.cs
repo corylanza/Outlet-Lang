@@ -27,7 +27,7 @@ namespace Outlet.Util {
             throw new Exception("illegal state change");
         }
 
-        public void SetDefualt(State<Tin, Tout> s) {
+        public void SetDefault(State<Tin, Tout> s) {
             DefaultState = s;
         }
 

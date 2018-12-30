@@ -41,9 +41,12 @@ namespace Outlet.Tokens {
 			Not =			new UnaryOperator("!",	   2,  Side.Right,	new UnOp(Bln, Bln, (l) => new Const(!l.Value)));
 			Times =			new BinaryOperator("*",    3,  Side.Left,	new BinOp(Int, Int, Int, (l, r) => new Const(l.Value * r.Value)),
 																		new BinOp(Flt, Flt, Flt, (l, r) => new Const(l.Value * r.Value)));
-			Divide =		new BinaryOperator("/",    3,  Side.Left, 	new BinOp(Int, Int, Int, (l, r) => new Const(l.Value / r.Value)),
-																		new BinOp(Flt, Flt, Flt, (l, r) => new Const(l.Value / r.Value)));
-			Modulus =		new BinaryOperator("%",    3,  Side.Left, 	new BinOp(Int, Int, Int, (l, r) => new Const(l.Value % r.Value)));
+			Divide =		new BinaryOperator("/",    3,  Side.Left, 	new BinOp(Int, Int, Int, (l, r) => r.Value == 0 ? 
+																			throw new OutletException("RuntimeException: Divide By 0") : 
+																			new Const(l.Value / r.Value)));
+			Modulus =		new BinaryOperator("%",    3,  Side.Left, 	new BinOp(Int, Int, Int, (l, r) => r.Value == 0 ? 
+																			throw new OutletException("RuntimeException: Divide By 0") : 
+																			new Const(l.Value % r.Value)));
 			Plus =			new BinaryOperator("+",    4,  Side.Left, 	new BinOp(Int, Int, Int, (l, r) => new Const(l.Value + r.Value)),
 																		new BinOp(Flt, Flt, Flt, (l, r) => new Const(l.Value + r.Value)),
 																		new BinOp(Str, Obj, Str, (l, r) => new Const(l.Value + r.ToString())),
@@ -56,8 +59,8 @@ namespace Outlet.Tokens {
 			LTE =			new BinaryOperator("<=",   6,  Side.Left,  	new BinOp(Flt, Flt, Bln, (l, r) => new Const(l.Value <= r.Value)));
 			GT =			new BinaryOperator(">",    6,  Side.Left, 	new BinOp(Flt, Flt, Bln, (l, r) => new Const(l.Value > r.Value)));
 			GTE =			new BinaryOperator(">=",   6,  Side.Left, 	new BinOp(Flt, Flt, Bln, (l, r) => new Const(l.Value >= r.Value)));
-			Is =			new BinaryOperator("is",   6,  Side.Left, 	new BinOp(Obj, Met, Bln, (l, r) => new Const(l.Type.Is((Type) r))));
-			Isnt =			new BinaryOperator("isnt", 6,  Side.Left, 	new BinOp(Obj, Met, Bln, (l, r) => new Const(!l.Type.Is((Type) r))));
+			Is =			new BinaryOperator("is",   6,  Side.Left);
+			Isnt =			new BinaryOperator("isnt", 6,  Side.Left);
 			BoolEquals =	new BinaryOperator("==",   7,  Side.Left, 	new BinOp(Obj, Obj, Bln, (l, r) => new Const(l.Equals(r))));
 			NotEqual =		new BinaryOperator("!=",   7,  Side.Left, 	new BinOp(Obj, Obj, Bln, (l, r) => new Const(!l.Equals(r))));
 			BitAnd =		new BinaryOperator("&",	   8,  Side.Left,	new BinOp(Int, Int, Int, (l, r) => new Const(l.Value & r.Value)));
@@ -95,6 +98,7 @@ namespace Outlet.Tokens {
 
 		// Right param is first due to shunting yard popping the right operand first
 		public Expression Construct(Expression r, Expression l) {
+			if (this == Is || this == Isnt) return new Is(l, r, this == Is);
 			if (this == Dot) return new Deref(l, r);
 			if (this == Lambda) return new Lambda(l, r);
 			if (this == Equal) return new Assign(l, r);

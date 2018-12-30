@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public abstract class Type : Operand, IDereferenceable {
+	public abstract class Type : Operand {
 
 		public readonly Type Parent;
-		public readonly object Default;
+		public readonly dynamic Default;
 
 		public Type(Type parent, object def) {
 			Parent = parent;
@@ -16,22 +16,14 @@ namespace Outlet.AST {
 			Type = Primitive.MetaType;
 		}
 
-		// this must be in each class
-
 		public abstract bool Is(Type t);
-
 		public abstract bool Is(Type t, out int level);
 
-		/*
-		public bool Is(Type t) {
-			if (Equals(t)) return true;
-			if (!(Parent is null)) return Parent.Is(t);
-			return false;
-		}*/
-
-		public abstract Operand Dereference(string field);
-
-		//public override void Resolve(Scope scope) {	}
+		public static Type CommonAncestor(Type a, Type b) {
+			if(a.Is(b) && b.Is(a)) return a;
+			return Primitive.Object;
+		}
+		
 	}
 
 }

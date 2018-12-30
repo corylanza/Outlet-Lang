@@ -8,8 +8,6 @@ namespace Outlet.Tokens {
 
 	public abstract class Token {
 
-		//public Token(int linenumber, int posinline) { }
-
 		public static bool ContainsKey(string text) => Tokens.ContainsKey(text);
 		public static Token Get(string text) => Tokens[text];
 
@@ -27,9 +25,6 @@ namespace Outlet.Tokens {
 			{"in", Keyword.In },
 			{"while", Keyword.While },
 			{"return", Keyword.Return },
-            {"true", Keyword.True },
-            {"false", Keyword.False },
-			{ "null", Keyword.Null },
 			// Operators
 			{"++", Operator.PostInc },
 			{"--", Operator.PostDec },

@@ -26,8 +26,8 @@ namespace Outlet {
 		}
 
 		public Operand Perform(Operand o) {
-			if(UserDefined != null) return UserDefined.Call(o);
-			else return Native(o);
+			/*if(UserDefined != null) return UserDefined.Call(o);
+			else */return Native(o);
 		}
 
 		public bool Valid(params Type[] inputs) {

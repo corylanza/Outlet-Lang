@@ -20,7 +20,7 @@ namespace Outlet {
 		//https://en.cppreference.com/w/cpp/language/overload_resolution
 
 		// all functions that use the same name and 
-		public List<T> Cadidates() => Overloads;
+		public List<T> Candidates() => Overloads;
 		// checks valid arg num and that each arg has a valid conversion
 		public List<T> Viable(params Type[] inputs) => Overloads.Where(x => x.Valid(inputs)).ToList();
 		// finds closest match

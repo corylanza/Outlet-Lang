@@ -10,6 +10,7 @@ namespace Outlet.AST {
 		public readonly Declarator Decl;
 		public readonly List<Declarator> Args;
 		public readonly Statement Body;
+		public FunctionType Type;	// set in the checking phase
 
 		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) {
 			Decl = decl;

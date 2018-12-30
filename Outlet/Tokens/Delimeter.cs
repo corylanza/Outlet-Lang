@@ -10,6 +10,7 @@ namespace Outlet.Tokens {
 		public static readonly Delimeter FuncParen = new Delimeter("(");
 		public static readonly Delimeter LeftParen = new Delimeter("(");
 		public static readonly Delimeter RightParen = new Delimeter(")");
+		public static readonly Delimeter IndexBrace = new Delimeter("[");
 		public static readonly Delimeter LeftBrace = new Delimeter("[");
 		public static readonly Delimeter RightBrace = new Delimeter("]");
 		public static readonly Delimeter RightCurly = new Delimeter("}");

@@ -1,6 +1,6 @@
 ﻿string a = "global";
 {
-  void showA() => {
+  void showA() {
     print(a);
   }
 

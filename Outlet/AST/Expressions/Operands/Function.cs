@@ -5,25 +5,26 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Function : Operand, IOverloadable, ICallable {
+	public class Function : Operand {
 
 		private readonly string Name;
-		public readonly List<(Type Type, string ID)> ArgNames;
+		public readonly (Type Type, string ID)[] ArgNames;
 		public readonly Statement Body;
 		public readonly Scope Closure;
 		public readonly Type ReturnType;
 
 		protected Function() { }
 
-		public Function(Scope closure, string id, Type type, List<(Type, string)> argnames, Statement body) {
+		public Function(Scope closure, string id, FunctionType type, Statement body) {
 			Name = id;
 			ReturnType = type;
-			ArgNames = argnames;
-			Type = new FunctionType(ArgNames.ToArray(), ReturnType);// Primitive.FuncType;
+			ArgNames = type.Args;
+			ReturnType = type.ReturnType;
+			Type = type;
 			Body = body;
 			Closure = closure;
 		}
-
+		/*
 		public virtual Operand Call(params Operand[] args) {
 			Scope exec = new Scope(Closure);
 			Operand returnval = null;
@@ -40,7 +41,7 @@ namespace Outlet.AST {
 			if(ReferenceEquals(ReturnType, Primitive.Void)) return null;
 			returnval.Cast(ReturnType);
 			return returnval;
-		}
+		}*/
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
@@ -48,13 +49,6 @@ namespace Outlet.AST {
 			return "function: " + Name?.ToString();
 		}
 
-		public bool Valid(params Type[] inputs) {
-			throw new NotImplementedException();
-		}
-
-		public int Level(params Type[] inputs) {
-			throw new NotImplementedException();
-		}
 	}
 
 	public class Native : Function, ICallable {
@@ -63,6 +57,6 @@ namespace Outlet.AST {
 			Underlying = func;
 			Type = type;
 		}
-		public override Operand Call(params Operand[] args) => Underlying(args);
+		public Operand Call(params Operand[] args) => Underlying(args);
 	}
 }

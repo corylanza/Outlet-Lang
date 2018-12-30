@@ -9,7 +9,9 @@ namespace Outlet.AST {
 
 		public readonly string Name;
         public int resolveLevel = -1;
-		public Variable(string name) { Name = name; }
+		public Variable(string name, int line, int pos) : base(line, pos) {
+			Name = name;
+		}
 		/*
 		public void Assign(Scope s, Operand value) {
 			s.Assign(resolveLevel, Name, value);

@@ -5,9 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	class Program : Declaration {
+	public class Program : Declaration {
+
+
+
 		public override T Accept<T>(IVisitor<T> visitor) {
-			throw new NotImplementedException();
+			return visitor.Visit(this);
 		}
 
 		public override string ToString() {

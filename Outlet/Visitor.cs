@@ -7,16 +7,20 @@ using Outlet.AST;
 
 namespace Outlet {
 	public interface IVisitor<T> {
+
+		T Visit(AST.Program p);
 		T Visit(ClassDeclaration c);
 		T Visit(FunctionDeclaration f);
 		T Visit(VariableDeclaration v);
 
-		T Visit(Const c);
+		T Visit(Access a);
 		T Visit(Assign a);
 		T Visit(Binary b);
 		T Visit(Call c);
+		T Visit(Const c);
 		T Visit(Declarator d);
 		T Visit(Deref d);
+		T Visit(Is i);
 		T Visit(Lambda l);
 		T Visit(ListLiteral l);
 		T Visit(ShortCircuit s);

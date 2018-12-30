@@ -1,10 +1,10 @@
-﻿bool even(int n) => {
+﻿bool even(int n) {
 	if(n == 0) return true;
-	return !odd(n-1);
+	return odd(n-1);
 }
-bool odd(int n) => {
-	if(n == 1) return true;
-	return !even(n-1);
-}
+bool odd(int n) => n == 0 ? false : even(n-1);
 
+print(odd(4));
 print(even(4));
+print(odd(400));
+print(even(57));

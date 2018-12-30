@@ -12,6 +12,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -24,7 +25,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -86,11 +86,14 @@
     <Compile Include="AST\Expressions\Declarator.cs" />
     <Compile Include="AST\Expressions\Deref.cs" />
     <Compile Include="AST\Expressions\Expression.cs" />
+    <Compile Include="AST\Expressions\Access.cs" />
+    <Compile Include="AST\Expressions\Is.cs" />
     <Compile Include="AST\Expressions\Lambda.cs" />
     <Compile Include="AST\Expressions\ListLiteral.cs" />
     <Compile Include="AST\Expressions\Operands\Instance.cs" />
-    <Compile Include="AST\Expressions\Operands\List.cs" />
+    <Compile Include="AST\Expressions\Operands\Array.cs" />
     <Compile Include="AST\Expressions\Operands\Operand.cs" />
+    <Compile Include="AST\Expressions\Operands\Types\ArrayType.cs" />
     <Compile Include="AST\Expressions\Operands\Types\Class.cs" />
     <Compile Include="AST\Expressions\Operands\Types\FunctionType.cs" />
     <Compile Include="AST\Expressions\Operands\Types\Primitive.cs" />
@@ -141,7 +144,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -158,12 +160,14 @@
   <ItemGroup>
     <Content Include="bnf.txt" />
     <Content Include="Test\classes.txt" />
-    <Content Include="Test\file.txt" />
-    <Content Include="Test\file2.txt" />
+    <Content Include="Test\closure.txt" />
+    <Content Include="Test\funcobject.txt" />
+    <Content Include="Test\func.txt" />
     <Content Include="Test\future.txt" />
     <Content Include="Test\iter.txt" />
-    <Content Include="Test\list.txt" />
+    <Content Include="Test\mutualclass.txt" />
     <Content Include="Test\mutualrec.txt" />
+    <Content Include="Test\scratch.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

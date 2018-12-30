@@ -7,7 +7,7 @@ using Decls = System.Collections.Generic.List<Outlet.AST.Declaration>;
 
 namespace Outlet.AST {
 
-	public class Class : Type, ICallable {
+	public class Class : Type, ICallable, IDereferenceable {
 
 		private readonly string Name;
 		private readonly List<Declaration> InstanceDecls;
@@ -29,15 +29,15 @@ namespace Outlet.AST {
 			foreach(Declaration d in InstanceDecls) {
 				//d.Execute(exec);
 			}
-			(exec.Get(0, Name) as Function).Call(args);
+			//(exec.Get(0, Name) as Function).Call(args);
 			return new Instance(this, exec);
 		}
 
-		public override bool Is(Type t) => throw new NotImplementedException();
+		public override bool Is(Type t) => false;
 
 		public override bool Is(Type t, out int level) => throw new NotImplementedException();
 
-		public override Operand Dereference(string field) => Scope.Get(0, field);
+		public Operand Dereference(string field) => Scope.Get(0, field);
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 

@@ -1,0 +1,7 @@
+﻿int a = 0;
+while(a < 10) {
+	int add(int a, int b) => {
+		return a+b;
+	}
+	a++;
+}

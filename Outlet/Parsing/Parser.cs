@@ -19,11 +19,16 @@ namespace Outlet.Parsing {
 
 		public static Declaration Parse(LinkedList<Token> tokens) {
 			List<Declaration> lines = new List<Declaration>();
+			List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
+			List<ClassDeclaration> classes = new List<ClassDeclaration>();
 			while(tokens.Count > 0) {
-				lines.Add(NextDeclaration(tokens));
+				var nextdecl = NextDeclaration(tokens);
+				if(nextdecl is FunctionDeclaration fd) funcs.Add(fd);
+				if(nextdecl is ClassDeclaration cd) classes.Add(cd);
+				lines.Add(nextdecl);
 			}
 			if (lines.Count == 1) return lines[0];
-			return new Block(lines);
+			return new Block(lines, funcs, classes);
 		}
 
 		public static T Dequeue<T>(this LinkedList<T> ll) {
