@@ -9,12 +9,29 @@ using Type = Outlet.AST.Type;
 namespace Outlet {
 	public class Scope {
 
+		public static Scope Global = new Scope();
+
+		private readonly Dictionary<string, Type> DefinedTypes = new Dictionary<string, Type>();
 		private readonly Dictionary<string, (Type type, bool defined)> Defined = new Dictionary<string, (Type, bool)>();
 		private readonly Dictionary<string, (Type Type, Operand Value)> Variables = new Dictionary<string, (Type, Operand)>();
 
 		public readonly Scope Parent;
 
-		public Scope(Scope parent = null) {
+		private Scope() {
+			Parent = null;
+			foreach(string s in ForeignFunctions.NativeFunctions.Keys) {
+				Function f = ForeignFunctions.NativeFunctions[s];
+				Define(f.Type, s);
+				Add(s, f.Type, f);
+			}
+			foreach(string s in ForeignFunctions.NativeTypes.Keys) {
+				Type t = ForeignFunctions.NativeTypes[s];
+				DefineType(t, s);
+				Add(s, Primitive.MetaType, t);
+			}
+		}
+
+		public Scope(Scope parent) {
 			Parent = parent;
 		}
 
@@ -26,6 +43,12 @@ namespace Outlet {
 		public void Define(Type t, string s) {
 			if(Defined.ContainsKey(s) && Defined[s].defined) throw new OutletException("variable " + s + " already defined in this scope");
 			Defined[s] = (t, true);
+		}
+
+		public void DefineType(Type t, string name) {
+			if(Defined.ContainsKey(name) && Defined[name].defined) throw new OutletException("type " + name + " already defined in this scope");
+			DefinedTypes[name] = t;
+			Defined[name] = (Primitive.MetaType, true);
 		}
 
 		public (Type, int) Find(string s) {
@@ -40,6 +63,11 @@ namespace Outlet {
 				if(r == -1) return (t, r);
 				else return (t, 1 + r);
 			} else return (null, -1);
+		}
+
+		public Type FindType(int level, string s) {
+			if(level == 0) return DefinedTypes[s];
+			else return Parent.FindType(level - 1, s);
 		}
 
 		public Operand Get(int level, string s) {

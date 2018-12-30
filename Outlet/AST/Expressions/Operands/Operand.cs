@@ -10,18 +10,13 @@ namespace Outlet.AST {
 		public dynamic Value;
 		public Type Type;
 
-		public override Operand Eval(Scope scope) => this;
+		//public Operand(int line = 0, int pos = 0) : base(line, pos) { }
+		
 		public override bool Equals(object obj) => obj is Operand o && Equals(o);
 		public override int GetHashCode() => base.GetHashCode();
-		public override void Resolve(Scope scope) {	}
 
 		public override T Accept<T>(IVisitor<T> visitor) {
-			throw new OutletException("unvisitable type, not part of AST");
-		}
-
-		public bool Cast(Type t) {
-			if (Type.Is(t)) return true;
-			throw new OutletException("cannot convert type " + Type.ToString() + " to type " + t.ToString());
+			throw new Exception("operands are not visitable");
 		}
 		
 		public abstract bool Equals(Operand b);
@@ -37,7 +32,8 @@ namespace Outlet.AST {
 	public interface ICollection {
 		Operand[] Values();
 	}
+	/*
 	public interface IAssignable {
 		void Assign(Scope s, Operand value);
-	}
+	}*/
 }

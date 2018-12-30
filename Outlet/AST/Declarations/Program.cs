@@ -5,14 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Lambda : Expression {
+	public class Program : Declaration {
 
-		public readonly Expression Left, Right;
 
-		public Lambda(Expression l, Expression r) {
-			Left = l;
-			Right = r;
-		}
 
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);

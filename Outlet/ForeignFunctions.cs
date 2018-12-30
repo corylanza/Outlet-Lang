@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Outlet.Tokens;
 using Outlet.AST;
 using Type = Outlet.AST.Type;
 
@@ -22,13 +23,14 @@ namespace Outlet {
 		}
 
 		public static Dictionary<string, Function> NativeFunctions = new Dictionary<string, Function>() {
-			{"print", new Native(MakeType(String, Void), (Operand[] o) => {
+			{"print",		new Native(MakeType(Object, Void), (Operand[] o) => {
 									foreach(Operand op in o){
 										Console.WriteLine(op.ToString());
 									} return null; }) },
-			{"readline", new Native(MakeType(String), (Operand[] o) => new Constant(Console.ReadLine())) },
-			{"max", new Native(MakeType(Int, Int, Int), (Operand[] o) => new Constant(o.Max(x => x.Value))) },
-			{"gettype", new Native(MakeType(Object, String), (Operand[] o) => new Constant(o[0].Type.ToString())) },
+			{"readline",	new Native(MakeType(String), (Operand[] o) => new Const(Console.ReadLine())) },
+			{"max",			new Native(MakeType(Int, Int, Int), (Operand[] o) => new Const(o.Max(x => x.Value))) },
+			{"gettype",		new Native(MakeType(Object, String), (Operand[] o) => new Const(o[0].Type.ToString())) },
+			{"parseint",	new Native(MakeType(String, Int), (Operand[] o) => new Const(int.Parse(o[0].Value)))}
 		};
 
 		public static Dictionary<string, Type> NativeTypes = new Dictionary<string, Type>() {
@@ -37,10 +39,12 @@ namespace Outlet {
 			{"bool", Primitive.Bool },
 			{"string", Primitive.String },
 			{"object", Primitive.Object },
-			{"list", Primitive.List },
+			//{"list", Primitive.List },
 			{"type", Primitive.MetaType },
 			{"void", Primitive.Void },
-			{ "func", Primitive.FuncType },
+			//{"func", Primitive.FuncType },
 		};
+
+		
 	}
 }

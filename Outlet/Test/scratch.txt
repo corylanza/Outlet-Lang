@@ -1,0 +1,6 @@
+﻿class math {
+	static int fac(int n) => n == 1 ? 1 : n*fac(n-1);
+	static int pow(int b, int e) => e == 0 ? 1 : b*pow(b, e-1);
+}
+print(math.fac(5));
+print(math.pow(10,3));

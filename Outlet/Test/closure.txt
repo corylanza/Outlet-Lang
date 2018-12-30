@@ -1,0 +1,10 @@
+﻿string a = "global";
+{
+  void showA() {
+    print(a);
+  }
+
+  showA();
+  string a = "block";
+  showA();
+}

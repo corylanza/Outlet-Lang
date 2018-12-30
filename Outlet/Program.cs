@@ -9,28 +9,30 @@ using Outlet.Parsing;
 using Outlet.Tokens;
 using Outlet.AST;
 using Outlet.Checking;
+using Outlet.Optimizing;
+using Outlet.Interpreting;
 
 namespace Outlet {
 	public static class Program {
+
 		public static void Main(string[] args) {
             if(args.Length == 0) REPL();
-            if(args.Length == 1) RunFile(args[0]);
+			if(args.Length == 1 && args[0] == "run") {
+				while(true) {
+					Console.WriteLine("enter the name of the file:");
+					string f = Console.ReadLine();
+					RunFile(Directory.GetCurrentDirectory()+@"\Outlet\Test\" + f + ".txt");
+				}
+			} else if(args.Length == 1) RunFile(args[0]);
 		}
 
         public static void RunFile(string path) {
             byte[] file = File.ReadAllBytes(path);
             byte[] bytes = file.Skip(3).ToArray();
-            LinkedList<Token> lexout = Lexer.Scan(bytes);
-            Declaration program = Parser.Parse(lexout);
-			Scope s = new Scope(null);
-			program.Resolve(s);
-			program.Execute(s);
-			while (true) ;
+			Run(bytes);
         }
 
         public static void REPL() {
-			Scope s = new Scope();
-
 			while (true) {
 				Console.ForegroundColor = ConsoleColor.White;
 				Console.WriteLine("<enter an expression>");
@@ -39,30 +41,29 @@ namespace Outlet {
 					input += Console.ReadLine();
 				}
                 byte[] bytes = Encoding.ASCII.GetBytes(input);
-                try {
-                    LinkedList<Token> lexout = Lexer.Scan(bytes);
-                    Declaration program = Parser.Parse(lexout);
-                    //program.Resolve(s);
-					Checker c = new Checker();
-					program.Accept(c);
-                    //Console.WriteLine("Parsed: " + program.ToString());
-                    if(program is Expression e) {
-                        Operand result = e.Eval(s);
-                        if(!(result is null)) {
-                            Console.WriteLine("Expression returned " + result);
-                        }
-                    } else {
-                        program.Execute(s);
-                    }
-                } catch (OutletException ex) {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(ex.Message);
-                } finally {
-					//s.Lines.Clear();
-				}
-               
+				Run(bytes);
             }
         }
+
+		public static void Run(byte[] bytes) {
+			try {
+				LinkedList<Token> lexout = Lexer.Scan(bytes);
+				Declaration program = Parser.Parse(lexout);
+				Checker.Check(program);
+				Operand res = Interpreter.Interpret(program);
+				if(res != null) Console.WriteLine("Expression returned " + res);
+			} catch(OutletException ex) {
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine(ex.Message);
+				Console.ForegroundColor = ConsoleColor.White;
+			}
+		}
+
+		public static void ThrowException(string message) {
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.WriteLine(message);
+			Console.ForegroundColor = ConsoleColor.White;
+		}
 
 		public static List<(T, V)> TupleZip<T, V>(this List<T> list, List<V> other) {
 			if(other.Count() == list.Count()) {
@@ -82,6 +83,19 @@ namespace Outlet {
 				if (i != list.Count - 1) s += ", ";
 			}
 			return s;
+		}
+
+		public static T MinElement<T>(this IEnumerable<T> list, Func<T, int> f) {
+			int min = int.MaxValue;
+			T res = default;
+			foreach(T t in list) {
+				int cur = f(t);
+				if(cur <= min) {
+					min = cur;
+					res = t;
+				}
+			}
+			return res;
 		}
 	}
 }

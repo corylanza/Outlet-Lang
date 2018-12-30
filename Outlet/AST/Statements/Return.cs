@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ReturnStatement : Statement {
 
-		private readonly Expression E;
+		public readonly Expression Expr;
 
 		public ReturnStatement(Expression e) {
-			E = e;
+			Expr = e;
 		}
+		/*
+		public override void Resolve(Scope scope) => Expr.Resolve(scope);
 
-		public override void Resolve(Scope scope) => E.Resolve(scope);
-
-		public override void Execute(Scope scope) => throw new Return(E.Eval(scope));
-
+		public override void Execute(Scope scope) => throw new Return(Expr.Eval(scope));
+		*/
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);
 		}
 
-		public override string ToString() => "return " + E.ToString();
+		public override string ToString() => "return " + Expr.ToString();
 	}
 
 	public class Return : OutletException {

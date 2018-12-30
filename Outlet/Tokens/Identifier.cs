@@ -8,7 +8,13 @@ namespace Outlet.Tokens {
 	public class Identifier : Token {
 
 		public readonly string Name;
-		public Identifier(string name) { Name = name; }
+		public int Line, Pos;
+
+		public Identifier(string name, int linenumber, int posinline) {
+			Name = name;
+			Line = linenumber;
+			Pos = posinline;
+		}
 
 		public override string ToString() => Name;
 	}

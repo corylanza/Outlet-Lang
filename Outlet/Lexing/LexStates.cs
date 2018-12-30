@@ -56,7 +56,7 @@ namespace Outlet.Lexing {
             // comments
             start.SetTransition(CharType.ForwardSlash, forwardslash);
             forwardslash.SetTransition(CharType.Asterisk, comment);
-			comment.SetDefualt(comment);
+			comment.SetDefault(comment);
 			comment.SetTransition(CharType.Asterisk, commentesc);
 			commentesc.SetTransition(CharType.ForwardSlash, commentend);
 			// Ints and floats
@@ -65,8 +65,8 @@ namespace Outlet.Lexing {
             dot.SetTransition(CharType.Number, sfloat);
             // Strings
             start.SetTransition(CharType.Quo, prestring);
-            //prestring.SetDefault
-            //instring.SetDefault
+			prestring.SetDefault(instring);
+			instring.SetDefault(instring);
             prestring.SetTransition(CharType.Quo, poststring);
             prestring.SetTransition(CharType.Letter, instring);
             prestring.SetTransition(CharType.Number, instring);
@@ -108,13 +108,16 @@ namespace Outlet.Lexing {
         public delegate Token Tokenizer(string text);
 
         private static Token TokenizeID(string text) {
+			if(text == "true") return new BoolLiteral(text, LinePos, CharPos);
+			if(text == "false") return new BoolLiteral(text, LinePos, CharPos);
+			if(text == "null") return new NullLiteral(LinePos, CharPos);
             if(Token.ContainsKey(text)) return Token.Get(text);
-            else return new Identifier(text);
+            else return new Identifier(text, LinePos, CharPos);
         }
         private static Token TokenizeOp(string text) => Token.Get(text);
-        private static Token TokenizeString(string text) => new StringLiteral(text);
-        private static Token TokenizeInt(string text) => new IntLiteral(text);
-        private static Token TokenizeFloat(string text) => new FloatLiteral(text);
+        private static Token TokenizeString(string text) => new StringLiteral(text, LinePos, CharPos);
+        private static Token TokenizeInt(string text) => new IntLiteral(text, LinePos, CharPos);
+        private static Token TokenizeFloat(string text) => new FloatLiteral(text, LinePos, CharPos);
         private static Token NoToken(string text) => null;
     }
 }

@@ -14,7 +14,7 @@ namespace Outlet.AST {
 			IfTrue = iftrue;
 			IfFalse = iffalse;
 		}
-
+		/*
 		public override Operand Eval(Scope scope) {
 			if(Condition.Eval(scope).Value is bool b) {
 				return b ? IfTrue.Eval(scope) : IfFalse.Eval(scope);
@@ -27,7 +27,7 @@ namespace Outlet.AST {
 			IfTrue.Resolve(scope);
 			IfFalse.Resolve(scope);
 		}
-
+		*/
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);
 		}

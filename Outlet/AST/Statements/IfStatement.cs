@@ -15,7 +15,7 @@ namespace Outlet.AST {
 			Iftrue = iftrue;
 			Iffalse = ifelse;
 		}
-
+		/*
 		public override void Resolve(Scope scope) {
             Condition.Resolve(scope);
 			Iftrue.Resolve(scope);
@@ -26,7 +26,7 @@ namespace Outlet.AST {
 			if (Condition.Eval(scope).Value is bool b && b) Iftrue.Execute(scope);
 			else if (Iffalse != null) Iffalse.Execute(scope);
 		}
-
+		*/
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);
 		}

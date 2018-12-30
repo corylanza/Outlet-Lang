@@ -27,22 +27,26 @@ namespace Outlet.Parsing {
 			VariableDeclaration VarDeclaration(Declarator decl) {
 				Expression initializer = null;
 				if(Match(Operator.Equal)) initializer = NextExpression(tokens);
-				else Consume(Delimeter.SemiC, "expected either ; or an initializer after declaring a variable");
+				if(tokens.Count != 0)
+					Consume(Delimeter.SemiC, "expected ; after declaring a variable");
 				return new VariableDeclaration(decl, initializer);
 			}
 			FunctionDeclaration FunctionDef(Declarator decl) {
 				List<Declarator> argnames = new List<Declarator>();
 				while(tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
 					do {
-						if(NextExpression(tokens) is Declarator paramdecl) {
+						if(NextStatement(tokens) is Declarator paramdecl) {
 							argnames.Add(paramdecl);
 						} else throw new OutletException("function parameters expected in type id format");
 					} while(Match(Delimeter.Comma));
 				}
 				Consume(Delimeter.RightParen, " expected ) after function args");
-				Consume(Operator.Lambda, " expected => after function name");
-				// TODO check for => and call nextexpression if true
-				Statement body = NextStatement(tokens);
+				Statement body;
+				if(Match(Operator.Lambda)) {
+					body = NextExpression(tokens);
+					if(tokens.Count != 0)
+						Consume(Delimeter.SemiC, "expected ; after inline function");
+				} else body = NextStatement(tokens);
 				return new FunctionDeclaration(decl, argnames, body);
 			}
 			ClassDeclaration ClassDef() {
@@ -70,16 +74,9 @@ namespace Outlet.Parsing {
 				}
 				return new ClassDeclaration(name.Name, instance, statics);
 			}
-			Declaration OperatorOverload() {
-				Operator op = ConsumeType<Operator>("expected operator to overload");
-				if(op is UnaryOperator uo) {
-					//uo.Overloads.Add(null);
-				}
-				throw new NotImplementedException("operator overloading not implemented");
-			}
 			if(Match(Keyword.Class)) return ClassDef();
-			if(Match(Keyword.Operator)) return OperatorOverload();
 			Statement next = NextStatement(tokens);
+
 			if(next is Declarator d) {
 				if(Match(Delimeter.LeftParen)) return FunctionDef(d);
 				else return VarDeclaration(d);
@@ -104,19 +101,23 @@ namespace Outlet.Parsing {
 			#endregion
 			Statement Scope() {
 				List<Declaration> lines = new List<Declaration>();
+				List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
+				List<ClassDeclaration> classes = new List<ClassDeclaration>();
 				while(tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
-					lines.Add(NextDeclaration(tokens));
+					var nextdecl = NextDeclaration(tokens);
+					if(nextdecl is FunctionDeclaration fd) funcs.Add(fd);
+					if(nextdecl is ClassDeclaration cd) classes.Add(cd);
+					lines.Add(nextdecl);
 				}
 				Consume(Delimeter.RightCurly, "Expected } to close code block");
-				return new Block(lines);
+				return new Block(lines, funcs, classes);
 			}
 			Statement IfStatement() {
 				Consume(Delimeter.LeftParen, "Expected ( after if");
 				Expression condition = NextExpression(tokens);
 				Consume(Delimeter.RightParen, "Expected ) after if condition");
 				Statement iftrue = NextStatement(tokens);
-				Statement ifelse = null;
-				if(Match(Keyword.Else)) ifelse = NextStatement(tokens);
+				Statement ifelse = Match(Keyword.Else) ? NextStatement(tokens) : null;
 				return new IfStatement(condition, iftrue, ifelse);
 			}
 			Statement WhileLoop() {
@@ -139,16 +140,20 @@ namespace Outlet.Parsing {
 				throw new OutletException("expected type followed by an identifier to use as a loop variable");
 			}
 			Statement Return() {
-				Expression e = NextExpression(tokens);
-				return new ReturnStatement(e);
+				Expression retexpr = NextExpression(tokens);
+				Consume(Delimeter.SemiC, "expected ; after return statement");
+				return new ReturnStatement(retexpr);
 			}
-
 			if(Match(Delimeter.LeftCurly)) return Scope();
 			if(Match(Keyword.If)) return IfStatement();
 			if(Match(Keyword.For)) return ForLoop();
 			if(Match(Keyword.While)) return WhileLoop();
 			if(Match(Keyword.Return)) return Return();
-			return NextExpression(tokens);
+			Expression expr =  NextExpression(tokens);
+			if(Match(Delimeter.SemiC)) return expr;
+			if(tokens.Count == 0) return expr;
+			Identifier id = ConsumeType<Identifier>("unexpected token: "+tokens.First().ToString()+", expected: ;");
+			return new Declarator(expr, id.Name);
 		}
 	}
 }

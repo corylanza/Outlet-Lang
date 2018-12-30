@@ -8,14 +8,14 @@ namespace Outlet.AST {
 	public class Primitive : Type {
 		
 		public static Primitive MetaType = new Primitive("type", null, null);
-		public static Primitive FuncType = new Primitive("func", null, null);
+		//public static Primitive FuncType = new Primitive("func", null, null);
 		public static Primitive Void = new Primitive("void", null, null);
 		public static Primitive Object = new Primitive("object", null, null);
 		public static Primitive Float = new Primitive("float", Object, 0.0f);
 		public static Primitive Int = new Primitive("int", Float, 0);
 		public static Primitive Bool = new Primitive("bool", Object, false);
 		public static Primitive String = new Primitive("string", Object, "");
-		public static Primitive List = new Primitive("list", Object, "");
+		//public static Primitive List = new Primitive("list", Object, "");
 
 		private readonly string Name;
 
@@ -23,8 +23,21 @@ namespace Outlet.AST {
 			Name = name;
 		}
 
-		public override Operand Dereference(string field) {
-			throw new NotImplementedException();
+		public override bool Is(Type t) {
+			if(Equals(t)) return true;
+			if(!(Parent is null)) return Parent.Is(t);
+			return false;
+		}
+
+		public override bool Is(Type t, out int level) {
+			level = 0;
+			if(Equals(t)) return true;
+			if(!(Parent is null) && Parent.Is(t, out int l)) {
+				level = l+1;
+				return true;
+			}
+			level = -1;
+			return false;
 		}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
