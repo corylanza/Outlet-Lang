@@ -1,0 +1,5 @@
+﻿person.greet();
+
+class person {
+	static void greet() => print("hello!");
+}

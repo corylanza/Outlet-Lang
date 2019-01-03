@@ -114,6 +114,7 @@
     <Compile Include="AST\Statements\WhileLoop.cs" />
     <Compile Include="ForeignFunctions.cs" />
     <Compile Include="OutletException.cs" />
+    <Content Include="Test\firstclass.txt" />
     <Compile Include="Tokens\Delimeter.cs" />
     <Compile Include="AST\Expressions\Call.cs" />
     <Compile Include="AST\Expressions\Variable.cs" />

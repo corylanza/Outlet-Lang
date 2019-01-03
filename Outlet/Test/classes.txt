@@ -3,7 +3,7 @@
 	int Age = 0;
 	static int count = 0;
 	
-	void person(string n, int a) => {
+	void person(string n, int a) {
 		Name = n;
 		Age = a;
 		make();

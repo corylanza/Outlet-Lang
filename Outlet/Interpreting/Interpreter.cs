@@ -40,8 +40,12 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(ClassDeclaration c) {
+			Scope closure = CurScope();
+			Operand HiddenFunc(string s) {
+				return closure.Get(0, s);
+			}
 			EnterScope();
-			Class newclass = new Class(c.Name, CurScope(), c.InstanceDecls, c.StaticDecls);
+			Class newclass = new Class(c.Name, CurScope(), c.InstanceDecls, c.StaticDecls, HiddenFunc);
 			foreach(Declaration d in c.StaticDecls) {
 				d.Accept(this);
 			}

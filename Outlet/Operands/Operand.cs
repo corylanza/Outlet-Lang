@@ -18,7 +18,9 @@ namespace Outlet.Operands {
 	}
 
 	public delegate Operand CallFunc(params Operand[] args);
-	
+	public delegate Operand StaticFunc(string s);
+	public delegate Operand InstanceFunc(string s);
+
 	public interface ICallable {
 		Operand Call(params Operand[] args);
 	}/*

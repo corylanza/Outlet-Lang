@@ -16,7 +16,8 @@ namespace Outlet.Tokens {
 		public static readonly BinaryOperator Dot, Times, Divide, Modulus, Plus, Minus, LShift, RShift,
 											  LT, LTE, GT, GTE, Is, Isnt, BoolEquals, NotEqual, BitAnd,
 											  BitXor, BitOr, LogicalAnd, LogicalOr, Question, Ternary,
-											  Lambda, Equal, PlusEqual, MinusEqual, DivEqual, MultEqual, ModEqual;
+											  Lambda, Equal, PlusEqual, MinusEqual, DivEqual, MultEqual,
+											  IncRange, ExcRange, ModEqual;
 
 		static Operator() {
 			Type Int = Primitive.Int;
@@ -31,6 +32,8 @@ namespace Outlet.Tokens {
 			PostDec =		new UnaryOperator("--",    1,  Side.Left,	new UnOp(Int, Int, (l) => new Constant(l.Value--)));
 			Lambda =		new BinaryOperator("=>",   1,  Side.Left);
 			Dot =			new BinaryOperator(".",    1,  Side.Left);
+			ExcRange =		new BinaryOperator("..",   1,  Side.Left,   new BinOp(Int, Int, new ArrayType(Int), (l, r) => Range(l.Value, r.Value, false)));
+			IncRange =		new BinaryOperator("...",  1,  Side.Left,   new BinOp(Int, Int, new ArrayType(Int), (l, r) => Range(l.Value, r.Value, true)));
 			PreInc =		new UnaryOperator("++",	   1,  Side.Left,	new UnOp(Int, Int, (l) => new Constant(++l.Value)));
 			PreDec =		new UnaryOperator("--",	   1,  Side.Left,	new UnOp(Int, Int, (l) => new Constant(--l.Value)));
 			UnaryPlus =		new UnaryOperator("+",	   2,  Side.Right);
@@ -90,6 +93,11 @@ namespace Outlet.Tokens {
 			(Name, Precedence, Assoc) = (name, precedence, associativity);
 
 		public override string ToString() => Name;
+
+		private static Operands.Array Range(int start, int end, bool inc) {
+			int i = inc ? 1 : 0;
+			return new Operands.Array(Enumerable.Range(start, end - start + i).Select((x) => new Constant(x)).ToArray());
+		}
 	}
 
 	public class BinaryOperator : Operator {

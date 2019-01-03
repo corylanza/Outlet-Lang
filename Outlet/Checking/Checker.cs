@@ -14,7 +14,7 @@ namespace Outlet.Checking {
 
 		public static readonly Stack<bool> DoImpl = new Stack<bool>();
 		public static readonly Stack<Scope> Scopes = new Stack<Scope>();
-		private static readonly Type ErrorType = new Class("error", null, null, null);
+		private static readonly Type ErrorType = new Class("error", null, null, null, null);
 		public static int ErrorCount = 0;
 
 		public static void Check(Declaration program) {
@@ -77,19 +77,20 @@ namespace Outlet.Checking {
 		}
 
 		public Type Visit(ClassDeclaration c) {
-			Define(Primitive.MetaType, c.Name);
-			// TODO need to define type here
 			EnterScope();
 			foreach(Declaration d in c.StaticDecls) {
 				d.Accept(this);
 			}
 			EnterScope();
-			Define(Primitive.MetaType, "this");
+			//Define(Primitive.MetaType, "this");
 			foreach(Declaration d in c.InstanceDecls) {
 				d.Accept(this);
 			}
 			ExitScope();
 			ExitScope();
+			if(!DoImpl.Peek()) {
+				DefineType(new Class(c.Name, Scopes.Peek(), null, null, null), c.Name);
+			}
 			return null;
 		}
 
@@ -111,10 +112,7 @@ namespace Outlet.Checking {
 			} else {
 				// enter the function scope and define the args;
 				EnterScope();
-				System.Array.ForEach(f.Type.Args, arg => {
-					/*if(arg.type == Primitive.MetaType) DefineType(new Class(arg.id, null, null, null), arg.id);
-					else*/ Define(arg.type, arg.id);
-				});
+				System.Array.ForEach(f.Type.Args, arg => Define(arg.type, arg.id));
 				// check the body now that its header and args have been defined
 				Type body = f.Body.Accept(this);
 				if(body == null || body == Primitive.Void) {
@@ -192,6 +190,8 @@ namespace Outlet.Checking {
 				if(actual is NativeClass nc) {
 					if(nc.Methods.ContainsKey(d.Right)) return nc.Methods[d.Right].Type;
 					return Error("type ___ does not contain " + d.Right);
+				} else if(actual is Class c) {
+					return Error("classsss");
 				}
 				return Error("not implemented");
 			}
@@ -265,8 +265,8 @@ namespace Outlet.Checking {
 			// Forward Declaration of Classes
 			DoImpl.Push(false);
 			foreach(ClassDeclaration cd in b.Classes) {
-				//cd.Accept(this);
-				throw new NotImplementedException("classes need forward declaration");
+				cd.Accept(this);
+				//throw new NotImplementedException("classes need forward declaration");
 				//DefineType(new Class(cd.Name, null, cd.InstanceDecls, cd.StaticDecls), cd.Name);
 			}
 

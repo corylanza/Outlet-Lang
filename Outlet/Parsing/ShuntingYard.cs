@@ -172,16 +172,16 @@ namespace Outlet.Parsing {
 			if (stack.Count > 0 && stack.Peek() is Operator op) {
 				stack.Pop();
 				if(op == Operator.Ternary) {
-					if (output.Count < 3) throw new OutletException("Syntax Error: ternary operator expects 3 operands");
+					if(output.Count < 3) throw new OutletException("Syntax Error: ternary operator expects 3 operands");
 					output.Push(new Ternary(output.Pop(), output.Pop(), output.Pop()));
 				} else if(op is BinaryOperator binop) {
-					if (output.Count < 2) throw new OutletException("Syntax Error: binary operator "+binop.ToString()+" expects 2 operands");
+					if(output.Count < 2) throw new OutletException("Syntax Error: binary operator " + binop.ToString() + " expects 2 operands");
 					output.Push(binop.Construct(output.Pop(), output.Pop()));
-				}else if(op is UnaryOperator unop){
-					if (output.Count < 1) throw new OutletException("Syntax Error: unary operator "+unop.ToString()+" expects 1 operand");
+				} else if(op is UnaryOperator unop) {
+					if(output.Count < 1) throw new OutletException("Syntax Error: unary operator " + unop.ToString() + " expects 1 operand");
 					output.Push(new Unary(unop.Name, output.Pop(), unop.Overloads));
-				}
-			} //else throw new OutletException("Expression invalid, more operators than needed operands");
+				} else throw new OutletException("Syntax Error: Incomplete expression, tried to reduce");
+			} else throw new OutletException("Expression invalid, more operators than needed operands");
 		}
 	}
 }

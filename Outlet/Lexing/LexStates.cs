@@ -17,7 +17,7 @@ namespace Outlet.Lexing {
 
         // ints and floats
         static State number = machine.AddState(true, true, TokenizeInt);
-        static State dot = machine.AddState(false, true); // after seeing a .
+        static State floatdot = machine.AddState(false, true); // after seeing a .
         static State sfloat = machine.AddState(true, true, TokenizeFloat); // prevents double dec e.g. 34.2.3
 
         // strings
@@ -36,6 +36,8 @@ namespace Outlet.Lexing {
         static State gt = machine.AddState(true, true, TokenizeOp);
 		static State equal = machine.AddState(true, true, TokenizeOp);
         static State preequal = machine.AddState(true, true, TokenizeOp); // operators that a = can be added to
+		static State dot = machine.AddState(true, true, TokenizeOp);
+		static State dotdot = machine.AddState(true, true, TokenizeOp);
         static State finalop = machine.AddState(true, true, TokenizeOp); //no more chars can be added to this op
 
 
@@ -48,7 +50,7 @@ namespace Outlet.Lexing {
             start.SetTransition(CharType.Letter, id);
             start.SetTransition(CharType.Number, number);
             start.SetTransition(CharType.OneChar, finalop);
-            start.SetTransition(CharType.Dot, finalop);
+            start.SetTransition(CharType.Dot, dot);
             start.SetTransition(CharType.Whitespace, start);
             start.SetTransition(CharType.NewLine, start);
             id.SetTransition(CharType.Number, id);
@@ -61,8 +63,9 @@ namespace Outlet.Lexing {
 			commentesc.SetTransition(CharType.ForwardSlash, commentend);
 			// Ints and floats
 			number.SetTransition(CharType.Number, number);
-            number.SetTransition(CharType.Dot, dot);
-            dot.SetTransition(CharType.Number, sfloat);
+            number.SetTransition(CharType.Dot, floatdot);
+            floatdot.SetTransition(CharType.Number, sfloat);
+			sfloat.SetTransition(CharType.Number, sfloat);
             // Strings
             start.SetTransition(CharType.Quo, prestring);
 			prestring.SetDefault(instring);
@@ -103,6 +106,8 @@ namespace Outlet.Lexing {
 			lt.SetTransition(CharType.LT, preequal);
             gt.SetTransition(CharType.Equals, finalop);
 			gt.SetTransition(CharType.GT, preequal);
+			dot.SetTransition(CharType.Dot, dotdot);
+			dotdot.SetTransition(CharType.Dot, finalop);
         }
 
         public delegate Token Tokenizer(string text);

@@ -13,15 +13,14 @@ namespace Outlet.Operands {
 		private readonly string Name;
 		private readonly List<Declaration> InstanceDecls;
 		private Scope Scope;
-		
-		public Class(string name, Scope closure, Decls instance, Decls statics) : base(Primitive.Object, null) {
+		//public Dictionary<string, Type> Statics = new Dictionary<string, Type>();
+		//public Dictionary<string, Type> Instances = new Dictionary<string, Type>();
+
+		public Class(string name, Scope closure, Decls instance, Decls statics, StaticFunc sf) : base(Primitive.Object, null) {
 			Name = name;
 			InstanceDecls = instance;
 			Scope = closure;
-			/*Scope = new Scope(closure);
-			foreach(Declaration d in statics) {
-				d.Execute(Scope);
-			}*/
+			//Scope = new Scope(closure);
 		}
 
 		/* constructor
