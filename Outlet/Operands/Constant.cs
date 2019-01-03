@@ -4,37 +4,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.AST {
-	public class Const : Operand {
+namespace Outlet.Operands {
+	public class Constant : Operand {
 
 		//null
-		public Const() {
+		public Constant() {
 			Type = Primitive.Object;
 			Value = null;
 		}
 
-		public Const(int value) {
+		public Constant(int value) {
 			Type = Primitive.Int;
 			Value = value;
 		}
 
-		public Const(string value) {
+		public Constant(string value) {
 			Type = Primitive.String;
 			Value = value;
 		}
 
-		public Const(float value) {
+		public Constant(float value) {
 			Type = Primitive.Float;
 			Value = value;
 		}
 
-		public Const(bool value) {
+		public Constant(bool value) {
 			Type = Primitive.Bool;
 			Value = value;
-		}
-
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
 		}
 
 		public override bool Equals(Operand b) => Value.Equals(b.Value);

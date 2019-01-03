@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Outlet.AST;
-using Type = Outlet.AST.Type;
+using Outlet.Operands;
+using Type = Outlet.Operands.Type;
 
 namespace Outlet {
 	public class Scope {
@@ -36,17 +36,17 @@ namespace Outlet {
 		}
 
 		public void Declare(Type t, string s) {
-			if(Defined.ContainsKey(s)) throw new OutletException("variable " + s + " already declared in this scope");
+			if(Defined.ContainsKey(s)) throw new RuntimeException("variable " + s + " already declared in this scope");
 			Defined.Add(s, (t, false));
 		}
 
 		public void Define(Type t, string s) {
-			if(Defined.ContainsKey(s) && Defined[s].defined) throw new OutletException("variable " + s + " already defined in this scope");
+			if(Defined.ContainsKey(s) && Defined[s].defined) throw new RuntimeException("variable " + s + " already defined in this scope");
 			Defined[s] = (t, true);
 		}
 
 		public void DefineType(Type t, string name) {
-			if(Defined.ContainsKey(name) && Defined[name].defined) throw new OutletException("type " + name + " already defined in this scope");
+			if(Defined.ContainsKey(name) && Defined[name].defined) throw new RuntimeException("type " + name + " already defined in this scope");
 			DefinedTypes[name] = t;
 			Defined[name] = (Primitive.MetaType, true);
 		}
@@ -56,7 +56,7 @@ namespace Outlet {
 				if(Defined[s].defined) return (Defined[s].type, 0);
 				else {
 					Defined.Remove(s);
-					throw new OutletException("Cannot reference variable being initialized in its own initializer");
+					throw new RuntimeException("Cannot reference variable being initialized in its own initializer");
 				}
 			} else if(Parent != null) {
 				(Type t, int r) = Parent.Find(s);
@@ -71,6 +71,7 @@ namespace Outlet {
 		}
 
 		public Operand Get(int level, string s) {
+			if(level == 0 && !Variables.ContainsKey(s)) throw new RuntimeException("failed to get " + s + " THIS SHOULD NOT PRINT");
 			if(level == 0) return Variables[s].Value;
 			else return Parent.Get(level - 1, s);
 		}
@@ -83,7 +84,7 @@ namespace Outlet {
 			if(level == 0) {
 				Type t = Variables[id].Type;
 				if(v.Type.Is(t)) Variables[id] = (t, v);
-				else throw new OutletException("cannot convert type " + v.Type.ToString() + " to type " + t.ToString());
+				else throw new RuntimeException("cannot convert type " + v.Type.ToString() + " to type " + t.ToString());
 			} else Parent.Assign(level - 1, id, v);
 		}
 	}

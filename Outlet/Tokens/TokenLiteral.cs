@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Tokens {
-	public abstract class Literal : Token {
+	public abstract class TokenLiteral : Token {
 
 		public int LineNumber, CharPos;
 
-		public Literal(int linenumber, int posinline) {
+		public TokenLiteral(int linenumber, int posinline) {
 			LineNumber = linenumber;
 			CharPos = posinline;
 		}
@@ -18,30 +18,30 @@ namespace Outlet.Tokens {
 		public override string ToString() => Value.ToString();
 	}
 
-	public class IntLiteral : Literal {
+	public class IntLiteral : TokenLiteral {
 		public IntLiteral(string value, int line, int pos) : base(line, pos) {
 			Value = int.Parse(value);
 		}
 	}
-	public class FloatLiteral : Literal {
+	public class FloatLiteral : TokenLiteral {
 		public FloatLiteral(string value, int line, int pos) : base(line, pos) {
 			Value = float.Parse(value);
 		}
 	}
 
-	public class BoolLiteral : Literal {
+	public class BoolLiteral : TokenLiteral {
 		public BoolLiteral(string value, int line, int pos) : base(line, pos) {
 			Value = bool.Parse(value);
 		}
 	}
 
-	public class StringLiteral : Literal {
+	public class StringLiteral : TokenLiteral {
 		public StringLiteral(string value, int line, int pos) : base(line, pos) {
 			Value = value;
 		}
 	}
 
-	public class NullLiteral : Literal {
+	public class NullLiteral : TokenLiteral {
 		public NullLiteral(int line, int pos) : base(line, pos) {
 			Value = null;
 		}

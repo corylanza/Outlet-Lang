@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.AST {
-	public class Instance : Operand, IDereferenceable {
+namespace Outlet.Operands {
+	public class Instance : Operand {
 		
 		//private readonly Dictionary<string, Operand> Fields = new Dictionary<string, Operand>();
 		private readonly Scope Scope;

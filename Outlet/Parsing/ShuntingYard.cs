@@ -20,7 +20,7 @@ namespace Outlet.Parsing {
 			bool ValidToken() =>
 				tokens.Count > 0 && tokens.First() is Token i &&
 				((i is Delimeter d && (d != Delimeter.LeftCurly && d != Delimeter.RightCurly && d != Delimeter.SemiC)) ||
-				i is Literal || i is Operator || i is Identifier);
+				i is TokenLiteral || i is Operator || i is Identifier);
 			bool NotExpectingOperand(Token toputback) { if(!expectOperand) { tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool NotExpectingOperator(Token toputback) { if(expectOperand) { tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Assoc == Side.Left);
@@ -35,10 +35,10 @@ namespace Outlet.Parsing {
 						output.Push(new Variable(id.Name, id.Line, id.Pos));
 						expectOperand = false;
 						break;
-					case Literal l:
+					case TokenLiteral l:
 						if(NotExpectingOperand(l)) break;
-						if(l.Value == null) output.Push(new Const());
-						else output.Push(new Const(l.Value));
+						if(l.Value == null) output.Push(new Literal());
+						else output.Push(new Literal(l.Value));
 						expectOperand = false;
 						break;
 					case Operator o:

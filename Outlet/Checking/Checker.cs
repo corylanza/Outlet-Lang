@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.AST;
-using Type = Outlet.AST.Type;
+using Outlet.Operands;
+using Type = Outlet.Operands.Type;
 
 namespace Outlet.Checking {
 	public class Checker : IVisitor<Type> {
@@ -91,12 +92,18 @@ namespace Outlet.Checking {
 			ExitScope();
 			return null;
 		}
-		//TODO broken in repl
+
 		public Type Visit(FunctionDeclaration f) {
 			if(!DoImpl.Peek()) {
 				// Check decl and args first, needed to make function type
+				EnterScope();
+				(Type type, string id)[] args = f.Args.Select(arg => {
+					Type curarg = arg.Accept(this);
+					//if(curarg == Primitive.MetaType) DefineType(new Class(arg.ID, null, null, null), arg.ID);
+					return (curarg, arg.ID);
+				}).ToArray();
 				Type returntype = f.Decl.Accept(this);
-				(Type type, string id)[] args = f.Args.Select(arg => (arg.Accept(this), arg.ID)).ToArray();
+				ExitScope();
 				FunctionType ft = new FunctionType(args, returntype);
 				f.Type = ft;
 				// define the header using the function type from above
@@ -104,12 +111,15 @@ namespace Outlet.Checking {
 			} else {
 				// enter the function scope and define the args;
 				EnterScope();
-				System.Array.ForEach(f.Type.Args, arg => Define(arg.type, arg.id));
+				System.Array.ForEach(f.Type.Args, arg => {
+					/*if(arg.type == Primitive.MetaType) DefineType(new Class(arg.id, null, null, null), arg.id);
+					else*/ Define(arg.type, arg.id);
+				});
 				// check the body now that its header and args have been defined
 				Type body = f.Body.Accept(this);
 				if(body == null || body == Primitive.Void) {
-					if(f.Type.ReturnType != Primitive.Void) return Error("not all code paths return a value");
-				} else Cast(body, f.Type.ReturnType, "function definition invalid, expected {1}, returned {0}");
+					if(f.Type.ReturnType != Primitive.Void) return Error("function "+f.Decl.ID+"not all code paths return a value");
+				} else Cast(body, f.Type.ReturnType, f.Decl.ID+"function definition invalid, expected {1}, returned {0}");
 				ExitScope();
 			}
 			return null;
@@ -127,7 +137,7 @@ namespace Outlet.Checking {
 
 		public Type Visit(Declarator d) => TypeLiteral(d.Type);
 
-		public Type Visit(Const c) => c.Type;
+		public Type Visit(Literal c) => c.Type;
 
 		public Type Visit(Access a) {
 			Type elem = a.Collection.Accept(this);
@@ -157,11 +167,17 @@ namespace Outlet.Checking {
 			Type calltype = c.Caller.Accept(this);
 			Type[] argtypes = c.Args.Select(x => x.Accept(this)).ToArray();
 			if(calltype is FunctionType functype) {     // doesnt work for other callable types
-				if(argtypes.Length != functype.Args.Length)
-					return Error("function " + c.Caller.ToString() + " expects (" + functype.Args.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString()+")");
+				var funcargs = functype.Args.ToArray();
+				if(argtypes.Length != funcargs.Length)
+					return Error("function " + c.Caller.ToString() + " expects (" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString()+")");
 				for(int i = 0; i < c.Args.Length; i++) {
-					if(!argtypes[i].Is(functype.Args[i].type))
-						return Error("function "+c.Caller.ToString()+" expects ("+ functype.Args.Select(x => x.type).ToList().ToListString() + ") found: ("+argtypes.ToList().ToListString()+")");
+					if(funcargs[i].type == Primitive.MetaType) {
+						for(int j = i+1; j < funcargs.Length; j++) {
+							if(funcargs[j].type.ToString() == funcargs[i].id) funcargs[j].type = TypeLiteral(c.Args[i]);
+						}
+					}
+					if(!argtypes[i].Is(funcargs[i].type))
+						return Error("function "+c.Caller.ToString()+" expects ("+ funcargs.Select(x => x.type).ToList().ToListString() + ") found: ("+argtypes.ToList().ToListString()+")");
 				}
 				return functype.ReturnType;
 			}
@@ -170,9 +186,14 @@ namespace Outlet.Checking {
 
 		public Type Visit(Deref d) {
 			Type inst = d.Left.Accept(this);
+			if(inst is ArrayType && d.Right == "length") return Primitive.Int;
 			if(inst == Primitive.MetaType) {
 				Type actual = TypeLiteral(d.Left);
-				return actual;
+				if(actual is NativeClass nc) {
+					if(nc.Methods.ContainsKey(d.Right)) return nc.Methods[d.Right].Type;
+					return Error("type ___ does not contain " + d.Right);
+				}
+				return Error("not implemented");
 			}
 			return Error("not implemented");
 		}
@@ -190,17 +211,14 @@ namespace Outlet.Checking {
 			//if(args == Primitive.MetaType && res == Primitive.MetaType) return new FunctionType(ar)
 			return Error("Lambdas currently only work for types");
 		}
-		//TODO FIX THIS
+
 		public Type Visit(ListLiteral l) {
 			if(l.Args.Length == 0) return new ArrayType(Primitive.Object);
-			Type cur = l.Args[0].Accept(this);
-			foreach(Expression t in l.Args) {
-				Type c = t.Accept(this);
-				if(!c.Is(cur)) {
-					cur = c;
-				}
+			Type ancestor = l.Args[0].Accept(this);
+			foreach(Expression cur in l.Args) {
+				ancestor = Type.CommonAncestor(ancestor, cur.Accept(this));
 			}
-			return new ArrayType(cur);
+			return new ArrayType(ancestor);
 		}
 
 		public Type Visit(ShortCircuit s) {
@@ -216,9 +234,7 @@ namespace Outlet.Checking {
 			Type iftrue = t.IfTrue.Accept(this);
 			Type iffalse = t.IfFalse.Accept(this);
 			Cast(cond, Bool, "Ternary condition requires a boolean, found a {0}");
-			//if(iftrue.Is(iffalse)) return iffalse;
-			//if(iffalse.Is(iftrue)) return iftrue;
-			return Type.CommonAncestor(iftrue, iffalse);// Primitive.Object;
+			return Type.CommonAncestor(iftrue, iffalse);
 		}
 
 		public Type Visit(TupleLiteral t) {
@@ -277,9 +293,17 @@ namespace Outlet.Checking {
 
 		public Type Visit(ForLoop f) {
 			Type collection = f.Collection.Accept(this);
-			Type loopvar = f.LoopVar.Accept(this);
-			Type body = f.Accept(this);
-			return null;
+			if(collection is ArrayType at) {
+				EnterScope();
+				Type loopvar = f.LoopVar.Accept(this);
+				Cast(at.ElementType, loopvar);
+				Define(loopvar, f.LoopVar.ID);
+				Type body = f.Body.Accept(this);
+				ExitScope();
+				if(f.Body is Statement && !(f.Body is Expression) && body != null) return body;
+				return null;
+			}
+			return Error("only array types are iterable, found:" + collection.ToString());
 		}
 
 		public Type Visit(IfStatement i) {

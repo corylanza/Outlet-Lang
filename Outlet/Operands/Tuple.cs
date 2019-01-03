@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.AST {
+namespace Outlet.Operands {
 	public class OTuple : Operand {
 
 		public OTuple(params Operand[] vals) {
@@ -25,7 +25,7 @@ namespace Outlet.AST {
 
 		public override string ToString() {
 			string s = "(";
-			foreach(Expression e in Value) {
+			foreach(Operand e in Value) {
 				s += e.ToString() + ", ";
 			}
 			return s.Substring(0, s.Length-2) + ")";

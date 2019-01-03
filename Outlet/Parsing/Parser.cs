@@ -10,7 +10,7 @@ namespace Outlet.Parsing {
 	public static partial class Parser {
 
 		private static bool IsBinary(Token last) => 
-			last is Literal || last == Delimeter.RightParen || last == Delimeter.RightBrace;
+			last is TokenLiteral || last == Delimeter.RightParen || last == Delimeter.RightBrace;
 		private static bool IsPreUnary(Token last) => 
 			last is null || last is Operator || last == Delimeter.LeftParen || last == Delimeter.LeftBrace || last == Delimeter.Comma;
 		private static bool IsPostUnary(Token next) =>

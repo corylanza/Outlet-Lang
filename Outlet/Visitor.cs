@@ -17,7 +17,7 @@ namespace Outlet {
 		T Visit(Assign a);
 		T Visit(Binary b);
 		T Visit(Call c);
-		T Visit(Const c);
+		T Visit(Literal c);
 		T Visit(Declarator d);
 		T Visit(Deref d);
 		T Visit(Is i);

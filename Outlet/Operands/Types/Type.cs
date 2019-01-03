@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.AST {
+namespace Outlet.Operands {
 	public abstract class Type : Operand {
 
 		public readonly Type Parent;

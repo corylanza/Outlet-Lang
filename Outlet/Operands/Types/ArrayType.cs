@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.AST {
+namespace Outlet.Operands {
 	public class ArrayType : Type {
 
 		public Type ElementType;

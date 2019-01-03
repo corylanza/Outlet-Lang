@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.Lexing;
-using Outlet.Parsing;
 using Outlet.Tokens;
+using Outlet.Parsing;
 using Outlet.AST;
 using Outlet.Checking;
-using Outlet.Optimizing;
+using Outlet.Operands;
 using Outlet.Interpreting;
 
 namespace Outlet {

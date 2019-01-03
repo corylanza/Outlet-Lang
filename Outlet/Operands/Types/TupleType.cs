@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.AST {
+namespace Outlet.Operands {
 	public class TupleType : Type {
 
 		public readonly Type[] Types;
@@ -36,8 +36,8 @@ namespace Outlet.AST {
 
 		public override string ToString() {
 			string s = "(";
-			foreach (Expression e in Types) {
-				s += e.ToString() + ", ";
+			foreach (Type t in Types) {
+				s += t.ToString() + ", ";
 			}
 			if(s == "(") return "()";
 			return s.Substring(0, s.Length - 2) + ")";

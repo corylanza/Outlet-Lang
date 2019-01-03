@@ -1,0 +1,3 @@
+﻿void ForEach(int[] list, (int) => void func) {
+	
+}

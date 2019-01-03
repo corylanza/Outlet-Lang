@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.AST;
-using Type = Outlet.AST.Type;
+using Outlet.Operands;
+using Type = Outlet.Operands.Type;
 
 namespace Outlet.Interpreting {
 	public class Interpreter : IVisitor<Operand> {
@@ -13,7 +14,10 @@ namespace Outlet.Interpreting {
 
 		public static Stack<Scope> Scopes = new Stack<Scope>();
 
-		public static Operand Interpret(Declaration program) => program.Accept(Hidden);
+		public static Operand Interpret(Declaration program) {
+			while(Scopes.Count != 1) Scopes.Pop();
+			return program.Accept(Hidden);
+		}
 		private static readonly Interpreter Hidden = new Interpreter();
 		private Interpreter() {
 			Scopes.Push(Scope.Global);
@@ -47,15 +51,26 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(FunctionDeclaration f) {
-			var func = new Function(CurScope(), f.Decl.ID, f.Type, f.Body);
+			Scope closure = CurScope();
+			Operand HiddenFunc(params Operand[] args) {
+				Scope exec = new Scope(closure);
+				Scopes.Push(exec);
+				Operand returnval = null;
+				for(int i = 0; i < args.Length; i++) {
+					exec.Add(f.Type.Args[i].id, f.Type.Args[i].type, args[i]);
+				}
+				returnval = f.Body.Accept(this);
+				ExitScope();
+				return returnval;
+			}
+			var func = new Function(f.Decl.ID, f.Type, HiddenFunc);
 			CurScope().Add(f.Decl.ID, func.Type, func);
 			return null;
 		}
 
 		public Operand Visit(VariableDeclaration v) {
 			Type type = (Type) v.Decl.Accept(this);
-			Operand initial = v.Initializer?.Accept(this) ?? new Const(type.Default);
-			Type initType = initial?.Type;
+			Operand initial = v.Initializer?.Accept(this) ?? new Constant(type.Default);
 			CurScope().Add(v.Decl.ID, type, initial);
 			return null;
 		}
@@ -66,13 +81,18 @@ namespace Outlet.Interpreting {
 			else throw new OutletException(d.Type.ToString() + " is not a valid type SHOULD NOT PRINT");
 		}
 
-		public Operand Visit(Const c) => c;
+		public Operand Visit(Literal c) => new Constant(c.Value);
 
 		public Operand Visit(Access a) {
 			Operand col = a.Collection.Accept(this);
 			if(col is Type at && a.Index.Length == 0) return new ArrayType(at);
-			AST.Array c = (AST.Array) a.Collection.Accept(this);
-			return c.Values()[a.Index[0].Accept(this).Value];
+			Operands.Array c = (Operands.Array) a.Collection.Accept(this);
+			// Index is 0 because all array access is one-dimensional as of now
+			// multi-dimensional arrays can be accessed through chained accesses
+			int idx = a.Index[0].Accept(this).Value;
+			int len = c.Values().Length;
+			if(idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
+			return c.Values()[idx];
 		}
 
 		public Operand Visit(Assign a) {
@@ -83,43 +103,28 @@ namespace Outlet.Interpreting {
 			} else if(a.Left is Deref d && d.Accept(this) is Instance i) {
 				i.Assign(d.Right, val);
 				return val;
-			} else throw new OutletException("cannot assign to the left side of this expression SHOULD NOT PRINT");
+			} else throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(Binary b) => b.Oper.Perform(b.Left.Accept(this), b.Right.Accept(this));
 
 		public Operand Visit(Call c) {
-			Operand Left = c.Caller.Accept(this);
+			Operand caller = c.Caller.Accept(this);
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
-			if(Left is Native n) return n.Call(args);
-			if(Left is Function f) {
-				Scope exec = new Scope(f.Closure);
-				Scopes.Push(exec);
-				Operand returnval = null;
-				for(int i = 0; i < args.Length; i++) {
-					exec.Add(f.ArgNames[i].ID, f.ArgNames[i].Type, args[i]);
-				}
-				returnval = f.Body.Accept(this);/*
-				try {
-					
-					//if(f.Body is Expression e) returnval = e.Accept(this);
-					//else f.Body.Accept(this);
-				} catch(Return r) {
-					//returnval = r.Value;
-				}*/
-				ExitScope();
-				return returnval;
-			}
-			else throw new OutletException(Left.Type.ToString() + " is not callable SHOULD NOT PRINT");
+			if(caller is Function f) return f.Call(args);
+			else throw new RuntimeException(caller.Type.ToString() + " is not callable SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(Deref d) {
+			Operand left = d.Left.Accept(this);
+			if(left is Operands.Array a) return new Constant(a.Values().Length);
+			if(left is NativeClass nc) return nc.Methods[d.Right];
 			throw new NotImplementedException();
 		}
 
 		public Operand Visit(Is i) {
 			bool val = i.Left.Accept(this).Type.Is((Type)i.Right.Accept(this));
-			return new Const(i.NotIsnt ? val : !val); 
+			return new Constant(i.NotIsnt ? val : !val); 
 		}
 
 		public Operand Visit(Lambda l) {
@@ -130,20 +135,20 @@ namespace Outlet.Interpreting {
 			throw new NotImplementedException();
 		}
 
-		public Operand Visit(ListLiteral l) => new AST.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());
+		public Operand Visit(ListLiteral l) => new Operands.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());
 
 		public Operand Visit(ShortCircuit s) {
 			bool b = s.Left.Accept(this).Value;
 			if(s.isand == b) {
-				return new Const(s.Right.Accept(this).Value);
-			} else return new Const(!s.isand);
+				return new Constant(s.Right.Accept(this).Value);
+			} else return new Constant(!s.isand);
 		}
 
 		public Operand Visit(Ternary t) {
 			if(t.Condition.Accept(this).Value is bool b) {
 				return b ? t.IfTrue.Accept(this) : t.IfFalse.Accept(this);
 			}
-			throw new OutletException("expected boolean in ternary condition SHOULD NOT PRINT");
+			throw new RuntimeException("expected boolean in ternary condition SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(TupleLiteral t) {
@@ -157,7 +162,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(Variable v) {
 			if(v.resolveLevel == -1) {
-				throw new OutletException("could not find variable, THIS SHOULD NEVER PRINT");
+				throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
 			} else return CurScope().Get(v.resolveLevel, v.Name);
 		}
 
@@ -179,19 +184,17 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(ForLoop f) {
-			/*
-			EnterScope();
-			Operand c = f.Collection.Accept(this);
-			Type looptype = f.LoopVar.GetType(Scope());
-			if(c is ICollection collect) {
-				foreach(Operand o in collect.Values()) {
-					o.Cast(looptype);
-					Scope().Add(f.LoopVar.ID, looptype, o);
-					f.Body.Accept(this);
-					ExitScope();
-					EnterScope();
+			Operands.Array c = (Operands.Array) f.Collection.Accept(this);
+			foreach(Operand o in c.Values()) {
+				EnterScope();
+				Type looptype = (Type)f.LoopVar.Accept(this);
+				CurScope().Add(f.LoopVar.ID, looptype, o);
+				Operand res = f.Body.Accept(this);
+				ExitScope();
+				if(f.Body is Statement s && !(s is Expression) && res != null) {
+					return res;
 				}
-			} else throw new OutletException("for loops can only loop over collections");*/
+			}
 			return null;
 		}
 
