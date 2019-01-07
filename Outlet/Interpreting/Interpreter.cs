@@ -14,7 +14,7 @@ namespace Outlet.Interpreting {
 
 		public static Stack<Scope> Scopes = new Stack<Scope>();
 
-		public static Operand Interpret(Declaration program) {
+		public static Operand Interpret(IASTNode program) {
 			while(Scopes.Count != 1) Scopes.Pop();
 			return program.Accept(Hidden);
 		}
@@ -40,17 +40,42 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(ClassDeclaration c) {
-			Scope closure = CurScope();
-			Operand HiddenFunc(string s) {
-				return closure.Get(0, s);
-			}
-			EnterScope();
-			Class newclass = new Class(c.Name, CurScope(), c.InstanceDecls, c.StaticDecls, HiddenFunc);
+			Scope closure = EnterScope();
 			foreach(Declaration d in c.StaticDecls) {
 				d.Accept(this);
 			}
+			Operand HiddenFunc(string s) => closure.Get(0, s);
+			Class newclass = new Class(c.Name, null, null, HiddenFunc);
+			EnterScope();
+			//TODO move this to constructor hidden func
+			foreach(Declaration d in c.InstanceDecls) {
+				d.Accept(this);
+			}
+			c.Constructor.Accept(this);
+			ExitScope();
 			ExitScope();
 			CurScope().Add(c.Name, Primitive.MetaType, newclass);
+			return null;
+		}
+
+		public Operand Visit(ConstructorDeclaration c) {
+			Scope closure = CurScope();
+			Operand HiddenFunc(params Operand[] args) {
+				Scope exec = new Scope(closure);
+				Scopes.Push(exec);
+				Operand returnval = null;
+				for(int i = 0; i < args.Length; i++) {
+					exec.Add(c.Type.Args[i].id, c.Type.Args[i].type, args[i]);
+				}
+				c.Body.Accept(this);
+				Operand DoubleHiddenFunc(string s) => exec.Get(0, s);
+				returnval = new Instance(null, DoubleHiddenFunc);
+				ExitScope();
+				ExitScope();
+				return returnval;
+			}
+			var func = new Function(c.Decl.ID, c.Type, HiddenFunc);
+			closure.Parent.Add("", func.Type, func);
 			return null;
 		}
 
@@ -105,8 +130,9 @@ namespace Outlet.Interpreting {
 				CurScope().Assign(v.resolveLevel, v.Name, val);
 				return val;
 			} else if(a.Left is Deref d && d.Accept(this) is Instance i) {
-				i.Assign(d.Right, val);
-				return val;
+				//i.Assign(d.Right, val);
+				throw new NotImplementedException();
+				//return val;
 			} else throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
 		}
 
@@ -115,6 +141,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Call c) {
 			Operand caller = c.Caller.Accept(this);
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
+			if(caller is Class cl) caller = cl.SF("");
 			if(caller is Function f) return f.Call(args);
 			else throw new RuntimeException(caller.Type.ToString() + " is not callable SHOULD NOT PRINT");
 		}
@@ -123,6 +150,8 @@ namespace Outlet.Interpreting {
 			Operand left = d.Left.Accept(this);
 			if(left is Operands.Array a) return new Constant(a.Values().Length);
 			if(left is NativeClass nc) return nc.Methods[d.Right];
+			if(left is Class c) return c.SF(d.Right);
+			if(left is Instance i) return i.SF(d.Right);
 			throw new NotImplementedException();
 		}
 
@@ -172,11 +201,15 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(Block b) {
 			EnterScope();
+			foreach(ClassDeclaration cd in b.Classes) {
+				cd.Accept(this);
+			}
 			foreach(FunctionDeclaration fd in b.Functions) {
 				fd.Accept(this);
 			}
-			foreach(Declaration line in b.Lines) {
+			foreach(IASTNode line in b.Lines) {
 				if(line is FunctionDeclaration) continue;
+				if(line is ClassDeclaration) continue;
 				var ret = line.Accept(this);
 				if(line is Statement s && !(s is Expression) && ret != null) {
 					ExitScope();

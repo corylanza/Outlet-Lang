@@ -48,7 +48,7 @@ namespace Outlet {
 		public static void Run(byte[] bytes) {
 			try {
 				LinkedList<Token> lexout = Lexer.Scan(bytes);
-				Declaration program = Parser.Parse(lexout);
+				IASTNode program = Parser.Parse(lexout);
 				Checker.Check(program);
 				Operand res = Interpreter.Interpret(program);
 				if(res != null) Console.WriteLine("Expression returned " + res);

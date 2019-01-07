@@ -5,7 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-    public abstract class Declaration {
+    public abstract class Declaration : IASTNode {
+
+		public string Name;
+
+		public abstract T Accept<T>(IVisitor<T> visitor);
 
 		//public abstract void Resolve(Scope scope);
 
@@ -13,7 +17,6 @@ namespace Outlet.AST {
 
 		//public abstract void Execute(Scope scope);
 
-		public abstract T Accept<T>(IVisitor<T> visitor);
 
 		public abstract override string ToString();
     }

@@ -17,8 +17,8 @@ namespace Outlet.Parsing {
 			next is null || next is Operator || next == Delimeter.RightParen ||
 			next == Delimeter.Comma || next == Delimeter.RightBrace || next == Delimeter.SemiC;
 
-		public static Declaration Parse(LinkedList<Token> tokens) {
-			List<Declaration> lines = new List<Declaration>();
+		public static IASTNode Parse(LinkedList<Token> tokens) {
+			List<IASTNode> lines = new List<IASTNode>();
 			List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
 			List<ClassDeclaration> classes = new List<ClassDeclaration>();
 			while(tokens.Count > 0) {
@@ -37,7 +37,7 @@ namespace Outlet.Parsing {
 			return temp;
 		}
 
-		public static T Head<T>(this LinkedList<T> ll) => ll.Count == 0 ? default(T) : ll.First();
+		public static T Head<T>(this LinkedList<T> ll) => ll.Count == 0 ? default : ll.First();
 
 	}
 }

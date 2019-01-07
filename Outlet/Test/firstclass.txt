@@ -1,5 +1,19 @@
-﻿person.greet();
-
+﻿person a = person("cory", 20);
+person b = person("jenna", 21);
+a.intro();
+b.intro();
 class person {
+
+	static int count = 0;
+	static void make() => print("made");
+
+	string Name;
+	int Age;
+
+	person(string name, int age) {
+		Name = name;
+		Age = age;
+	}
 	static void greet() => print("hello!");
+	void intro() => print("Hello, my name is "+Name);
 }

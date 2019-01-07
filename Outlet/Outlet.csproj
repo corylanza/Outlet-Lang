@@ -78,7 +78,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AST\ASTNode.cs" />
     <Compile Include="AST\Declarations\ClassDeclaration.cs" />
+    <Compile Include="AST\Declarations\ConstructorDeclaration.cs" />
     <Compile Include="AST\Declarations\Declaration.cs" />
     <Compile Include="AST\Declarations\FunctionDeclaration.cs" />
     <Compile Include="AST\Expressions\Assign.cs" />
@@ -98,6 +100,7 @@
     <Compile Include="Operands\Types\Class.cs" />
     <Compile Include="Operands\Types\FunctionType.cs" />
     <Compile Include="Operands\Types\Primitive.cs" />
+    <Compile Include="Operands\Types\ProtoClass.cs" />
     <Compile Include="Operands\Types\TupleType.cs" />
     <Compile Include="AST\Expressions\ShortCircuit.cs" />
     <Compile Include="AST\Expressions\Ternary.cs" />

@@ -9,10 +9,10 @@ using Outlet.AST;
 namespace Outlet.Parsing {
 	public static partial class Parser {
 
-		public static Declaration NextDeclaration(LinkedList<Token> tokens) {
+		public static IASTNode NextDeclaration(LinkedList<Token> tokens) {
 			#region helper
 			bool Match(Token s) {
-				if(tokens.Count > 0 && tokens.First() == s) {
+				if(tokens.Count > 0 && s.Equals(tokens.First())) {
 					tokens.RemoveFirst(); return true;
 				} else return false;
 			}
@@ -23,15 +23,7 @@ namespace Outlet.Parsing {
 				if(tokens.Count > 0 && tokens.Dequeue() is T t) return t;
 				else throw new OutletException("Syntax Error: " + error);
 			}
-			#endregion
-			VariableDeclaration VarDeclaration(Declarator decl) {
-				Expression initializer = null;
-				if(Match(Operator.Equal)) initializer = NextExpression(tokens);
-				if(tokens.Count != 0)
-					Consume(Delimeter.SemiC, "expected ; after declaring a variable");
-				return new VariableDeclaration(decl, initializer);
-			}
-			FunctionDeclaration FunctionDef(Declarator decl) {
+			(List<Declarator>, Statement) ProtoType() {
 				List<Declarator> argnames = new List<Declarator>();
 				while(tokens.Count > 0 && tokens.First() != Delimeter.RightParen) {
 					do {
@@ -47,17 +39,39 @@ namespace Outlet.Parsing {
 					if(tokens.Count != 0)
 						Consume(Delimeter.SemiC, "expected ; after inline function");
 				} else body = NextStatement(tokens);
+				return (argnames, body);
+			}
+			#endregion
+			VariableDeclaration VarDeclaration(Declarator decl) {
+				Expression initializer = null;
+				if(Match(Operator.Equal)) initializer = NextExpression(tokens);
+				if(tokens.Count != 0)
+					Consume(Delimeter.SemiC, "expected ; after declaring a variable");
+				return new VariableDeclaration(decl, initializer);
+			}
+			FunctionDeclaration FunctionDef(Declarator decl) {
+				(List<Declarator> argnames, Statement body) = ProtoType();
 				return new FunctionDeclaration(decl, argnames, body);
+			}
+			ConstructorDeclaration ConstructDef(Declarator decl) {
+				(List<Declarator> argnames, Statement body) = ProtoType();
+				return new ConstructorDeclaration(decl, argnames, body);
 			}
 			ClassDeclaration ClassDef() {
 				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
 				List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
+				ConstructorDeclaration constructor = null;
 				if(Match(Delimeter.LeftCurly)) {
 					while(true) {
 						if(Match(Delimeter.RightCurly)) break;
 						if(tokens.Count == 0) throw new OutletException("expected } after class definition");
-						if(Match(Keyword.Static)) {
+						if(Match(name)) {
+							if(Match(Delimeter.LeftParen)) {
+								Declarator constr = new Declarator(new Variable(name.Name, 0, 0), "");
+								constructor = ConstructDef(constr);
+							} else tokens.AddFirst(name);
+						} else if(Match(Keyword.Static)) {
 							Statement nextfield = NextStatement(tokens);
 							if(nextfield is Declarator df) {
 								if(Match(Delimeter.LeftParen)) statics.Add(FunctionDef(df));
@@ -72,7 +86,7 @@ namespace Outlet.Parsing {
 						}
 					}
 				}
-				return new ClassDeclaration(name.Name, instance, statics);
+				return new ClassDeclaration(name.Name, constructor, instance, statics);
 			}
 			if(Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement(tokens);
@@ -100,7 +114,7 @@ namespace Outlet.Parsing {
 			}
 			#endregion
 			Statement Scope() {
-				List<Declaration> lines = new List<Declaration>();
+				List<IASTNode> lines = new List<IASTNode>();
 				List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
 				List<ClassDeclaration> classes = new List<ClassDeclaration>();
 				while(tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {

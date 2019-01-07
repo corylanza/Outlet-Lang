@@ -5,9 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public abstract class Statement : IASTNode {
+	public interface IASTNode {
 
-		public abstract T Accept<T>(IVisitor<T> visitor);
-		public abstract override string ToString();
+		T Accept<T>(IVisitor<T> visitor);
 	}
 }

@@ -7,22 +7,23 @@ using System.Threading.Tasks;
 namespace Outlet.Operands {
 	public class Instance : Operand {
 		
-		//private readonly Dictionary<string, Operand> Fields = new Dictionary<string, Operand>();
-		private readonly Scope Scope;
+		//private readonly Scope Scope;
+		public readonly StaticFunc SF;
 
-		public Instance(Class type, Scope closure) {
+		public Instance(Class type, StaticFunc sf) {
 			Type = type;
-			Scope = closure;
-			Scope.Add("this", type, this);
+			//Scope = closure;
+			SF = sf;
+			//Scope.Add("this", type, this);
 		}
-
+		/*
 		public Operand Dereference(string field) {
 			return Scope.Get(0, field);
 		}
 
 		public void Assign(string field, Operand o) {
 			Scope.Assign(0, field, o);
-		}
+		}*/
 
 		public override bool Equals(Operand b) {
 			return ReferenceEquals(this, b);

@@ -4,40 +4,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.AST;
-using Decls = System.Collections.Generic.List<Outlet.AST.Declaration>;
+using Decls = System.Collections.Generic.Dictionary<string, Outlet.Operands.Type>;
 
 namespace Outlet.Operands {
 
 	public class Class : Type {
 
 		private readonly string Name;
-		private readonly List<Declaration> InstanceDecls;
-		private Scope Scope;
-		//public Dictionary<string, Type> Statics = new Dictionary<string, Type>();
-		//public Dictionary<string, Type> Instances = new Dictionary<string, Type>();
+		public readonly Decls Statics;
+		public readonly Decls Instances;
+		public StaticFunc SF;
 
-		public Class(string name, Scope closure, Decls instance, Decls statics, StaticFunc sf) : base(Primitive.Object, null) {
+		public Class(string name, Decls instances, Decls statics, StaticFunc sf) : base(Primitive.Object, null) {
 			Name = name;
-			InstanceDecls = instance;
-			Scope = closure;
-			//Scope = new Scope(closure);
+			Instances = instances;
+			Statics = statics;
+			SF = sf;
 		}
-
-		/* constructor
-		public Operand Call(params Operand[] args) {
-			Scope exec = new Scope(Scope);
-			foreach(Declaration d in InstanceDecls) {
-				//d.Execute(exec);
-			}
-			//(exec.Get(0, Name) as Function).Call(args);
-			return new Instance(this, exec);
-		}*/
 
 		public override bool Is(Type t) => ReferenceEquals(this, t);
 
 		public override bool Is(Type t, out int level) => throw new NotImplementedException();
-
-		//public Operand Dereference(string field) => Scope.Get(0, field);
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 

@@ -14,10 +14,10 @@ namespace Outlet.Checking {
 
 		public static readonly Stack<bool> DoImpl = new Stack<bool>();
 		public static readonly Stack<Scope> Scopes = new Stack<Scope>();
-		private static readonly Type ErrorType = new Class("error", null, null, null, null);
+		private static readonly Type ErrorType = new Class("error", null, null, null);
 		public static int ErrorCount = 0;
 
-		public static void Check(Declaration program) {
+		public static void Check(IASTNode program) {
 			ErrorCount = 0;
 			if(program is FunctionDeclaration fd) {
 				DoImpl.Push(false);
@@ -65,32 +65,49 @@ namespace Outlet.Checking {
 				return FindType(v.resolveLevel, v.Name);
 			}
 			if(e is TupleLiteral tl) return new TupleType(tl.Args.Select(arg => TypeLiteral(arg)).ToArray());
-			if(e is Lambda l) return new FunctionType(((TupleType) TypeLiteral(l.Left)).Types.Select(x => (x, "")).ToArray(), TypeLiteral(l.Right));
+			if(e is Lambda l) return new FunctionType(((TupleType)TypeLiteral(l.Left)).Types.Select(x => (x, "")).ToArray(), TypeLiteral(l.Right));
 			if(e is Access a) return new ArrayType(TypeLiteral(a.Collection));
-			return Error("declaration requires valid type, found: "+e.ToString());
+			return Error("declaration requires valid type, found: " + e.ToString());
 		}
 
 		#endregion
+
+		#region Declarations
 
 		public Type Visit(AST.Program p) {
 			return null;
 		}
 
 		public Type Visit(ClassDeclaration c) {
+			Dictionary<string, Type> statics = new Dictionary<string, Type>();
+			Dictionary<string, Type> instances = new Dictionary<string, Type>();
+			if(!DoImpl.Peek()) {
+				DefineType(new Class(c.Name, instances, statics, null), c.Name);
+			}
 			EnterScope();
 			foreach(Declaration d in c.StaticDecls) {
-				d.Accept(this);
+				Type t = d.Accept(this);
+				if(!DoImpl.Peek()) {
+					statics.Add(d.Name, Find(d.Name).Item1);
+				}
 			}
 			EnterScope();
 			//Define(Primitive.MetaType, "this");
 			foreach(Declaration d in c.InstanceDecls) {
 				d.Accept(this);
+				if(!DoImpl.Peek()) {
+					instances.Add(d.Name, Find(d.Name).Item1);
+				}
 			}
+			c.Constructor.Accept(this);
+			if(!DoImpl.Peek()) statics.Add("", c.Constructor.Type);
 			ExitScope();
 			ExitScope();
-			if(!DoImpl.Peek()) {
-				DefineType(new Class(c.Name, Scopes.Peek(), null, null, null), c.Name);
-			}
+			return null;
+		}
+
+		public Type Visit(ConstructorDeclaration c) {
+			Visit(c as FunctionDeclaration);
 			return null;
 		}
 
@@ -110,14 +127,18 @@ namespace Outlet.Checking {
 				// define the header using the function type from above
 				Define(ft, f.Decl.ID);
 			} else {
+				FunctionType ft = f.Type;//(FunctionType) Find(f.Decl.ID).Item1;
+				//f.Type = null;
 				// enter the function scope and define the args;
 				EnterScope();
-				System.Array.ForEach(f.Type.Args, arg => Define(arg.type, arg.id));
+				System.Array.ForEach(ft.Args, arg => Define(arg.type, arg.id));
 				// check the body now that its header and args have been defined
 				Type body = f.Body.Accept(this);
-				if(body == null || body == Primitive.Void) {
-					if(f.Type.ReturnType != Primitive.Void) return Error("function "+f.Decl.ID+"not all code paths return a value");
-				} else Cast(body, f.Type.ReturnType, f.Decl.ID+"function definition invalid, expected {1}, returned {0}");
+				if(f.Name == "") {
+					if(body != null) return Error("constructor cannot return value");
+				} else if(body == null || body == Primitive.Void) {
+					if(ft.ReturnType != Primitive.Void) return Error("function " + f.Decl.ID + "not all code paths return a value");
+				} else Cast(body, ft.ReturnType, f.Decl.ID + "function definition invalid, expected {1}, returned {0}");
 				ExitScope();
 			}
 			return null;
@@ -133,16 +154,16 @@ namespace Outlet.Checking {
 			return null;
 		}
 
-		public Type Visit(Declarator d) => TypeLiteral(d.Type);
+		#endregion
 
-		public Type Visit(Literal c) => c.Type;
+		#region Expressions
 
 		public Type Visit(Access a) {
 			Type elem = a.Collection.Accept(this);
 			if(elem == Primitive.MetaType) return Primitive.MetaType;
 			Type idxType = a.Index[0].Accept(this);
 			if(idxType != Primitive.Int) return Error("only ints can be used to index into an array, found: " + idxType.ToString());
-			return ((ArrayType) elem).ElementType;
+			return ((ArrayType)elem).ElementType;
 		}
 
 		public Type Visit(Assign a) {
@@ -155,6 +176,7 @@ namespace Outlet.Checking {
 		public Type Visit(Binary b) {
 			Type left = b.Left.Accept(this);
 			Type right = b.Right.Accept(this);
+			if(left == ErrorType || right == ErrorType) return ErrorType;
 			var op = b.Overloads.Best(left, right);
 			if(op == null) return Error("binary operator not defined for " + left.ToString() + " " + b.Op + " " + right.ToString());
 			b.Oper = op;
@@ -163,24 +185,30 @@ namespace Outlet.Checking {
 
 		public Type Visit(Call c) {
 			Type calltype = c.Caller.Accept(this);
+			if(calltype == Primitive.MetaType) {
+				Class cl = (TypeLiteral(c.Caller) as Class);
+				calltype = cl.Statics[""];
+			}
 			Type[] argtypes = c.Args.Select(x => x.Accept(this)).ToArray();
 			if(calltype is FunctionType functype) {     // doesnt work for other callable types
 				var funcargs = functype.Args.ToArray();
 				if(argtypes.Length != funcargs.Length)
-					return Error("function " + c.Caller.ToString() + " expects (" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString()+")");
+					return Error("function " + c.Caller.ToString() + " expects (" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
 				for(int i = 0; i < c.Args.Length; i++) {
 					if(funcargs[i].type == Primitive.MetaType) {
-						for(int j = i+1; j < funcargs.Length; j++) {
+						for(int j = i + 1; j < funcargs.Length; j++) {
 							if(funcargs[j].type.ToString() == funcargs[i].id) funcargs[j].type = TypeLiteral(c.Args[i]);
 						}
 					}
 					if(!argtypes[i].Is(funcargs[i].type))
-						return Error("function "+c.Caller.ToString()+" expects ("+ funcargs.Select(x => x.type).ToList().ToListString() + ") found: ("+argtypes.ToList().ToListString()+")");
+						return Error("function " + c.Caller.ToString() + " expects (" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
 				}
 				return functype.ReturnType;
 			}
 			return Error("not callable");
 		}
+
+		public Type Visit(Declarator d) => TypeLiteral(d.Type);
 
 		public Type Visit(Deref d) {
 			Type inst = d.Left.Accept(this);
@@ -191,9 +219,12 @@ namespace Outlet.Checking {
 					if(nc.Methods.ContainsKey(d.Right)) return nc.Methods[d.Right].Type;
 					return Error("type ___ does not contain " + d.Right);
 				} else if(actual is Class c) {
-					return Error("classsss");
+					return c.Statics[d.Right];
 				}
 				return Error("not implemented");
+			}
+			if(inst is Class t) {
+				return t.Instances[d.Right];
 			}
 			return Error("not implemented");
 		}
@@ -201,7 +232,7 @@ namespace Outlet.Checking {
 		public Type Visit(Is i) {
 			i.Left.Accept(this);
 			Type r = i.Right.Accept(this);
-			if(r != Primitive.MetaType) return Error("the right side of an is expression must be a type, found: "+r.ToString());
+			if(r != Primitive.MetaType) return Error("the right side of an is expression must be a type, found: " + r.ToString());
 			return Primitive.Bool;
 		}
 
@@ -220,6 +251,8 @@ namespace Outlet.Checking {
 			}
 			return new ArrayType(ancestor);
 		}
+
+		public Type Visit(Literal c) => c.Type;
 
 		public Type Visit(ShortCircuit s) {
 			Type l = s.Left.Accept(this);
@@ -246,6 +279,7 @@ namespace Outlet.Checking {
 
 		public Type Visit(Unary u) {
 			Type input = u.Expr.Accept(this);
+			if(input == ErrorType) return ErrorType;
 			var op = u.Overloads.Best(input);
 			if(op == null) return Error("unary operator " + u.Op + " is not defined for type " + input.ToString());
 			u.Oper = op;
@@ -255,35 +289,33 @@ namespace Outlet.Checking {
 		public Type Visit(Variable v) {
 			(Type t, int l) = Find(v.Name);
 			v.resolveLevel = l;
-			if(l == -1) return Error("Line: "+v.Line+" variable " + v.Name + " could not be resolved");
+			if(l == -1) return Error("Line: " + v.Line + " variable " + v.Name + " could not be resolved");
 			return t;
 		}
 
+		#endregion
+
+		#region Statements
+
 		public Type Visit(Block b) {
 			EnterScope();
-			Type ret = null;
-			// Forward Declaration of Classes
 			DoImpl.Push(false);
+			// Forward Declaration of Classes
 			foreach(ClassDeclaration cd in b.Classes) {
 				cd.Accept(this);
-				//throw new NotImplementedException("classes need forward declaration");
-				//DefineType(new Class(cd.Name, null, cd.InstanceDecls, cd.StaticDecls), cd.Name);
 			}
-
 			// Forward Declaration of Functions
 			foreach(FunctionDeclaration fd in b.Functions) {
 				fd.Accept(this);
 			}
-
 			DoImpl.Pop();
 			DoImpl.Push(true);
-			foreach(Declaration d in b.Lines) {
-				if(!(d is ClassDeclaration)) {
-					Type temp = d.Accept(this);
-					if(ret != null) return Error("unreachable code detected");
-					if(d is Statement && !(d is Expression) && temp != null) {
-						ret = temp;
-					}
+			Type ret = null;
+			foreach(IASTNode d in b.Lines) {
+				Type temp = d.Accept(this);
+				if(ret != null) return Error("unreachable code detected");
+				if(d is Statement && !(d is Expression) && temp != null) {
+					ret = temp;
 				}
 			}
 			DoImpl.Pop();
@@ -329,5 +361,7 @@ namespace Outlet.Checking {
 			w.Body.Accept(this);
 			return null;
 		}
+
+		#endregion
 	}
 }

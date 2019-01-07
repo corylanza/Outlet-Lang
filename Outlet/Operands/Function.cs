@@ -8,21 +8,13 @@ namespace Outlet.Operands {
 	public class Function : Operand, ICallable {
 
 		private readonly string Name;
-		//public readonly (Type Type, string ID)[] ArgNames;
-		//public readonly Statement Body;
-		//public readonly Scope Closure;
-		//public readonly Type ReturnType;
 		private readonly CallFunc Hidden;
 
 		protected Function() { }
 
 		public Function(string id, FunctionType type, CallFunc act) {
 			Name = id;
-			//ArgNames = type.Args;
-			//ReturnType = type.ReturnType;
 			Type = type;
-			//Body = body;
-			//Closure = closure;
 			Hidden = act;
 		}
 

@@ -16,6 +16,7 @@ namespace Outlet.Tokens {
 			Pos = posinline;
 		}
 
+		public override bool Equals(object obj) => obj is Identifier id && id.Name == Name;
 		public override string ToString() => Name;
 	}
 }

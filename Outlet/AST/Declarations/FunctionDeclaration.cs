@@ -14,6 +14,7 @@ namespace Outlet.AST {
 		public FunctionType Type;	// set in the checking phase
 
 		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) {
+			Name = decl.ID;
 			Decl = decl;
 			Args = argnames;
 			Body = body;

@@ -10,6 +10,7 @@ namespace Outlet {
 
 		T Visit(AST.Program p);
 		T Visit(ClassDeclaration c);
+		T Visit(ConstructorDeclaration c);
 		T Visit(FunctionDeclaration f);
 		T Visit(VariableDeclaration v);
 

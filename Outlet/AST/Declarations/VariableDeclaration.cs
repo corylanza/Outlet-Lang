@@ -12,6 +12,7 @@ namespace Outlet.AST {
 		public readonly Expression Initializer;
 
 		public VariableDeclaration(Declarator decl, Expression initializer) {
+			Name = decl.ID;
 			Decl = decl;
 			Initializer = initializer;
 		}
