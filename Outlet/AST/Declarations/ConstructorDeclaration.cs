@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Outlet.Operands;
+using Decl = Outlet.AST.Declarator;
 
 namespace Outlet.AST {
 	public class ConstructorDeclaration : FunctionDeclaration {
 
-		public ConstructorDeclaration(Declarator decl, List<Declarator> argnames, Statement body) : base(decl, argnames, body) {
+		public Func<Class> Init;
+
+		public ConstructorDeclaration(Decl decl, List<Decl> argnames, Statement body) : base(decl, argnames, body) {
 
 		}
 

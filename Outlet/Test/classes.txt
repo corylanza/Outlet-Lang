@@ -2,8 +2,8 @@
 	string Name;
 	int Age = 0;
 	static int count = 0;
-	
-	void person(string n, int a) {
+
+	person(string n, int a) {
 		Name = n;
 		Age = a;
 		make();
@@ -13,21 +13,15 @@
 	(string, int) deconstruct() => (Name, Age);
 
 	void greet() => print("hello i am " + Name);
-
-	static void make() => count++;
+	
+	static void make() { count++; }
 }
 
-class math {
-	static int fac(int n) => n == 1 ? 1 : n*fac(n-1);
-	static int pow(int b, int e) => e == 0 ? 1 : b*pow(b, e-1);
-}
-print(math.fac(5));
-print(math.pow(10,3));
-/*
+
 print(person.count);
 person a = person("cory", 20);
 person b = person("jenna", 21);
 a.greet();
 b.greet();
 print(a.deconstruct());
-print(person.count);*/
+print(person.count);

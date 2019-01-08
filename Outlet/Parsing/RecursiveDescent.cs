@@ -68,7 +68,7 @@ namespace Outlet.Parsing {
 						if(tokens.Count == 0) throw new OutletException("expected } after class definition");
 						if(Match(name)) {
 							if(Match(Delimeter.LeftParen)) {
-								Declarator constr = new Declarator(new Variable(name.Name, 0, 0), "");
+								Declarator constr = new Declarator(new Variable(name.Name), "");
 								constructor = ConstructDef(constr);
 							} else tokens.AddFirst(name);
 						} else if(Match(Keyword.Static)) {

@@ -83,6 +83,7 @@
     <Compile Include="AST\Declarations\ConstructorDeclaration.cs" />
     <Compile Include="AST\Declarations\Declaration.cs" />
     <Compile Include="AST\Declarations\FunctionDeclaration.cs" />
+    <Compile Include="AST\Expressions\As.cs" />
     <Compile Include="AST\Expressions\Assign.cs" />
     <Compile Include="AST\Expressions\Binary.cs" />
     <Compile Include="AST\Expressions\Literal.cs" />
@@ -100,12 +101,10 @@
     <Compile Include="Operands\Types\Class.cs" />
     <Compile Include="Operands\Types\FunctionType.cs" />
     <Compile Include="Operands\Types\Primitive.cs" />
-    <Compile Include="Operands\Types\ProtoClass.cs" />
     <Compile Include="Operands\Types\TupleType.cs" />
     <Compile Include="AST\Expressions\ShortCircuit.cs" />
     <Compile Include="AST\Expressions\Ternary.cs" />
     <Compile Include="AST\Expressions\TupleLiteral.cs" />
-    <Compile Include="AST\Declarations\Program.cs" />
     <Compile Include="Checking\Checker.cs" />
     <Compile Include="Interpreting\Interpreter.cs" />
     <Compile Include="Operation.cs" />

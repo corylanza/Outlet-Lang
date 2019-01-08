@@ -14,7 +14,7 @@ namespace Outlet.Tokens {
 
 		public static readonly UnaryOperator PostInc, PostDec, PreInc, PreDec, UnaryPlus, Complement, UnaryAnd, Negative, Not;
 		public static readonly BinaryOperator Dot, Times, Divide, Modulus, Plus, Minus, LShift, RShift,
-											  LT, LTE, GT, GTE, Is, Isnt, BoolEquals, NotEqual, BitAnd,
+											  LT, LTE, GT, GTE, Is, As, Isnt, BoolEquals, NotEqual, BitAnd,
 											  BitXor, BitOr, LogicalAnd, LogicalOr, Question, Ternary,
 											  Lambda, Equal, PlusEqual, MinusEqual, DivEqual, MultEqual,
 											  IncRange, ExcRange, ModEqual;
@@ -66,6 +66,7 @@ namespace Outlet.Tokens {
 			LTE =			new BinaryOperator("<=",   6,  Side.Left,  	new BinOp(Flt, Flt, Bln, (l, r) => new Constant(l.Value <= r.Value)));
 			GT =			new BinaryOperator(">",    6,  Side.Left, 	new BinOp(Flt, Flt, Bln, (l, r) => new Constant(l.Value > r.Value)));
 			GTE =			new BinaryOperator(">=",   6,  Side.Left, 	new BinOp(Flt, Flt, Bln, (l, r) => new Constant(l.Value >= r.Value)));
+			As =			new BinaryOperator("as",   6,  Side.Left);
 			Is =			new BinaryOperator("is",   6,  Side.Left);
 			Isnt =			new BinaryOperator("isnt", 6,  Side.Left);
 			BoolEquals =	new BinaryOperator("==",   7,  Side.Left, 	new BinOp(Obj, Obj, Bln, (l, r) => new Constant(l.Equals(r))));
@@ -111,6 +112,7 @@ namespace Outlet.Tokens {
 		// Right param is first due to shunting yard popping the right operand first
 		public Expression Construct(Expression r, Expression l) {
 			if (this == Is || this == Isnt) return new Is(l, r, this == Is);
+			if (this == As) return new As(l, r);
 			if (this == Dot) return new Deref(l, r);
 			if (this == Lambda) return new Lambda(l, r);
 			if (this == Equal) return new Assign(l, r);

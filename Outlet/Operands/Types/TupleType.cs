@@ -14,6 +14,7 @@ namespace Outlet.Operands {
 		}
 
 		public override bool Is(Type t) {
+			if(t == Primitive.Object) return true;
 			if(t is TupleType tt && tt.Types.Length == Types.Length){
 				for(int i = 0; i < Types.Length; i++) {
 					if(!Types[i].Is(tt.Types[i])) return false;

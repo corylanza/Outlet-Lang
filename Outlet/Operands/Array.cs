@@ -7,23 +7,9 @@ using System.Threading.Tasks;
 namespace Outlet.Operands {
 	public class Array : Operand {
 		public Array(params Operand[] vals) {
-			if(vals.Length == 0) Type = new ArrayType(Primitive.Object);
-			else {
-				Type ancestor = vals[0].Type;
-				foreach(Operand cur in vals) {
-					ancestor = Type.CommonAncestor(ancestor, cur.Type);
-				}
-				Type = new ArrayType(ancestor);
-			}
+			Type = new ArrayType(Type.CommonAncestor(vals.Select(x => x.Type).ToArray()));
 			Value = vals;
 		}
-		/*
-		public Operand Dereference(string field) {
-			if (field == "length") return new Constant(Value.Length);
-			throw new OutletException("field "+field+" not defined");
-		}*/
-
-		//public Operand Call(params Operand[] args) => Value[args[0].Value];
 
 		public Operand[] Values() => Value;
 

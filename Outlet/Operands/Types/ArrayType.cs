@@ -15,7 +15,7 @@ namespace Outlet.Operands {
 
 		public override bool Equals(Operand b) => b is ArrayType at && ElementType.Equals(at.ElementType);
 
-		public override bool Is(Type t) => t is ArrayType at && ElementType.Is(at.ElementType);
+		public override bool Is(Type t) => t == Primitive.Object || t is ArrayType at && ElementType.Is(at.ElementType);
 
 		public override bool Is(Type t, out int level) {
 			throw new NotImplementedException();

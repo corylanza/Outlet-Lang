@@ -19,12 +19,12 @@ namespace Outlet.Checking {
 
 		public static void Check(IASTNode program) {
 			ErrorCount = 0;
-			if(program is FunctionDeclaration fd) {
+			if(program is FunctionDeclaration || program is ClassDeclaration) {
 				DoImpl.Push(false);
-				fd.Accept(Hidden);
+				program.Accept(Hidden);
 				DoImpl.Pop();
 				DoImpl.Push(true);
-				fd.Accept(Hidden);
+				program.Accept(Hidden);
 				DoImpl.Pop();
 			} else program.Accept(Hidden);
 			if(ErrorCount > 0) throw new CheckerException(ErrorCount + " Checking errors encountered");
@@ -35,7 +35,7 @@ namespace Outlet.Checking {
 		public static void Declare(Type t, string s) => Scopes.Peek().Declare(t, s);
 		public static void Define(Type t, string s) => Scopes.Peek().Define(t, s);
 		public static void DefineType(Type t, string s) => Scopes.Peek().DefineType(t, s);
-		public static (Type, int) Find(string s) => Scopes.Peek().Find(s);
+		public static (Type type, int level) Find(string s) => Scopes.Peek().Find(s);
 		public static Type FindType(int level, string s) => Scopes.Peek().FindType(level, s);
 
 		public static Scope EnterScope() {
@@ -74,10 +74,6 @@ namespace Outlet.Checking {
 
 		#region Declarations
 
-		public Type Visit(AST.Program p) {
-			return null;
-		}
-
 		public Type Visit(ClassDeclaration c) {
 			Dictionary<string, Type> statics = new Dictionary<string, Type>();
 			Dictionary<string, Type> instances = new Dictionary<string, Type>();
@@ -86,9 +82,9 @@ namespace Outlet.Checking {
 			}
 			EnterScope();
 			foreach(Declaration d in c.StaticDecls) {
-				Type t = d.Accept(this);
+				d.Accept(this);
 				if(!DoImpl.Peek()) {
-					statics.Add(d.Name, Find(d.Name).Item1);
+					statics.Add(d.Name, Find(d.Name).type);
 				}
 			}
 			EnterScope();
@@ -96,7 +92,7 @@ namespace Outlet.Checking {
 			foreach(Declaration d in c.InstanceDecls) {
 				d.Accept(this);
 				if(!DoImpl.Peek()) {
-					instances.Add(d.Name, Find(d.Name).Item1);
+					instances.Add(d.Name, Find(d.Name).type);
 				}
 			}
 			c.Constructor.Accept(this);
@@ -128,8 +124,8 @@ namespace Outlet.Checking {
 				Define(ft, f.Decl.ID);
 			} else {
 				FunctionType ft = f.Type;//(FunctionType) Find(f.Decl.ID).Item1;
-				//f.Type = null;
-				// enter the function scope and define the args;
+										 //f.Type = null;
+										 // enter the function scope and define the args;
 				EnterScope();
 				System.Array.ForEach(ft.Args, arg => Define(arg.type, arg.id));
 				// check the body now that its header and args have been defined
@@ -166,11 +162,22 @@ namespace Outlet.Checking {
 			return ((ArrayType)elem).ElementType;
 		}
 
-		public Type Visit(Assign a) {
-			Type l = a.Left.Accept(this);
+		public Type Visit(As a) {
+			a.Left.Accept(this);
 			Type r = a.Right.Accept(this);
-			Cast(r, l);
-			return l;
+			if(r != Primitive.MetaType) return Error("the right side of an is expression must be a type, found: " + r.ToString());
+			return TypeLiteral(a.Right);
+		}
+
+		public Type Visit(Assign a) {
+			if(a.Left is Variable || a.Left is Deref) {
+				Type l = a.Left.Accept(this);
+				Type r = a.Right.Accept(this);
+				if(l == ErrorType || r == ErrorType) return ErrorType;
+				Cast(r, l);
+				return l;
+			}
+			return Error("illegal assignment, can only assign to variables and fields");
 		}
 
 		public Type Visit(Binary b) {
@@ -212,21 +219,22 @@ namespace Outlet.Checking {
 
 		public Type Visit(Deref d) {
 			Type inst = d.Left.Accept(this);
+			if(inst == ErrorType) return ErrorType;
 			if(inst is ArrayType && d.Right == "length") return Primitive.Int;
+			if(inst is ProtoClass t) {
+				if(t.Instances.ContainsKey(d.Right)) return t.Instances[d.Right];
+				return Error(t.ToString() + " does not contain instance field: " + d.Right);
+			}
 			if(inst == Primitive.MetaType) {
 				Type actual = TypeLiteral(d.Left);
 				if(actual is NativeClass nc) {
 					if(nc.Methods.ContainsKey(d.Right)) return nc.Methods[d.Right].Type;
-					return Error("type ___ does not contain " + d.Right);
 				} else if(actual is ProtoClass c) {
-					return c.Statics[d.Right];
+					if(c.Statics.ContainsKey(d.Right)) return c.Statics[d.Right];
 				}
-				return Error("not implemented");
+				return Error("type " + actual.ToString() + " does not contain static field: " + d.Right);
 			}
-			if(inst is ProtoClass t) {
-				return t.Instances[d.Right];
-			}
-			return Error("not implemented");
+			return Error("cannot dereference type: " + inst.ToString());
 		}
 
 		public Type Visit(Is i) {
@@ -239,17 +247,16 @@ namespace Outlet.Checking {
 		public Type Visit(Lambda l) {
 			Type args = l.Left.Accept(this);
 			Type res = l.Right.Accept(this);
-			//if(args == Primitive.MetaType && res == Primitive.MetaType) return new FunctionType(ar)
+			if(args == Primitive.MetaType && res == Primitive.MetaType) {
+				Type a = TypeLiteral(l.Left);
+				Type r = TypeLiteral(l.Right);
+				return Primitive.MetaType;
+			}
 			return Error("Lambdas currently only work for types");
 		}
 
 		public Type Visit(ListLiteral l) {
-			if(l.Args.Length == 0) return new ArrayType(Primitive.Object);
-			Type ancestor = l.Args[0].Accept(this);
-			foreach(Expression cur in l.Args) {
-				ancestor = Type.CommonAncestor(ancestor, cur.Accept(this));
-			}
-			return new ArrayType(ancestor);
+			return new ArrayType(Type.CommonAncestor(l.Args.Select(x => x.Accept(this)).ToArray()));
 		}
 
 		public Type Visit(Literal c) => c.Type;
@@ -289,7 +296,7 @@ namespace Outlet.Checking {
 		public Type Visit(Variable v) {
 			(Type t, int l) = Find(v.Name);
 			v.resolveLevel = l;
-			if(l == -1) return Error("Line: " + v.Line + " variable " + v.Name + " could not be resolved");
+			if(l == -1) return Error("variable " + v.Name + " could not be resolved");
 			return t;
 		}
 

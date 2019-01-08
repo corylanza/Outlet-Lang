@@ -18,6 +18,6 @@ namespace Outlet.AST {
 			return visitor.Visit(this);
 		}
 
-		public override string ToString() => Left + " is " + Right; 
+		public override string ToString() => Left + (NotIsnt ? " is " : " isnt ") + Right; 
 	}
 }

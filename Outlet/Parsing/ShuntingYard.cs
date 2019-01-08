@@ -32,7 +32,7 @@ namespace Outlet.Parsing {
 				switch (cur) {
 					case Identifier id:
 						if(NotExpectingOperand(id)) break;
-						output.Push(new Variable(id.Name, id.Line, id.Pos));
+						output.Push(new Variable(id.Name));
 						expectOperand = false;
 						break;
 					case TokenLiteral l:

@@ -58,6 +58,7 @@ namespace Outlet.Tokens {
 			{">=", Operator.GTE },
 			{"!=", Operator.NotEqual },
 			{"==", Operator.BoolEquals },
+			{"as", Operator.As },
 			{"is", Operator.Is },
 			{"isnt", Operator.Isnt },
 			{"?", Operator.Question },

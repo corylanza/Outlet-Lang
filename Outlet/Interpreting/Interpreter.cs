@@ -35,46 +35,63 @@ namespace Outlet.Interpreting {
 
 		#endregion
 
-		public Operand Visit(AST.Program p) {
-			return null;
-		}
+		#region Declarations
 
 		public Operand Visit(ClassDeclaration c) {
+			// Enter new scope and declare all statics there
 			Scope closure = EnterScope();
-			foreach(Declaration d in c.StaticDecls) {
-				d.Accept(this);
+			foreach(Declaration d in c.StaticDecls) d.Accept(this);
+			// Hidden functions for getting and setting statics
+			Operand Get(string s) => closure.Get(0, s);
+			void Set(string s, Operand val) => closure.Assign(0, s, val);
+			// Create class
+			Class newclass = new Class(c.Name, Get, Set);
+			// Hidden function for initializing instance variables/methods
+			Class Init() {
+				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
+				return newclass;
 			}
-			Operand HiddenFunc(string s) => closure.Get(0, s);
-			Class newclass = new Class(c.Name, HiddenFunc);
-			EnterScope();
-			//TODO move this to constructor hidden func
-			foreach(Declaration d in c.InstanceDecls) {
-				d.Accept(this);
-			}
+			// Give the constructor this hidden initializer then declare it
+			c.Constructor.Init = Init;
 			c.Constructor.Accept(this);
+			// leave the static scope
 			ExitScope();
-			ExitScope();
+			// Define the class
 			CurScope().Add(c.Name, Primitive.MetaType, newclass);
 			return null;
 		}
 
 		public Operand Visit(ConstructorDeclaration c) {
-			Scope closure = CurScope();
-			Operand HiddenFunc(params Operand[] args) {
-				Scope exec = new Scope(closure);
-				Scopes.Push(exec);
-				Operand returnval = null;
+			// Captures the static scope of the class in which the constructor is declared
+			Scope staticscope = CurScope();
+			Operand UnderlyingConstructor(params Operand[] args) {
+				// Enter the instance scope
+				Scope instancescope = new Scope(staticscope);
+				Scopes.Push(instancescope);
+				// Call the constructors hidden init function to initialize instance variables/methods
+				Class type = c.Init();
+				// Enter the scope of the constructor
+				Scope constructorscope = new Scope(instancescope);
+				Scopes.Push(constructorscope);
+				// Add all parameters to constructor scope 
 				for(int i = 0; i < args.Length; i++) {
-					exec.Add(c.Type.Args[i].id, c.Type.Args[i].type, args[i]);
+					constructorscope.Add(c.Type.Args[i].id, c.Type.Args[i].type, args[i]);
 				}
+				// Evaluate the body of the constructor
 				c.Body.Accept(this);
-				Operand DoubleHiddenFunc(string s) => exec.Get(1, s);
-				returnval = new Instance(null, DoubleHiddenFunc);
+				// Hidden functions that act as getters and setters for instance variables/methods
+				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
+				Operand Get(string s) => instancescope.Get(0, s);
+				// Go back to the static scope
 				ExitScope();
-				return returnval;
+				ExitScope();
+				return new Instance(type, Get, Set); ;
 			}
-			var func = new Function(c.Decl.ID, c.Type, HiddenFunc);
-			closure.Parent.Add("", func.Type, func);
+			// Define the constructor as "" in the static scope (this is a special case
+			// as it cannot be stored in the instance scope despite its being resolved 
+			// at the instance level)
+			var func = new Function(c.Decl.ID, c.Type, UnderlyingConstructor);
+			staticscope.Add("", func.Type, func);
 			return null;
 		}
 
@@ -103,6 +120,10 @@ namespace Outlet.Interpreting {
 			return null;
 		}
 
+		#endregion
+
+		#region Expressions
+
 		public Operand Visit(Declarator d) {
 			Operand t = d.Type.Accept(this);
 			if(t is Type type) return type;
@@ -123,16 +144,29 @@ namespace Outlet.Interpreting {
 			return c.Values()[idx];
 		}
 
+		public Operand Visit(As a) {
+			Operand l = a.Left.Accept(this);
+			Type t = (Type) a.Right.Accept(this);
+			if(l.Type.Is(t)) return l;
+			throw new RuntimeException("cannot implicitly cast " + l.Type.ToString() + " to " + t.ToString());
+		}
+
 		public Operand Visit(Assign a) {
 			Operand val = a.Right.Accept(this);
 			if(a.Left is Variable v) {
 				CurScope().Assign(v.resolveLevel, v.Name, val);
 				return val;
-			} else if(a.Left is Deref d && d.Accept(this) is Instance i) {
-				//i.Assign(d.Right, val);
-				throw new NotImplementedException();
-				//return val;
-			} else throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
+			} else if(a.Left is Deref d) {
+				Operand temp = d.Left.Accept(this);
+				if(temp is Instance i) {
+					i.SetInstanceVar(d.Right, val);
+					return val;
+				} else if(temp is Class c) {
+					c.SetStatic(d.Right, val);
+					return val;
+				}
+			}
+			throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(Binary b) => b.Oper.Perform(b.Left.Accept(this), b.Right.Accept(this));
@@ -140,7 +174,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Call c) {
 			Operand caller = c.Caller.Accept(this);
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
-			if(caller is Class cl) caller = cl.SF("");
+			if(caller is Class cl) caller = cl.GetStatic("");
 			if(caller is Function f) return f.Call(args);
 			else throw new RuntimeException(caller.Type.ToString() + " is not callable SHOULD NOT PRINT");
 		}
@@ -149,9 +183,9 @@ namespace Outlet.Interpreting {
 			Operand left = d.Left.Accept(this);
 			if(left is Operands.Array a) return new Constant(a.Values().Length);
 			if(left is NativeClass nc) return nc.Methods[d.Right];
-			if(left is Class c) return c.SF(d.Right);
-			if(left is Instance i) return i.SF(d.Right);
-			throw new NotImplementedException();
+			if(left is Class c) return c.GetStatic(d.Right);
+			if(left is Instance i) return i.GetInstanceVar(d.Right);
+			throw new RuntimeException("illegal dereference");
 		}
 
 		public Operand Visit(Is i) {
@@ -164,7 +198,7 @@ namespace Outlet.Interpreting {
 			Operand right = l.Right.Accept(this);
 			if(left is TupleType tt && right is Type r)
 				return new FunctionType(tt.Types.Select(x => (x, "")).ToArray(), r);
-			throw new NotImplementedException();
+			throw new RuntimeException("lambda invalid SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(ListLiteral l) => new Operands.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());
@@ -197,6 +231,10 @@ namespace Outlet.Interpreting {
 				throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
 			} else return CurScope().Get(v.resolveLevel, v.Name);
 		}
+
+		#endregion
+
+		# region Statements
 
 		public Operand Visit(Block b) {
 			EnterScope();
@@ -255,5 +293,7 @@ namespace Outlet.Interpreting {
 			}
 			return null;
 		}
+
+		#endregion
 	}
 }
