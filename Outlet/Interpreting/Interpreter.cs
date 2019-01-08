@@ -45,7 +45,7 @@ namespace Outlet.Interpreting {
 				d.Accept(this);
 			}
 			Operand HiddenFunc(string s) => closure.Get(0, s);
-			Class newclass = new Class(c.Name, null, null, HiddenFunc);
+			Class newclass = new Class(c.Name, HiddenFunc);
 			EnterScope();
 			//TODO move this to constructor hidden func
 			foreach(Declaration d in c.InstanceDecls) {
@@ -68,9 +68,8 @@ namespace Outlet.Interpreting {
 					exec.Add(c.Type.Args[i].id, c.Type.Args[i].type, args[i]);
 				}
 				c.Body.Accept(this);
-				Operand DoubleHiddenFunc(string s) => exec.Get(0, s);
+				Operand DoubleHiddenFunc(string s) => exec.Get(1, s);
 				returnval = new Instance(null, DoubleHiddenFunc);
-				ExitScope();
 				ExitScope();
 				return returnval;
 			}

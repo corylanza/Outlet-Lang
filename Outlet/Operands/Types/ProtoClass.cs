@@ -3,26 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Decls = System.Collections.Generic.Dictionary<string, Outlet.Operands.Type>;
 
 namespace Outlet.Operands {
 	public class ProtoClass : Class {
 
+		public readonly Decls Statics;
+		public readonly Decls Instances;
 
-
-		public override bool Equals(Operand b) {
-			throw new NotImplementedException();
+		public ProtoClass(string name, Decls instances, Decls statics) : base(name, null) {
+			Instances = instances;
+			Statics = statics;
 		}
 
-		public override bool Is(Type t) {
-			throw new NotImplementedException();
-		}
-
-		public override bool Is(Type t, out int level) {
-			throw new NotImplementedException();
-		}
-
-		public override string ToString() {
-			throw new NotImplementedException();
-		}
 	}
 }

@@ -14,7 +14,7 @@ namespace Outlet.Checking {
 
 		public static readonly Stack<bool> DoImpl = new Stack<bool>();
 		public static readonly Stack<Scope> Scopes = new Stack<Scope>();
-		private static readonly Type ErrorType = new Class("error", null, null, null);
+		private static readonly Type ErrorType = new ProtoClass("error", null, null);
 		public static int ErrorCount = 0;
 
 		public static void Check(IASTNode program) {
@@ -82,7 +82,7 @@ namespace Outlet.Checking {
 			Dictionary<string, Type> statics = new Dictionary<string, Type>();
 			Dictionary<string, Type> instances = new Dictionary<string, Type>();
 			if(!DoImpl.Peek()) {
-				DefineType(new Class(c.Name, instances, statics, null), c.Name);
+				DefineType(new ProtoClass(c.Name, instances, statics), c.Name);
 			}
 			EnterScope();
 			foreach(Declaration d in c.StaticDecls) {
@@ -117,7 +117,7 @@ namespace Outlet.Checking {
 				EnterScope();
 				(Type type, string id)[] args = f.Args.Select(arg => {
 					Type curarg = arg.Accept(this);
-					//if(curarg == Primitive.MetaType) DefineType(new Class(arg.ID, null, null, null), arg.ID);
+					//if(curarg == Primitive.MetaType) DefineType(new ProtoClass(arg.ID, null, null), arg.ID);
 					return (curarg, arg.ID);
 				}).ToArray();
 				Type returntype = f.Decl.Accept(this);
@@ -186,7 +186,7 @@ namespace Outlet.Checking {
 		public Type Visit(Call c) {
 			Type calltype = c.Caller.Accept(this);
 			if(calltype == Primitive.MetaType) {
-				Class cl = (TypeLiteral(c.Caller) as Class);
+				ProtoClass cl = (TypeLiteral(c.Caller) as ProtoClass);
 				calltype = cl.Statics[""];
 			}
 			Type[] argtypes = c.Args.Select(x => x.Accept(this)).ToArray();
@@ -218,12 +218,12 @@ namespace Outlet.Checking {
 				if(actual is NativeClass nc) {
 					if(nc.Methods.ContainsKey(d.Right)) return nc.Methods[d.Right].Type;
 					return Error("type ___ does not contain " + d.Right);
-				} else if(actual is Class c) {
+				} else if(actual is ProtoClass c) {
 					return c.Statics[d.Right];
 				}
 				return Error("not implemented");
 			}
-			if(inst is Class t) {
+			if(inst is ProtoClass t) {
 				return t.Instances[d.Right];
 			}
 			return Error("not implemented");
