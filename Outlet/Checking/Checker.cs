@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Outlet.AST;
 using Outlet.Operands;
 using Type = Outlet.Operands.Type;
@@ -54,7 +52,9 @@ namespace Outlet.Checking {
 
 		public static void Cast(Type from, Type to, string message = "cannot convert type {0} to type {1}") {
 			if(from == ErrorType || to == ErrorType) return;
-			if(!from.Is(to)) Error(string.Format(message, from, to));
+			if(from == Primitive.Null) {
+				if(to is Primitive) Error("cannot assign null to non nullable type: "+to.ToString());
+			} else  if(!from.Is(to)) Error(string.Format(message, from, to));
 		}
 
 		private readonly Type Bool = Primitive.Bool;
@@ -88,7 +88,7 @@ namespace Outlet.Checking {
 				}
 			}
 			EnterScope();
-			//Define(Primitive.MetaType, "this");
+			if(DoImpl.Peek()) Define(FindType(2, c.Name), "this");
 			foreach(Declaration d in c.InstanceDecls) {
 				d.Accept(this);
 				if(!DoImpl.Peek()) {
@@ -157,9 +157,11 @@ namespace Outlet.Checking {
 		public Type Visit(Access a) {
 			Type elem = a.Collection.Accept(this);
 			if(elem == Primitive.MetaType) return Primitive.MetaType;
+			if(a.Index.Length != 1) return Error("array access requires exactly 1 index");
 			Type idxType = a.Index[0].Accept(this);
 			if(idxType != Primitive.Int) return Error("only ints can be used to index into an array, found: " + idxType.ToString());
-			return ((ArrayType)elem).ElementType;
+			if(elem is ArrayType at) return at.ElementType;
+			return Error("invalid array type");
 		}
 
 		public Type Visit(As a) {
@@ -174,6 +176,7 @@ namespace Outlet.Checking {
 				Type l = a.Left.Accept(this);
 				Type r = a.Right.Accept(this);
 				if(l == ErrorType || r == ErrorType) return ErrorType;
+				if(a.Left is Deref d && d.ArrayLength) return Error("cannot assign to an array length");
 				Cast(r, l);
 				return l;
 			}
@@ -192,14 +195,29 @@ namespace Outlet.Checking {
 
 		public Type Visit(Call c) {
 			Type calltype = c.Caller.Accept(this);
+			if(calltype == ErrorType) return ErrorType;
 			if(calltype == Primitive.MetaType) {
-				ProtoClass cl = (TypeLiteral(c.Caller) as ProtoClass);
-				calltype = cl.Statics[""];
+				Type literal = TypeLiteral(c.Caller);
+				if(literal is ProtoClass cl) {
+					if(cl.Statics.ContainsKey("")) calltype = cl.Statics[""];
+					else return Error("type " + literal + " is not instantiable");
+				} else if(literal is NativeClass nc) {
+					if(nc.Methods.ContainsKey("")) calltype = nc.Methods[""].Type;
+					else return Error("type " + literal + " is not instantiable");
+				} else return Error("type " + literal + " is not instantiable");
 			}
 			Type[] argtypes = c.Args.Select(x => x.Accept(this)).ToArray();
-			if(calltype is FunctionType functype) {     // doesnt work for other callable types
+			if(calltype is FunctionType functype) {
 				var funcargs = functype.Args.ToArray();
-				if(argtypes.Length != funcargs.Length)
+				if(argtypes.Length == funcargs.Length) {
+					int ec = ErrorCount;
+					for(int i = 0; i < c.Args.Length; i++) {
+						Cast(argtypes[i], funcargs[i].type);
+					}
+					if(ErrorCount > ec) return ErrorType;
+					return functype.ReturnType;
+				} return Error("wrong arg count");
+					/*
 					return Error("function " + c.Caller.ToString() + " expects (" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
 				for(int i = 0; i < c.Args.Length; i++) {
 					if(funcargs[i].type == Primitive.MetaType) {
@@ -209,10 +227,9 @@ namespace Outlet.Checking {
 					}
 					if(!argtypes[i].Is(funcargs[i].type))
 						return Error("function " + c.Caller.ToString() + " expects (" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
-				}
-				return functype.ReturnType;
+				}*/
 			}
-			return Error("not callable");
+			return Error("type " + calltype + " is not callable");
 		}
 
 		public Type Visit(Declarator d) => TypeLiteral(d.Type);
@@ -220,7 +237,10 @@ namespace Outlet.Checking {
 		public Type Visit(Deref d) {
 			Type inst = d.Left.Accept(this);
 			if(inst == ErrorType) return ErrorType;
-			if(inst is ArrayType && d.Right == "length") return Primitive.Int;
+			if(inst is ArrayType && d.Right == "length") {
+				d.ArrayLength = true;
+				return Primitive.Int;
+			}
 			if(inst is ProtoClass t) {
 				if(t.Instances.ContainsKey(d.Right)) return t.Instances[d.Right];
 				return Error(t.ToString() + " does not contain instance field: " + d.Right);

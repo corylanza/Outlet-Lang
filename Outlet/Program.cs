@@ -27,9 +27,12 @@ namespace Outlet {
 		}
 
         public static void RunFile(string path) {
-            byte[] file = File.ReadAllBytes(path);
-            byte[] bytes = file.Skip(3).ToArray();
-			Run(bytes);
+			if(!File.Exists(path)) ThrowException("file does not exist");
+			else {
+				byte[] file = File.ReadAllBytes(path);
+				byte[] bytes = file.Skip(3).ToArray();
+				Run(bytes);
+			}
         }
 
         public static void REPL() {
@@ -63,17 +66,6 @@ namespace Outlet {
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.WriteLine(message);
 			Console.ForegroundColor = ConsoleColor.White;
-		}
-
-		public static List<(T, V)> TupleZip<T, V>(this List<T> list, List<V> other) {
-			if(other.Count() == list.Count()) {
-				List<(T, V)> output = new List<(T, V)>();
-				for(int i = 0; i < list.Count(); i++) {
-					output.Add((list[i], other[i]));
-				}
-				return output;
-			}
-			throw new Exception("lists of differing length");
 		}
 
 		public static string ToListString<T>(this List<T> list) {

@@ -62,6 +62,10 @@ namespace Outlet.Parsing {
 				List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				ConstructorDeclaration constructor = null;
+				string superclass = "";
+				if(Match(Keyword.Extends)) {
+					 superclass = ConsumeType<Identifier>("expected name of super class after extends keyword").Name;
+				}
 				if(Match(Delimeter.LeftCurly)) {
 					while(true) {
 						if(Match(Delimeter.RightCurly)) break;
@@ -69,24 +73,21 @@ namespace Outlet.Parsing {
 						if(Match(name)) {
 							if(Match(Delimeter.LeftParen)) {
 								Declarator constr = new Declarator(new Variable(name.Name), "");
+								if(constructor != null) throw new OutletException("class cannot have two constructors");
 								constructor = ConstructDef(constr);
+								continue;
 							} else tokens.AddFirst(name);
-						} else if(Match(Keyword.Static)) {
-							Statement nextfield = NextStatement(tokens);
-							if(nextfield is Declarator df) {
-								if(Match(Delimeter.LeftParen)) statics.Add(FunctionDef(df));
-								else statics.Add(VarDeclaration(df));
-							} else throw new OutletException("statement: " + nextfield.ToString() + " must be inside a function body");
-						} else {
-							Statement nextfield = NextStatement(tokens);
-							if(nextfield is Declarator df) {
-								if(Match(Delimeter.LeftParen)) instance.Add(FunctionDef(df));
-								else instance.Add(VarDeclaration(df));
-							} else throw new OutletException("statement: " + nextfield.ToString() + " must be inside a function body");
 						}
+						bool isstatic = Match(Keyword.Static);
+						Statement nextfield = NextStatement(tokens);
+						if(nextfield is Declarator df) {
+							Declaration curdecl = Match(Delimeter.LeftParen) ? FunctionDef(df) as Declaration : VarDeclaration(df);
+							(isstatic ? statics : instance).Add(curdecl);
+						} else throw new OutletException("statement: " + nextfield.ToString() + " must be inside a function body");
 					}
 				}
-				return new ClassDeclaration(name.Name, constructor, instance, statics);
+				if(constructor == null) constructor = new ConstructorDeclaration(new Declarator(new Variable(name.Name), ""), new List<Declarator>(), new Block(new List<IASTNode>(), new List<FunctionDeclaration>(), new List<ClassDeclaration>()));
+				return new ClassDeclaration(name.Name, superclass, constructor, instance, statics);
 			}
 			if(Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement(tokens);

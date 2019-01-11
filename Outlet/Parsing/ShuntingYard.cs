@@ -42,21 +42,11 @@ namespace Outlet.Parsing {
 						expectOperand = false;
 						break;
 					case Operator o:
-						if (o.Name == "-" && IsPreUnary(last)) {
-							o = Operator.Negative;
-						}
-						if(o.Name == "&" && IsPreUnary(last)) {
-							o = Operator.UnaryAnd;
-						}
-						if(o.Name == "+" && IsPreUnary(last)) {
-							o = Operator.UnaryPlus;
-						}
-						if (o.Name == "++" && IsPreUnary(last)) {
-							o = Operator.PreInc;
-						}
-						if (o.Name == "--" && IsPreUnary(last)) {
-							o = Operator.PreDec;
-						}
+						if(o.Name == "-" && IsPreUnary(last)) o = Operator.Negative;
+						if(o.Name == "&" && IsPreUnary(last)) o = Operator.UnaryAnd;
+						if(o.Name == "+" && IsPreUnary(last)) o = Operator.UnaryPlus;
+						if(o.Name == "++" && IsPreUnary(last)) o = Operator.PreInc;
+						if(o.Name == "--" && IsPreUnary(last)) o = Operator.PreDec;
 
 						if(o is UnaryOperator) {
 							if(IsPreUnary(last) && NotExpectingOperand(o)) break;
@@ -87,10 +77,8 @@ namespace Outlet.Parsing {
 						while (lesserPrecedence(Operator.Dot)) {
 							ReduceOperator(output, stack);
 						}
-
-						if (func) {
-							stack.Push(Delimeter.FuncParen);
-						} else stack.Push(d);
+						// If this is a function call push a special function delim to stack, otherwise push (
+						stack.Push(func ? Delimeter.FuncParen : d);
 						if(tokens.Count > 0 && tokens.First() == Delimeter.RightParen) {
 							arity.Push(0);
 							expectOperand = false;
@@ -103,9 +91,8 @@ namespace Outlet.Parsing {
 						bool index = !(last is null || last is Operator || last is Delimeter dlb && !(dlb.Name == ")" || dlb.Name == "]"));
 						if(index && NotExpectingOperator(lb)) break;
 						if(!index && NotExpectingOperand(lb)) break;
-						if(index) {
-							stack.Push(Delimeter.IndexBrace);
-						} else stack.Push(lb);
+						// If this is an index, push a special array index delim to stack, otherwise push [
+						stack.Push(index ? Delimeter.IndexBrace : lb);
 						if(tokens.Count > 0 && tokens.First() == Delimeter.RightBrace) {
 							arity.Push(0);
 							expectOperand = false;
@@ -136,8 +123,8 @@ namespace Outlet.Parsing {
 							int tuplen = arity.Pop();
 							Expression[] tuple = new Expression[tuplen];
 							for (int i = 0; i < tuplen; i++) tuple[tuplen - 1 - i] = output.Pop();
-							if (stack.Pop() == Delimeter.FuncParen) output.Push(new Call(output.Pop(), tuple));
-							else output.Push(new TupleLiteral(tuple));
+							// If there is a func paren then this is a function call, otherwise it is a tuple literal
+							output.Push(stack.Pop() == Delimeter.FuncParen ? new Call(output.Pop(), tuple) as Expression : new TupleLiteral(tuple));
 						}
 						expectOperand = false;
 						break;
@@ -153,8 +140,8 @@ namespace Outlet.Parsing {
 						for (int i = 0; i < idxlen; i++) {
 							list[idxlen - 1 - i] = output.Pop();
 						}
-						if(stack.Pop() == Delimeter.IndexBrace) output.Push(new Access(output.Pop(), list));
-						else output.Push(new ListLiteral(list));
+						// If there is an index brace this is a access expr, otherwise it is a list literal
+						output.Push(stack.Pop() == Delimeter.IndexBrace ? new Access(output.Pop(), list) as Expression : new ListLiteral(list));
 						expectOperand = false;
 						break;
 					default:

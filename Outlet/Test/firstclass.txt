@@ -1,7 +1,7 @@
 ﻿person a = person("cory", 20);
 person b = person("jenna", 21);
-a.Age = 25;
-person.count = 20;
+a.Age = 25;/*
+person.count = 20;*/
 print(person.count + " people have been made");
 a.intro();
 b.intro();
@@ -16,7 +16,7 @@ class person {
 
 	person(string name, int age) {
 		count++;
-		Name = name;
+		this.Name = name;
 		Age = age;
 	}
 	static void greet() => print("hello!");

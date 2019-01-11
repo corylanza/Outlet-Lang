@@ -2,11 +2,11 @@
 	string Name;
 	int Age = 0;
 	static int count = 0;
-
+	
 	person(string n, int a) {
 		Name = n;
 		Age = a;
-		make();
+		person.make();
 		print("contructed "+Name+" "+Age+" count "+count);
 	}
 
@@ -17,6 +17,10 @@
 	static void make() { count++; }
 }
 
+class std {
+	string ha;
+}
+
 
 print(person.count);
 person a = person("cory", 20);
@@ -25,3 +29,6 @@ a.greet();
 b.greet();
 print(a.deconstruct());
 print(person.count);
+std c = std();
+c.ha = "hahaha";
+print(c.ha);

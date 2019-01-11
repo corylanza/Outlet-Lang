@@ -12,7 +12,7 @@ namespace Outlet.AST {
 		public dynamic Value;
 
 		public Literal() {
-			Type = Primitive.Object;
+			Type = Primitive.Null;
 			Value = null;
 		}
 

@@ -8,14 +8,14 @@ namespace Outlet.Operands {
 	public class Primitive : Type {
 		
 		public static Primitive MetaType = new Primitive("type", null, null);
-		//public static Primitive FuncType = new Primitive("func", null, null);
 		public static Primitive Void = new Primitive("void", null, null);
 		public static Primitive Object = new Primitive("object", null, null);
 		public static Primitive Float = new Primitive("float", Object, 0.0f);
 		public static Primitive Int = new Primitive("int", Float, 0);
 		public static Primitive Bool = new Primitive("bool", Object, false);
 		public static Primitive String = new Primitive("string", Object, "");
-		//public static Primitive List = new Primitive("list", Object, "");
+		// cannot be referenced like other types but is used under the hood
+		public static Primitive Null = new Primitive("null", Object, null);
 
 		private readonly string Name;
 

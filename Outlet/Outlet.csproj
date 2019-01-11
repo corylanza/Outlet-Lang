@@ -167,7 +167,6 @@
     <Content Include="Test\closure.txt" />
     <Content Include="Test\funcobject.txt" />
     <Content Include="Test\func.txt" />
-    <Content Include="Test\functional.txt" />
     <Content Include="Test\future.txt" />
     <Content Include="Test\iter.txt" />
     <Content Include="Test\mutualclass.txt" />

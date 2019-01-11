@@ -9,7 +9,7 @@ namespace Outlet.Operands {
 
 		//null
 		public Constant() {
-			Type = Primitive.Object;
+			Type = Primitive.Null;
 			Value = null;
 		}
 
@@ -33,7 +33,10 @@ namespace Outlet.Operands {
 			Value = value;
 		}
 
-		public override bool Equals(Operand b) => Value.Equals(b.Value);
+		public override bool Equals(Operand b) {
+			if(Value is null) return b.Value is null;
+			else return Value.Equals(b.Value);
+		}
 
 		public override string ToString() => (Value ?? "null").ToString();
 	}

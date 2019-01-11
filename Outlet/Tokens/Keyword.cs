@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.Tokens {
 	public class Keyword : Token {
 
-		public static readonly Keyword Var = new Keyword("var");
+		public static readonly Keyword Extends = new Keyword("extends");
 		public static readonly Keyword If = new Keyword("if");
 		public static readonly Keyword Then = new Keyword("then");
 		public static readonly Keyword Else = new Keyword("else");

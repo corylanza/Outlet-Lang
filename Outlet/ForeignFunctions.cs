@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Outlet.Tokens;
 using Outlet.Operands;
 using Type = Outlet.Operands.Type;
 
@@ -17,7 +14,7 @@ namespace Outlet {
 		private static readonly Type Bool = Primitive.Bool;
 		private static readonly Type Object = Primitive.Object;
 
-		public static FunctionType MakeType(params Type[] t) {
+	public static FunctionType MakeType(params Type[] t) {
 			if (t.Length == 0) throw new Exception("Foreign Function type invalid");
 			return new FunctionType(t.Take(t.Length - 1).Select(x => (x, "")).ToArray(), t.Last());
 		}
@@ -40,7 +37,7 @@ namespace Outlet {
 			}
 		};
 
-		public static Dictionary<string, Type> NativeTypes = new Dictionary<string, Type>() {
+	public static Dictionary<string, Type> NativeTypes = new Dictionary<string, Type>() {
 			{"int", Primitive.Int },
 			{"float", Primitive.Float },
 			{"bool", Primitive.Bool },
@@ -50,9 +47,9 @@ namespace Outlet {
 			{"void", Primitive.Void },
 			{"math", new NativeClass("math",
 				("pi", new Constant((float) Math.PI)),
-				("sin", new Native(MakeType(Float, Float), 
+				("sin", new Native(MakeType(Float, Float),
 					(Operand[] o) => new Constant((float) Math.Sin(o[0].Value)))),
-				("pow", new Native(MakeType(Int, Int, Int), 
+				("pow", new Native(MakeType(Int, Int, Int),
 					(Operand[] o) => new Constant((int) Math.Pow(o[0].Value, o[1].Value))))
 			)},
 			{"file", new NativeClass("file"

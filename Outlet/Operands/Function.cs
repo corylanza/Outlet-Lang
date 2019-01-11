@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Operands {
+
 	public class Function : Operand, ICallable {
 
 		private readonly string Name;
@@ -39,4 +40,5 @@ namespace Outlet.Operands {
 
 		public override Operand Call(params Operand[] args) => Underlying(args);
 	}
+	
 }

@@ -9,6 +9,7 @@ namespace Outlet.AST {
 
 		public readonly Expression Left;
 		public readonly string Right;
+		public bool ArrayLength = false;
 
 		public Deref(Expression left, Expression right) {
 			Left = left;

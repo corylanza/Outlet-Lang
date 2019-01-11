@@ -1,16 +1,32 @@
-﻿class Person {
-	string name;
-	Job job;
-	Person Person(string s, string j) => {
-		name = s;
-		job = Job(j, this);
+﻿class node {
+
+	int Val;
+	node Next;
+
+	node(int val, node next) {
+		Val = val;
+		Next = next;
 	}
 }
-class Job {
-	string name;
-	Person person;
-	Job Job(string s, Person p) => {
-		name = s;
-		person = p;
+class list {
+
+	node Head = null;
+
+	void addfront(int v) {
+		Head = node(v, Head);
+	}
+
+	void printlist() {
+		node cur = Head;
+		while(cur != null) {
+			print(cur.Val);
+			cur = cur.Next;
+		}
 	}
 }
+
+list l = list();
+l.addfront(3);
+l.addfront(6);
+l.addfront(9);
+l.printlist();

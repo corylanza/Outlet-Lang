@@ -54,7 +54,16 @@ namespace Outlet.Lexing {
 			if(!machine.Cur.Accepting && buffer.Length > 0) Error("illegal state");
 			else if(buffer.Length > 0) {
 				Token toadd = machine.Cur.Output(buffer);
-				if(toadd != null) tokens.AddLast(toadd);
+				if(tokens.Count > 1 && toadd is IntLiteral i2 && tokens.Last() == Operator.Dot) {
+					tokens.RemoveLast();
+					if(tokens.Last() is IntLiteral i1) {
+						tokens.RemoveLast();
+						tokens.AddLast(new FloatLiteral(i1.Value + "." + i2.Value, 0, 0));
+					} else {
+						tokens.AddLast(Operator.Dot);
+						tokens.AddLast(i2);
+					}
+				} else if(toadd != null) tokens.AddLast(toadd);
 			} else if(machine.Cur == poststring) tokens.AddLast(new StringLiteral("", LinePos, CharPos));
 			if(ErrorCount > 0) throw new LexerException(ErrorCount+" Lexing errors encountered");
             return tokens;

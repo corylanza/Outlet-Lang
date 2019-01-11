@@ -40,7 +40,7 @@ namespace Outlet.Lexing {
 		static State dotdot = machine.AddState(true, true, TokenizeOp);
         static State finalop = machine.AddState(true, true, TokenizeOp); //no more chars can be added to this op
 
-
+		static State linecomment = machine.AddState(false, false, NoToken);
         static State comment = machine.AddState(false, false, NoToken);
 		static State commentesc = machine.AddState(false, false, NoToken);
 		static State commentend = machine.AddState(true, false, NoToken);
@@ -58,12 +58,15 @@ namespace Outlet.Lexing {
             // comments
             start.SetTransition(CharType.ForwardSlash, forwardslash);
             forwardslash.SetTransition(CharType.Asterisk, comment);
+			forwardslash.SetTransition(CharType.ForwardSlash, linecomment);
+			linecomment.SetDefault(linecomment);
+			linecomment.SetTransition(CharType.NewLine, commentend);
 			comment.SetDefault(comment);
 			comment.SetTransition(CharType.Asterisk, commentesc);
 			commentesc.SetTransition(CharType.ForwardSlash, commentend);
 			// Ints and floats
 			number.SetTransition(CharType.Number, number);
-            number.SetTransition(CharType.Dot, floatdot);
+            //number.SetTransition(CharType.Dot, floatdot);
             floatdot.SetTransition(CharType.Number, sfloat);
 			sfloat.SetTransition(CharType.Number, sfloat);
             // Strings

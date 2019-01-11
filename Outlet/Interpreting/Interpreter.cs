@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Outlet.AST;
 using Outlet.Operands;
 using Type = Outlet.Operands.Type;
@@ -70,6 +68,12 @@ namespace Outlet.Interpreting {
 				Scopes.Push(instancescope);
 				// Call the constructors hidden init function to initialize instance variables/methods
 				Class type = c.Init();
+				// Hidden functions that act as getters and setters for instance variables/methods
+				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
+				Operand Get(string s) => instancescope.Get(0, s);
+				// Create the new instance and define this
+				Instance inst = new Instance(type, Get, Set);
+				instancescope.Add("this", type, inst);
 				// Enter the scope of the constructor
 				Scope constructorscope = new Scope(instancescope);
 				Scopes.Push(constructorscope);
@@ -79,13 +83,10 @@ namespace Outlet.Interpreting {
 				}
 				// Evaluate the body of the constructor
 				c.Body.Accept(this);
-				// Hidden functions that act as getters and setters for instance variables/methods
-				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
-				Operand Get(string s) => instancescope.Get(0, s);
 				// Go back to the static scope
 				ExitScope();
 				ExitScope();
-				return new Instance(type, Get, Set); ;
+				return inst;
 			}
 			// Define the constructor as "" in the static scope (this is a special case
 			// as it cannot be stored in the instance scope despite its being resolved 
@@ -114,7 +115,7 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(VariableDeclaration v) {
-			Type type = (Type) v.Decl.Accept(this);
+			Type type = (Type)v.Decl.Accept(this);
 			Operand initial = v.Initializer?.Accept(this) ?? new Constant(type.Default);
 			CurScope().Add(v.Decl.ID, type, initial);
 			return null;
@@ -130,7 +131,10 @@ namespace Outlet.Interpreting {
 			else throw new OutletException(d.Type.ToString() + " is not a valid type SHOULD NOT PRINT");
 		}
 
-		public Operand Visit(Literal c) => new Constant(c.Value);
+		public Operand Visit(Literal c) {
+			if(c.Value != null) return new Constant(c.Value);
+			return new Constant();
+		}
 
 		public Operand Visit(Access a) {
 			Operand col = a.Collection.Accept(this);
@@ -185,7 +189,8 @@ namespace Outlet.Interpreting {
 			if(left is NativeClass nc) return nc.Methods[d.Right];
 			if(left is Class c) return c.GetStatic(d.Right);
 			if(left is Instance i) return i.GetInstanceVar(d.Right);
-			throw new RuntimeException("illegal dereference");
+			if(left is Constant n && n.Value is null) throw new RuntimeException("null pointer exception");
+			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(Is i) {

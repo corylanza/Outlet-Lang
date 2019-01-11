@@ -16,8 +16,8 @@ namespace Outlet.Tokens {
 			// Keywords
 			{"class", Keyword.Class },
 			{"static", Keyword.Static },
-			{ "var", Keyword.Var },
-			{ "operator", Keyword.Operator },
+			{"extends", Keyword.Extends },
+			{"operator", Keyword.Operator },
 			{"if", Keyword.If },
 			{"then", Keyword.Then },
 			{"else", Keyword.Else },
