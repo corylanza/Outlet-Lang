@@ -12,7 +12,7 @@ namespace Outlet.Checking {
 
 		public static readonly Stack<bool> DoImpl = new Stack<bool>();
 		public static readonly Stack<Scope> Scopes = new Stack<Scope>();
-		private static readonly Type ErrorType = new ProtoClass("error", null, null);
+		private static readonly Type ErrorType = new ProtoClass("error", null, null, null);
 		public static int ErrorCount = 0;
 
 		public static void Check(IASTNode program) {
@@ -75,30 +75,48 @@ namespace Outlet.Checking {
 		#region Declarations
 
 		public Type Visit(ClassDeclaration c) {
-			Dictionary<string, Type> statics = new Dictionary<string, Type>();
-			Dictionary<string, Type> instances = new Dictionary<string, Type>();
 			if(!DoImpl.Peek()) {
-				DefineType(new ProtoClass(c.Name, instances, statics), c.Name);
-			}
-			EnterScope();
-			foreach(Declaration d in c.StaticDecls) {
-				d.Accept(this);
-				if(!DoImpl.Peek()) {
+				var statics = new Dictionary<string, Type>();
+				var instances = new Dictionary<string, Type>();
+				ProtoClass parent = null;
+				if(c.SuperClass != null) {
+					if(c.SuperClass.Accept(this) != Primitive.MetaType) Error("cannot extend anything other than a class");
+					else {
+						parent = FindType(c.SuperClass.resolveLevel, c.SuperClass.Name) as ProtoClass;
+						//parent.Instances.ToList().ForEach(x => instances.Add(x.Key, x.Value));
+					}
+				}
+				DefineType(new ProtoClass(c.Name, parent, instances, statics), c.Name);
+				EnterScope();
+				foreach(Declaration d in c.StaticDecls) {
+					d.Accept(this);
 					statics.Add(d.Name, Find(d.Name).type);
 				}
-			}
-			EnterScope();
-			if(DoImpl.Peek()) Define(FindType(2, c.Name), "this");
-			foreach(Declaration d in c.InstanceDecls) {
-				d.Accept(this);
-				if(!DoImpl.Peek()) {
+				EnterScope();
+				foreach(Declaration d in c.InstanceDecls) {
+					d.Accept(this);
 					instances.Add(d.Name, Find(d.Name).type);
 				}
+				c.Constructor.Accept(this);
+				statics.Add("", c.Constructor.Type);
+				ExitScope();
+				ExitScope();
+			} else {
+				ProtoClass parent = null;
+				if(c.SuperClass != null) {
+					parent = FindType(c.SuperClass.resolveLevel, c.SuperClass.Name) as ProtoClass;
+				}
+				EnterScope();
+				foreach(Declaration d in c.StaticDecls) d.Accept(this);
+				if(parent != null) foreach(KeyValuePair<string, Type> d in parent.Statics) Define(d.Value, d.Key);
+				EnterScope();
+				Define(FindType(2, c.Name), "this");
+				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
+				if(parent != null) foreach(KeyValuePair<string, Type> d in parent.Instances) Define(d.Value, d.Key);
+				c.Constructor.Accept(this);
+				ExitScope();
+				ExitScope();
 			}
-			c.Constructor.Accept(this);
-			if(!DoImpl.Peek()) statics.Add("", c.Constructor.Type);
-			ExitScope();
-			ExitScope();
 			return null;
 		}
 
@@ -198,13 +216,8 @@ namespace Outlet.Checking {
 			if(calltype == ErrorType) return ErrorType;
 			if(calltype == Primitive.MetaType) {
 				Type literal = TypeLiteral(c.Caller);
-				if(literal is ProtoClass cl) {
-					if(cl.Statics.ContainsKey("")) calltype = cl.Statics[""];
-					else return Error("type " + literal + " is not instantiable");
-				} else if(literal is NativeClass nc) {
-					if(nc.Methods.ContainsKey("")) calltype = nc.Methods[""].Type;
-					else return Error("type " + literal + " is not instantiable");
-				} else return Error("type " + literal + " is not instantiable");
+				if(literal is ICheckableClass cl) calltype = cl.GetStaticType("");
+				else return Error("type " + literal + " is not instantiable");
 			}
 			Type[] argtypes = c.Args.Select(x => x.Accept(this)).ToArray();
 			if(calltype is FunctionType functype) {
@@ -212,22 +225,10 @@ namespace Outlet.Checking {
 				if(argtypes.Length == funcargs.Length) {
 					int ec = ErrorCount;
 					for(int i = 0; i < c.Args.Length; i++) {
-						Cast(argtypes[i], funcargs[i].type);
+						Cast(argtypes[i], funcargs[i].type, "");
 					}
-					if(ErrorCount > ec) return ErrorType;
-					return functype.ReturnType;
-				} return Error("wrong arg count");
-					/*
-					return Error("function " + c.Caller.ToString() + " expects (" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
-				for(int i = 0; i < c.Args.Length; i++) {
-					if(funcargs[i].type == Primitive.MetaType) {
-						for(int j = i + 1; j < funcargs.Length; j++) {
-							if(funcargs[j].type.ToString() == funcargs[i].id) funcargs[j].type = TypeLiteral(c.Args[i]);
-						}
-					}
-					if(!argtypes[i].Is(funcargs[i].type))
-						return Error("function " + c.Caller.ToString() + " expects (" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
-				}*/
+					if(ErrorCount == ec) return functype.ReturnType;
+				} return Error(c.Caller+" expects "+"(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
 			}
 			return Error("type " + calltype + " is not callable");
 		}
@@ -241,17 +242,10 @@ namespace Outlet.Checking {
 				d.ArrayLength = true;
 				return Primitive.Int;
 			}
-			if(inst is ProtoClass t) {
-				if(t.Instances.ContainsKey(d.Right)) return t.Instances[d.Right];
-				return Error(t.ToString() + " does not contain instance field: " + d.Right);
-			}
+			if(inst is ICheckableClass t) return t.GetInstanceType(d.Right);
 			if(inst == Primitive.MetaType) {
 				Type actual = TypeLiteral(d.Left);
-				if(actual is NativeClass nc) {
-					if(nc.Methods.ContainsKey(d.Right)) return nc.Methods[d.Right].Type;
-				} else if(actual is ProtoClass c) {
-					if(c.Statics.ContainsKey(d.Right)) return c.Statics[d.Right];
-				}
+				if(actual is ICheckableClass c) return c.GetStaticType(d.Right);
 				return Error("type " + actual.ToString() + " does not contain static field: " + d.Right);
 			}
 			return Error("cannot dereference type: " + inst.ToString());

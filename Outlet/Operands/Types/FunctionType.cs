@@ -10,7 +10,7 @@ namespace Outlet.Operands {
 		public readonly (Type type, string id)[] Args;
 		public readonly Type ReturnType;
 
-		public FunctionType((Type, string)[] args, Type returntype) : base(Primitive.Object, null) {
+		public FunctionType((Type, string)[] args, Type returntype) {
 			Args = args;
 			ReturnType = returntype;
 		}

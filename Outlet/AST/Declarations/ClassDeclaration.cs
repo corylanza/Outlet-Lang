@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ClassDeclaration : Declaration {
 
-		public readonly string SuperClass;
+		public readonly Variable SuperClass;
 		public readonly List<Declaration> InstanceDecls;
 		public readonly List<Declaration> StaticDecls;
 		public readonly ConstructorDeclaration Constructor;
 
-		public ClassDeclaration(string name, string superclass, ConstructorDeclaration constructor, List<Declaration> instance, List<Declaration> statics) {
+		public ClassDeclaration(string name, Variable superclass, ConstructorDeclaration constructor, List<Declaration> instance, List<Declaration> statics) {
 			Name = name;
 			SuperClass = superclass;
 			InstanceDecls = instance;

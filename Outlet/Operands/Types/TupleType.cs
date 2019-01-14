@@ -9,7 +9,7 @@ namespace Outlet.Operands {
 
 		public readonly Type[] Types;
 
-		public TupleType(params Type[] types) : base(Primitive.Object, null) {
+		public TupleType(params Type[] types) {
 			Types = types;
 		}
 

@@ -9,8 +9,6 @@ using Decl = Outlet.AST.Declarator;
 namespace Outlet.AST {
 	public class ConstructorDeclaration : FunctionDeclaration {
 
-		public Func<Class> Init;
-
 		public ConstructorDeclaration(Decl decl, List<Decl> argnames, Statement body) : base(decl, argnames, body) {
 
 		}

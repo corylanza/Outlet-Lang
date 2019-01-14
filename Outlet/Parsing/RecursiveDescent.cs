@@ -62,9 +62,9 @@ namespace Outlet.Parsing {
 				List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				ConstructorDeclaration constructor = null;
-				string superclass = "";
+				Variable superclass = null;
 				if(Match(Keyword.Extends)) {
-					 superclass = ConsumeType<Identifier>("expected name of super class after extends keyword").Name;
+					 superclass = new Variable(ConsumeType<Identifier>("expected name of super class after extends keyword").Name);
 				}
 				if(Match(Delimeter.LeftCurly)) {
 					while(true) {
@@ -121,7 +121,10 @@ namespace Outlet.Parsing {
 				while(tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
 					var nextdecl = NextDeclaration(tokens);
 					if(nextdecl is FunctionDeclaration fd) funcs.Add(fd);
-					if(nextdecl is ClassDeclaration cd) classes.Add(cd);
+					if(nextdecl is ClassDeclaration cd) {
+						if(cd.SuperClass == null) classes.Insert(0, cd);
+						else classes.Add(cd);
+					}
 					lines.Add(nextdecl);
 				}
 				Consume(Delimeter.RightCurly, "Expected } to close code block");

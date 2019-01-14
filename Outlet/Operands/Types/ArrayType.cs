@@ -9,7 +9,7 @@ namespace Outlet.Operands {
 
 		public Type ElementType;
 
-		public ArrayType(Type elem) : base (null, null) {
+		public ArrayType(Type elem) {
 			ElementType = elem;
 		}
 

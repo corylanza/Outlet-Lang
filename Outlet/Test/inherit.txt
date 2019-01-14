@@ -1,0 +1,29 @@
+﻿student a = student("cory", 20, 4.0);
+person b = person("jenna", 21);
+a.greet();
+b.greet();
+print(a is student);
+print(b is student);
+print(a.GPA);
+class student extends person {
+
+	float GPA;
+
+	student(string name, int age, float gpa) {
+		Name = name;
+		Age = age;
+		GPA = gpa;
+	}
+}
+
+class person {
+	string Name;
+	int Age;
+
+	person(string name, int age){
+		Name = name;
+		Age = age;
+	}
+
+	void greet() => print("hello my name is "+Name+" and i am "+Age);
+}

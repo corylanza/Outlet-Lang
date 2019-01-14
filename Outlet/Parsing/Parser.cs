@@ -24,7 +24,10 @@ namespace Outlet.Parsing {
 			while(tokens.Count > 0) {
 				var nextdecl = NextDeclaration(tokens);
 				if(nextdecl is FunctionDeclaration fd) funcs.Add(fd);
-				if(nextdecl is ClassDeclaration cd) classes.Add(cd);
+				if(nextdecl is ClassDeclaration cd) {
+					if(cd.SuperClass == null) classes.Insert(0, cd);
+					else classes.Add(cd);
+				}
 				lines.Add(nextdecl);
 			}
 			if (lines.Count == 1) return lines[0];

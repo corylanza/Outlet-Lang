@@ -36,6 +36,8 @@ namespace Outlet.Interpreting {
 		#region Declarations
 
 		public Operand Visit(ClassDeclaration c) {
+			// Find super class, if none it will always be object
+			Class super = c.SuperClass != null ? c.SuperClass.Accept(this) as Class : Primitive.Object;
 			// Enter new scope and declare all statics there
 			Scope closure = EnterScope();
 			foreach(Declaration d in c.StaticDecls) d.Accept(this);
@@ -43,14 +45,14 @@ namespace Outlet.Interpreting {
 			Operand Get(string s) => closure.Get(0, s);
 			void Set(string s, Operand val) => closure.Assign(0, s, val);
 			// Create class
-			Class newclass = new Class(c.Name, Get, Set);
+			UserDefinedClass newclass = new UserDefinedClass(c.Name, super, Get, Set);
 			// Hidden function for initializing instance variables/methods
-			Class Init() {
+			void Init() {
 				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
-				return newclass;
+				if(newclass.Parent is UserDefinedClass udc) udc.Init();
 			}
 			// Give the constructor this hidden initializer then declare it
-			c.Constructor.Init = Init;
+			newclass.Init = Init;
 			c.Constructor.Accept(this);
 			// leave the static scope
 			ExitScope();
@@ -67,7 +69,8 @@ namespace Outlet.Interpreting {
 				Scope instancescope = new Scope(staticscope);
 				Scopes.Push(instancescope);
 				// Call the constructors hidden init function to initialize instance variables/methods
-				Class type = c.Init();
+				UserDefinedClass type = staticscope.Get(1, c.Decl.Type.ToString()) as UserDefinedClass;
+				type.Init();
 				// Hidden functions that act as getters and setters for instance variables/methods
 				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
 				Operand Get(string s) => instancescope.Get(0, s);
@@ -116,7 +119,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(VariableDeclaration v) {
 			Type type = (Type)v.Decl.Accept(this);
-			Operand initial = v.Initializer?.Accept(this) ?? new Constant(type.Default);
+			Operand initial = v.Initializer?.Accept(this) ?? new Constant(type.Default());
 			CurScope().Add(v.Decl.ID, type, initial);
 			return null;
 		}
@@ -165,7 +168,7 @@ namespace Outlet.Interpreting {
 				if(temp is Instance i) {
 					i.SetInstanceVar(d.Right, val);
 					return val;
-				} else if(temp is Class c) {
+				} else if(temp is IRuntimeClass c) {
 					c.SetStatic(d.Right, val);
 					return val;
 				}
@@ -178,7 +181,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Call c) {
 			Operand caller = c.Caller.Accept(this);
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
-			if(caller is Class cl) caller = cl.GetStatic("");
+			if(caller is UserDefinedClass cl) caller = cl.GetStatic("");
 			if(caller is Function f) return f.Call(args);
 			else throw new RuntimeException(caller.Type.ToString() + " is not callable SHOULD NOT PRINT");
 		}
@@ -186,8 +189,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Deref d) {
 			Operand left = d.Left.Accept(this);
 			if(left is Operands.Array a) return new Constant(a.Values().Length);
-			if(left is NativeClass nc) return nc.Methods[d.Right];
-			if(left is Class c) return c.GetStatic(d.Right);
+			if(left is IRuntimeClass c) return c.GetStatic(d.Right);
 			if(left is Instance i) return i.GetInstanceVar(d.Right);
 			if(left is Constant n && n.Value is null) throw new RuntimeException("null pointer exception");
 			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");

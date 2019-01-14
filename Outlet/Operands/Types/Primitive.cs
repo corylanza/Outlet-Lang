@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Operands {
-	public class Primitive : Type {
+	public class Primitive : Class {
 		
 		public static Primitive MetaType = new Primitive("type", null, null);
 		public static Primitive Void = new Primitive("void", null, null);
@@ -17,31 +17,10 @@ namespace Outlet.Operands {
 		// cannot be referenced like other types but is used under the hood
 		public static Primitive Null = new Primitive("null", Object, null);
 
-		private readonly string Name;
+		//private readonly string Name;
 
-		private Primitive(string name, Type parent, object def) : base(parent, def) {
+		private Primitive(string name, Class parent, object def) : base(name, parent, def) {
 			Name = name;
 		}
-
-		public override bool Is(Type t) {
-			if(Equals(t)) return true;
-			if(!(Parent is null)) return Parent.Is(t);
-			return false;
-		}
-
-		public override bool Is(Type t, out int level) {
-			level = 0;
-			if(Equals(t)) return true;
-			if(!(Parent is null) && Parent.Is(t, out int l)) {
-				level = l+1;
-				return true;
-			}
-			level = -1;
-			return false;
-		}
-
-		public override bool Equals(Operand b) => ReferenceEquals(this, b);
-
-		public override string ToString() => Name;
 	}
 }
