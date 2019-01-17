@@ -66,12 +66,10 @@ namespace Outlet.Operands {
 
 		public readonly Decls Statics;
 		public readonly Decls Instances;
-		public readonly ProtoClass SuperClass;
 
-		public ProtoClass(string name, ProtoClass parent, Decls instances, Decls statics) : base(name, parent, null) {
+		public ProtoClass(string name, Class parent, Decls instances, Decls statics) : base(name, parent, null) {
 			Instances = instances;
 			Statics = statics;
-			SuperClass = parent;
 		}
 
 		public Type GetStaticType(string s) {
@@ -80,10 +78,10 @@ namespace Outlet.Operands {
 			return Checker.Error(this + " does not contain static field: " + s);
 		}
 		public Type GetInstanceType(string s) {
-			ProtoClass cur = this;
+			Class cur = this;
 			while(cur != null) {
-				if(cur.Instances.ContainsKey(s)) return cur.Instances[s];
-				cur = cur.SuperClass;
+				if(cur is ProtoClass pc && pc.Instances.ContainsKey(s)) return pc.Instances[s];
+				cur = cur.Parent;
 			}
 			return Checker.Error(this + " does not contain instance field: " + s);
 		}

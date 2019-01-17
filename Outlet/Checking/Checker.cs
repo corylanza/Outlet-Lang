@@ -46,7 +46,7 @@ namespace Outlet.Checking {
 
 		public static Type Error(string message) {
 			ErrorCount++;
-			Program.ThrowException(message);
+			if(message != "") Program.ThrowException(message);
 			return ErrorType;
 		}
 
@@ -78,12 +78,13 @@ namespace Outlet.Checking {
 			if(!DoImpl.Peek()) {
 				var statics = new Dictionary<string, Type>();
 				var instances = new Dictionary<string, Type>();
-				ProtoClass parent = null;
+				Class parent = Primitive.Object;
 				if(c.SuperClass != null) {
 					if(c.SuperClass.Accept(this) != Primitive.MetaType) Error("cannot extend anything other than a class");
 					else {
-						parent = FindType(c.SuperClass.resolveLevel, c.SuperClass.Name) as ProtoClass;
-						//parent.Instances.ToList().ForEach(x => instances.Add(x.Key, x.Value));
+						Type parenttype = FindType(c.SuperClass.resolveLevel, c.SuperClass.Name);
+						if(parenttype is Class pt) parent = pt;
+						else Error("cannot extend anything other than a class");
 					}
 				}
 				DefineType(new ProtoClass(c.Name, parent, instances, statics), c.Name);
@@ -108,10 +109,12 @@ namespace Outlet.Checking {
 				}
 				EnterScope();
 				foreach(Declaration d in c.StaticDecls) d.Accept(this);
+				foreach(Declaration d in c.StaticDecls) if(d is FunctionDeclaration fd) Define(fd.Type, fd.Name);
 				if(parent != null) foreach(KeyValuePair<string, Type> d in parent.Statics) Define(d.Value, d.Key);
 				EnterScope();
 				Define(FindType(2, c.Name), "this");
 				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
+				foreach(Declaration d in c.InstanceDecls) if(d is FunctionDeclaration fd) Define(fd.Type, fd.Name);
 				if(parent != null) foreach(KeyValuePair<string, Type> d in parent.Instances) Define(d.Value, d.Key);
 				c.Constructor.Accept(this);
 				ExitScope();

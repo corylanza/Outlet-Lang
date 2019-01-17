@@ -133,8 +133,6 @@ namespace Outlet.Parsing {
 						while (stack.Count > 0 && !(stack.Peek() is Delimeter d && d.Name == "[")) {
 							ReduceOperator(output, stack);
 						}
-						//if (stack.Count > 0) stack.Pop();
-						//else throw new OutletException("expected [ before ] in list literal");
 						int idxlen = arity.Pop();
 						Expression[] list = new Expression[idxlen];
 						for (int i = 0; i < idxlen; i++) {

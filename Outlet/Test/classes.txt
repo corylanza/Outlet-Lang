@@ -6,7 +6,7 @@
 	person(string n, int a) {
 		Name = n;
 		Age = a;
-		person.make();
+		make();
 		print("contructed "+Name+" "+Age+" count "+count);
 	}
 

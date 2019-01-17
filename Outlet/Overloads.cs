@@ -17,8 +17,6 @@ namespace Outlet {
 
 		public void Add(T t) => Overloads.Add(t);
 
-		//https://en.cppreference.com/w/cpp/language/overload_resolution
-
 		// all functions that use the same name and 
 		public List<T> Candidates() => Overloads;
 		// checks valid arg num and that each arg has a valid conversion

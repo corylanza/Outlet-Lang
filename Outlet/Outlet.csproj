@@ -108,7 +108,6 @@
     <Compile Include="Checking\Checker.cs" />
     <Compile Include="Interpreting\Interpreter.cs" />
     <Compile Include="Operation.cs" />
-    <Compile Include="Optimizing\ConstOptimizer.cs" />
     <Compile Include="Overloads.cs" />
     <Compile Include="AST\Statements\ForLoop.cs" />
     <Compile Include="AST\Statements\IfStatement.cs" />

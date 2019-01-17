@@ -18,8 +18,6 @@ namespace Outlet.AST {
 			return visitor.Visit(this);
 		}
 
-		public override string ToString() {
-			throw new NotImplementedException();
-		}
+		public override string ToString() => "lambda";
 	}
 }

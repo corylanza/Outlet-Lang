@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Outlet.Operands;
+using Outlet.Checking;
 using Type = Outlet.Operands.Type;
 
 namespace Outlet {
@@ -36,19 +37,21 @@ namespace Outlet {
 		}
 
 		public void Declare(Type t, string s) {
-			if(Defined.ContainsKey(s)) throw new CheckerException("variable " + s + " already declared in this scope");
-			Defined.Add(s, (t, false));
+			if(Defined.ContainsKey(s)) Checker.Error("variable " + s + " already declared in this scope");//throw new CheckerException("variable " + s + " already declared in this scope");
+			else Defined.Add(s, (t, false));
 		}
 
 		public void Define(Type t, string s) {
-			if(Defined.ContainsKey(s) && Defined[s].defined) throw new CheckerException("variable " + s + " already defined in this scope");
-			Defined[s] = (t, true);
+			if(Defined.ContainsKey(s) && Defined[s].defined) Checker.Error("variable " + s + " already defined in this scope"); //throw new CheckerException("variable " + s + " already defined in this scope");
+			else Defined[s] = (t, true);
 		}
 
 		public void DefineType(Type t, string name) {
-			if(Defined.ContainsKey(name) && Defined[name].defined) throw new CheckerException("type " + name + " already defined in this scope");
-			DefinedTypes[name] = t;
-			Defined[name] = (Primitive.MetaType, true);
+			if(Defined.ContainsKey(name) && Defined[name].defined) Checker.Error("type " + name + " already defined in this scope"); //throw new CheckerException("type " + name + " already defined in this scope");
+			else {
+				DefinedTypes[name] = t;
+				Defined[name] = (Primitive.MetaType, true);
+			}
 		}
 
 		public (Type, int) Find(string s) {

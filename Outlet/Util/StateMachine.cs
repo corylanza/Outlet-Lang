@@ -18,13 +18,13 @@ namespace Outlet.Util {
             return Cur;
         }
 
-        public State<Tin, Tout> AddStartState(bool accepting=false, bool keep=false, Tout action=default(Tout)) {
+        public State<Tin, Tout> AddStartState(bool accepting=false, bool keep=false, Tout action = default) {
             var s = new State<Tin, Tout>(accepting, keep, action);
             Cur = s;
             return s;
         }
 
-        public State<Tin, Tout> AddState(bool accepting=false, bool keep = false, Tout action=default(Tout)) 
+        public State<Tin, Tout> AddState(bool accepting=false, bool keep = false, Tout action = default) 
             => new State<Tin, Tout>(accepting, keep, action);
     }
 }

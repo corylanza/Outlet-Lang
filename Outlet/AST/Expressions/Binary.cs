@@ -18,15 +18,6 @@ namespace Outlet.AST {
 			Overloads = overloads;
 			Op = op;
         }
-		/*
-		public override Operand Eval(Scope scope) {
-			return Oper.Perform(Left.Eval(scope), Right.Eval(scope));
-		}
-
-        public override void Resolve(Scope scope) {
-            Left.Resolve(scope);
-            Right.Resolve(scope);
-        }*/
 
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);

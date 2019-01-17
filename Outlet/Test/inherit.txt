@@ -23,7 +23,12 @@ class person {
 	person(string name, int age){
 		Name = name;
 		Age = age;
+		//greet();
+		//intro();
 	}
-
-	void greet() => print("hello my name is "+Name+" and i am "+Age);
+	static void intro() => print("hello again");
+	void greet() {
+		print("hello my name is "+Name+" and i am "+Age);
+		intro();
+	}
 }

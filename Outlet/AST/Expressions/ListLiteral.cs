@@ -12,12 +12,6 @@ namespace Outlet.AST {
 		public ListLiteral(params Expression[] vals) {
 			Args = vals;
 		}
-		/*
-		public override Operand Eval(Scope scope) => new OList(Args.Select(arg => arg.Eval(scope)).ToArray());
-
-		public override void Resolve(Scope scope) {
-			foreach (Expression e in Args) e.Resolve(scope);
-		}*/
 
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);

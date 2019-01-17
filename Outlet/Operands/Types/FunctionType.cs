@@ -21,7 +21,7 @@ namespace Outlet.Operands {
 				for(int i = 0; i < Args.Length; i++) {
 					if(!Args[i].type.Is(ft.Args[i].type)) return false;
 				}
-				return true;
+				return ReturnType.Is(ft.ReturnType);
 			} return false;
 		}
 
