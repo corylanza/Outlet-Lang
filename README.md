@@ -1,6 +1,5 @@
 # Outlet-Lang
 The Outlet programming language
-## Info
 ## Syntax
 ### Declarations
 Declaring a Variable:
