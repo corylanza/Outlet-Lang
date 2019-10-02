@@ -50,7 +50,8 @@ namespace Outlet.Tokens {
 																			new Constant(l.Value / r.Value)),
 																		new BinOp(Flt, Flt, Flt, (l, r) => r.Value == 0 ?
 																			throw new RuntimeException("Divide By 0") :
-																			new Constant(l.Value / r.Value)));
+																			new Constant(l.Value / r.Value)),
+                                                                        new BinOp(Met, Met, Met, (l, r) => new UnionType(l as Type, r as Type)));
 			Modulus =		new BinaryOperator("%",    3,  Side.Left, 	new BinOp(Int, Int, Int, (l, r) => r.Value == 0 ? 
 																			throw new RuntimeException("Divide By 0") : 
 																			new Constant(l.Value % r.Value)));

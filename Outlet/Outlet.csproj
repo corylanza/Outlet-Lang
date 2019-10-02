@@ -107,6 +107,7 @@
     <Compile Include="AST\Expressions\TupleLiteral.cs" />
     <Compile Include="Checking\Checker.cs" />
     <Compile Include="Interpreting\Interpreter.cs" />
+    <Compile Include="Operands\Types\UnionType.cs" />
     <Compile Include="Operation.cs" />
     <Compile Include="Overloads.cs" />
     <Compile Include="AST\Statements\ForLoop.cs" />
