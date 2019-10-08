@@ -182,7 +182,7 @@ namespace Outlet.Interpreting {
 			Operand caller = c.Caller.Accept(this);
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
 			if(caller is UserDefinedClass cl) caller = cl.GetStatic("");
-			if(caller is Function f) return f.Call(args);
+			if(caller is ICallable f) return f.Call(args);
 			else throw new RuntimeException(caller.Type.ToString() + " is not callable SHOULD NOT PRINT");
 		}
 

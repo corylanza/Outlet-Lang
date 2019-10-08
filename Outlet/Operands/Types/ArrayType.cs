@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Operands {
-	public class ArrayType : Type {
+	public class ArrayType : Type, ICheckableClass {
 
 		public Type ElementType;
 
@@ -15,7 +15,18 @@ namespace Outlet.Operands {
 
 		public override bool Equals(Operand b) => b is ArrayType at && ElementType.Equals(at.ElementType);
 
-		public override bool Is(Type t) => t == Primitive.Object || t is ArrayType at && ElementType.Is(at.ElementType);
+        public Type GetInstanceType(string s)
+        {
+            // TODO needed to create methods such as list.count()
+            throw new NotImplementedException();
+        }
+
+        public Type GetStaticType(string s)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool Is(Type t) => t == Primitive.Object || t is ArrayType at && ElementType.Is(at.ElementType);
 
 		public override bool Is(Type t, out int level) {
 			throw new NotImplementedException();
