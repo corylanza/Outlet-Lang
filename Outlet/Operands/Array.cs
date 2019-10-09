@@ -31,5 +31,5 @@ namespace Outlet.Operands {
 			}
 			return s.Substring(0, s.Length - 2) + "]";
 		}
-	}
+    }
 }

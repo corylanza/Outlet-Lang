@@ -10,7 +10,7 @@ namespace Outlet.Operands {
 		public readonly Getter GetInstanceVar;
 		public readonly Setter SetInstanceVar;
 
-		public Instance(UserDefinedClass type, Getter get, Setter set) {
+		public Instance(Type type, Getter get, Setter set) {
 			Type = type;
 			GetInstanceVar = get;
 			SetInstanceVar = set;

@@ -188,7 +188,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(Deref d) {
 			Operand left = d.Left.Accept(this);
-			if(left is Operands.Array a) return new Constant(a.Values().Length);
+			if(left is Operands.Array a && d.ArrayLength) return new Constant(a.Values().Length);
 			if(left is IRuntimeClass c) return c.GetStatic(d.Right);
 			if(left is Instance i) return i.GetInstanceVar(d.Right);
 			if(left is Constant n && n.Value is null) throw new RuntimeException("null pointer exception");
