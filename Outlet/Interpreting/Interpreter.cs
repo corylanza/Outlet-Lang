@@ -44,8 +44,9 @@ namespace Outlet.Interpreting {
 			// Hidden functions for getting and setting statics
 			Operand Get(string s) => closure.Get(0, s);
 			void Set(string s, Operand val) => closure.Assign(0, s, val);
+            IEnumerable<Operand> List() => closure.List();
 			// Create class
-			UserDefinedClass newclass = new UserDefinedClass(c.Name, super, Get, Set);
+			UserDefinedClass newclass = new UserDefinedClass(c.Name, super, Get, Set, List);
 			// Hidden function for initializing instance variables/methods
 			void Init() {
 				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
@@ -94,7 +95,7 @@ namespace Outlet.Interpreting {
 			// Define the constructor as "" in the static scope (this is a special case
 			// as it cannot be stored in the instance scope despite its being resolved 
 			// at the instance level)
-			var func = new Function(c.Decl.ID, c.Type, UnderlyingConstructor);
+			var func = new UserDefinedFunction(c.Decl.ID, c.Type, UnderlyingConstructor);
 			staticscope.Add("", func.Type, func);
 			return null;
 		}
@@ -112,7 +113,7 @@ namespace Outlet.Interpreting {
 				ExitScope();
 				return returnval;
 			}
-			var func = new Function(f.Decl.ID, f.Type, HiddenFunc);
+			var func = new UserDefinedFunction(f.Decl.ID, f.Type, HiddenFunc);
 			CurScope().Add(f.Decl.ID, func.Type, func);
 			return null;
 		}
@@ -181,7 +182,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Call c) {
 			Operand caller = c.Caller.Accept(this);
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
-			if(caller is UserDefinedClass cl) caller = cl.GetStatic("");
+			if(caller is IRuntimeClass cl) caller = cl.GetStatic("");
 			if(caller is ICallable f) return f.Call(args);
 			else throw new RuntimeException(caller.Type.ToString() + " is not callable SHOULD NOT PRINT");
 		}
@@ -296,8 +297,9 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(WhileLoop w) {
 			while(w.Condition.Accept(this).Value is bool b && b) {
-				w.Body.Accept(this);
-			}
+				var ret = w.Body.Accept(this);
+                if (w.Body is Statement s && !(s is Expression) && ret != null) return ret;
+            }
 			return null;
 		}
 

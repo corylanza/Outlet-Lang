@@ -19,7 +19,7 @@ namespace Outlet {
 			return new FunctionType(t.Take(t.Length - 1).Select(x => (x, "")).ToArray(), t.Last());
 		}
 
-		public static Dictionary<string, Function> NativeFunctions = new Dictionary<string, Function>() {
+        public static Dictionary<string, Function> NativeFunctions = new Dictionary<string, Function>(); /*{
 			{"print",       new Native(MakeType(Object, Void), (Operand[] o) => {
 									foreach(Operand op in o){
 										Console.WriteLine(op.ToString());
@@ -35,7 +35,7 @@ namespace Outlet {
 											return new Operands.Array(arr.Values().Select(x => ft.Call(x)).ToArray());
 										})
 			}
-		};
+		};*/
 
 	public static Dictionary<string, Type> NativeTypes = new Dictionary<string, Type>() {
 			{"int", Primitive.Int },
@@ -45,16 +45,16 @@ namespace Outlet {
 			{"object", Primitive.Object },
 			{"type", Primitive.MetaType },
 			{"void", Primitive.Void },
-			{"math", new NativeClass("math",
+			/*{"math", new NativeClass("math",
 				("pi", new Constant((float) Math.PI)),
 				("sin", new Native(MakeType(Float, Float),
 					(Operand[] o) => new Constant((float) Math.Sin(o[0].Value)))),
 				("pow", new Native(MakeType(Int, Int, Int),
 					(Operand[] o) => new Constant((int) Math.Pow(o[0].Value, o[1].Value))))
-			)},
-			{"file", new NativeClass("file"
+			)},*/
+			/*{"file", new NativeClass("file"
 				//("open", new Native(MakeType(String)))
-			)}
+			)}*/
 		};
 
 		

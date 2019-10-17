@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Decls = System.Collections.Generic.Dictionary<string, Outlet.Operands.Type>;
 using Outlet.Checking;
-using Outlet.AST;
 
 namespace Outlet.Operands {
 
@@ -49,18 +44,29 @@ namespace Outlet.Operands {
 
 		private readonly Getter StaticGetter;
 		private readonly Setter StaticSetter;
+        private readonly Lister GetList;
 		public Action Init;
 
-		public UserDefinedClass(string name, Class parent, Getter get, Setter set) : base(name, parent, null) {
+		public UserDefinedClass(string name, Class parent, Getter get, Setter set, Lister list) : base(name, parent, null) {
 			Name = name;
 			StaticGetter = get;
 			StaticSetter = set;
+            GetList = list;
 		}
 
 		public Operand GetStatic(string s) => StaticGetter(s);
 		public void SetStatic(string s, Operand val) => StaticSetter(s, val);
 
-	}
+        public override string ToString()
+        {
+            string output = Name + "{\n";
+            foreach(Operand op in GetList())
+            {
+                output += op.ToString() + " \n";
+            }
+            return output + "}";
+        }
+    }
 
 	public class ProtoClass : Class, ICheckableClass {
 
@@ -85,25 +91,6 @@ namespace Outlet.Operands {
 			}
 			return Checker.Error(this + " does not contain instance field: " + s);
 		}
-	}
-
-	public class NativeClass : Class, IRuntimeClass, ICheckableClass {
-
-		private readonly Dictionary<string, Operand> Methods = new Dictionary<string, Operand>();
-
-		public NativeClass(string name, params (string, Operand)[] f) : base(name, null, null){
-			Name = name;
-			foreach(var v in f) Methods.Add(v.Item1, v.Item2);
-		}
-
-		public Operand GetStatic(string s) => Methods[s];
-		public void SetStatic(string s, Operand val) => Methods[s] = val;
-		public Type GetStaticType(string s) {
-			if(Methods.ContainsKey(s)) return Methods[s].Type;
-			if(s == "") return Checker.Error("type " + this + " is not instantiable");
-			return Checker.Error(this + " does not contain static field: " + s);
-		}
-		public Type GetInstanceType(string s) => throw new NotImplementedException();
 	}
 	
 	public interface ICheckableClass {

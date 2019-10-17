@@ -369,6 +369,7 @@ namespace Outlet.Checking {
 			Type iffalse = i.Iffalse?.Accept(this);
 			if(i.Iftrue is Statement && !(i.Iftrue is Expression) && iftrue != null) {
 				if(i.Iffalse is Statement && !(i.Iffalse is Expression) && iffalse != null) {
+                    // TODO should return common ancestor
 					return iftrue;
 				}
 			}
@@ -382,8 +383,9 @@ namespace Outlet.Checking {
 		public Type Visit(WhileLoop w) {
 			Type cond = w.Condition.Accept(this);
 			Cast(cond, Bool, "while loop condition requires a boolean, found a {0}");
-			w.Body.Accept(this);
-			return null;
+			Type body = w.Body.Accept(this);
+            if (w.Body is Statement && !(w.Body is Expression) && body != null) return body;
+            return null;
 		}
 
 		#endregion

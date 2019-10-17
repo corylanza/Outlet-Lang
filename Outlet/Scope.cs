@@ -37,17 +37,17 @@ namespace Outlet {
 		}
 
 		public void Declare(Type t, string s) {
-			if(Defined.ContainsKey(s)) Checker.Error("variable " + s + " already declared in this scope");//throw new CheckerException("variable " + s + " already declared in this scope");
+			if(Defined.ContainsKey(s)) Checker.Error("variable " + s + " already declared in this scope");
 			else Defined.Add(s, (t, false));
 		}
 
 		public void Define(Type t, string s) {
-			if(Defined.ContainsKey(s) && Defined[s].defined) Checker.Error("variable " + s + " already defined in this scope"); //throw new CheckerException("variable " + s + " already defined in this scope");
+			if(Defined.ContainsKey(s) && Defined[s].defined) Checker.Error("variable " + s + " already defined in this scope");
 			else Defined[s] = (t, true);
 		}
 
 		public void DefineType(Type t, string name) {
-			if(Defined.ContainsKey(name) && Defined[name].defined) Checker.Error("type " + name + " already defined in this scope"); //throw new CheckerException("type " + name + " already defined in this scope");
+			if(Defined.ContainsKey(name) && Defined[name].defined) Checker.Error("type " + name + " already defined in this scope");
 			else {
 				DefinedTypes[name] = t;
 				Defined[name] = (Primitive.MetaType, true);
@@ -74,6 +74,12 @@ namespace Outlet {
 			if(level == 0) return Variables[s].Value;
 			else return Parent.Get(level - 1, s);
 		}
+
+        public IEnumerable<Operand> List() {
+            foreach(string variableName in Variables.Keys) {
+                yield return Variables[variableName].Value;
+            }
+        }
 
 		public void Add(string id, Type t, Operand v) {
 			Variables[id] = (t, v);

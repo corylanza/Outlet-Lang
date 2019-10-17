@@ -11,7 +11,7 @@ namespace Outlet {
 
 		public readonly Type Input, Result;
 		private readonly Func<Operand, Operand> Native;
-		private readonly Function UserDefined;
+		private readonly UserDefinedFunction UserDefined;
 
         public UnOp(Type input, Type result, Func<Operand, Operand> f) {
 			Input = input;
@@ -19,7 +19,7 @@ namespace Outlet {
 			Native = f;
         }
 
-		public UnOp(Type input, Type result, Function f) {
+		public UnOp(Type input, Type result, UserDefinedFunction f) {
 			Input = input;
 			Result = result;
 			UserDefined = f;

@@ -20,6 +20,7 @@ namespace Outlet.Operands {
 	public delegate Operand CallFunc(params Operand[] args);
 	public delegate Operand Getter(string s);
 	public delegate void Setter(string s, Operand val);
+    public delegate IEnumerable<Operand> Lister();
 
 	public interface ICallable {
 		Operand Call(params Operand[] args);

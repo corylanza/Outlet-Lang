@@ -11,11 +11,13 @@ using Outlet.AST;
 using Outlet.Checking;
 using Outlet.Operands;
 using Outlet.Interpreting;
+using Outlet.FFI;
 
 namespace Outlet {
 	public static class Program {
 
 		public static void Main(string[] args) {
+            FFIConfig.Register();
             if(args.Length == 0) REPL();
 			if(args.Length == 1 && args[0] == "run") {
 				while(true) {
@@ -32,6 +34,7 @@ namespace Outlet {
 				byte[] file = File.ReadAllBytes(path);
 				byte[] bytes = file.Skip(3).ToArray();
 				Run(bytes);
+				Console.ReadLine();
 			}
         }
 
