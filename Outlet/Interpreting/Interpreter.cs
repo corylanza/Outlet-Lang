@@ -44,16 +44,14 @@ namespace Outlet.Interpreting {
 			// Hidden functions for getting and setting statics
 			Operand Get(string s) => closure.Get(0, s);
 			void Set(string s, Operand val) => closure.Assign(0, s, val);
-            IEnumerable<Operand> List() => closure.List();
-			// Create class
-			UserDefinedClass newclass = new UserDefinedClass(c.Name, super, Get, Set, List);
+            IEnumerable<(string, Operand)> List() => closure.List();
 			// Hidden function for initializing instance variables/methods
 			void Init() {
 				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
-				if(newclass.Parent is UserDefinedClass udc) udc.Init();
+				if(super is UserDefinedClass udc) udc.Init();
 			}
-			// Give the constructor this hidden initializer then declare it
-			newclass.Init = Init;
+            // Create class
+            UserDefinedClass newclass = new UserDefinedClass(c.Name, super, Get, Set, List, Init);
 			c.Constructor.Accept(this);
 			// leave the static scope
 			ExitScope();
@@ -76,7 +74,7 @@ namespace Outlet.Interpreting {
 				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
 				Operand Get(string s) => instancescope.Get(0, s);
 				// Create the new instance and define this
-				Instance inst = new Instance(type, Get, Set);
+				Instance inst = new Instance(type, Get, Set, instancescope.List());
 				instancescope.Add("this", type, inst);
 				// Enter the scope of the constructor
 				Scope constructorscope = new Scope(instancescope);
@@ -184,6 +182,10 @@ namespace Outlet.Interpreting {
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
 			if(caller is IRuntimeClass cl) caller = cl.GetStatic("");
 			if(caller is ICallable f) return f.Call(args);
+            if(caller is MethodGroup m)
+            {
+                return m.FindBestMatch(args).Call(args);
+            }
 			else throw new RuntimeException(caller.Type.ToString() + " is not callable SHOULD NOT PRINT");
 		}
 
@@ -302,6 +304,17 @@ namespace Outlet.Interpreting {
             }
 			return null;
 		}
+
+        public Operand Visit(UsingStatement u)
+        {
+            Operand toUse = u.Used.Accept(this);
+            if (toUse is IRuntimeClass rc) 
+            {
+                Console.WriteLine("using " + rc);
+                return null;
+            } 
+            else throw new OutletException(u + " is not a valid using statement");
+        }
 
 		#endregion
 	}

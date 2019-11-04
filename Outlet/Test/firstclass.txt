@@ -2,14 +2,14 @@
 person b = person("jenna", 21);
 a.Age = 25;/*
 person.count = 20;*/
-print(person.count + " people have been made");
+console.print(person.count + " people have been made");
 a.intro();
 b.intro();
-print(compare(a, b).Name + " is older");
+console.print(compare(a, b).Name + " is older");
 class person {
 
 	static int count = 0;
-	static void make() => print("made");
+	static void make() => console.print("made");
 
 	string Name;
 	int Age;
@@ -19,7 +19,7 @@ class person {
 		this.Name = name;
 		Age = age;
 	}
-	static void greet() => print("hello!");
-	void intro() => print("Hello, my name is "+Name);
+	static void greet() => console.print("hello!");
+	void intro() => console.print("Hello, my name is "+Name);
 }
 person compare(person a, person b)=> a.Age >= b.Age ? a : b;

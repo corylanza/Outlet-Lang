@@ -1,7 +1,7 @@
 ﻿string a = "global";
 {
   void showA() {
-    print(a);
+    console.print(a);
   }
 
   showA();

@@ -35,5 +35,6 @@ namespace Outlet {
 		T Visit(IfStatement i);
 		T Visit(ReturnStatement r);
 		T Visit(WhileLoop w);
+        T Visit(UsingStatement u);
 	}
 }

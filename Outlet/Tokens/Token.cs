@@ -12,7 +12,7 @@ namespace Outlet.Tokens {
 		public static Token Get(string text) => Tokens[text];
 
 
-		private static Dictionary<string, Token> Tokens = new Dictionary<string, Token>() {
+		private static readonly Dictionary<string, Token> Tokens = new Dictionary<string, Token>() {
 			// Keywords
 			{"class", Keyword.Class },
 			{"static", Keyword.Static },
@@ -25,6 +25,7 @@ namespace Outlet.Tokens {
 			{"in", Keyword.In },
 			{"while", Keyword.While },
 			{"return", Keyword.Return },
+            {"using", Keyword.Using },
 			// Operators
 			{"++", Operator.PostInc },
 			{"--", Operator.PostDec },

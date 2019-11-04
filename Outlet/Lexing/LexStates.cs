@@ -12,38 +12,38 @@ namespace Outlet.Lexing {
 
         static StateMachine<CharType, Tokenizer> machine = new StateMachine<CharType, Tokenizer>();
 
-        static State start = machine.AddStartState(); // starting / default state
-        static State id = machine.AddState(true, true, TokenizeID);
+        private static readonly State
+            start = machine.AddStartState(), // starting / default state
+            id = machine.AddState(true, true, TokenizeID),
+            // ints and floats
+            number = machine.AddState(true, true, TokenizeInt),
+            floatdot = machine.AddState(false, true), // after seeing a .
+            sfloat = machine.AddState(true, true, TokenizeFloat), // prevents double dec e.g. 34.2.3
 
-        // ints and floats
-        static State number = machine.AddState(true, true, TokenizeInt);
-        static State floatdot = machine.AddState(false, true); // after seeing a .
-        static State sfloat = machine.AddState(true, true, TokenizeFloat); // prevents double dec e.g. 34.2.3
+            // strings
+            prestring = machine.AddState(false, false), // after seeing a "
+            instring = machine.AddState(false, true),
+            poststring = machine.AddState(true, false, TokenizeString),
+            //escaped = machine.AddState();
 
-        // strings
-        static State prestring = machine.AddState(false, false); // after seeing a "
-        static State instring = machine.AddState(false, true);
-        static State poststring = machine.AddState(true, false, TokenizeString);
-        //static State escaped = machine.AddState();
-
-        // operators
-        static State plus = machine.AddState(true, true, TokenizeOp);
-        static State minus = machine.AddState(true, true, TokenizeOp);
-		static State and = machine.AddState(true, true, TokenizeOp);
-		static State or = machine.AddState(true, true, TokenizeOp);
-		static State forwardslash = machine.AddState(true, true, TokenizeOp);
-        static State lt = machine.AddState(true, true, TokenizeOp);
-        static State gt = machine.AddState(true, true, TokenizeOp);
-		static State equal = machine.AddState(true, true, TokenizeOp);
-        static State preequal = machine.AddState(true, true, TokenizeOp); // operators that a = can be added to
-		static State dot = machine.AddState(true, true, TokenizeOp);
-		static State dotdot = machine.AddState(true, true, TokenizeOp);
-        static State finalop = machine.AddState(true, true, TokenizeOp); //no more chars can be added to this op
-
-		static State linecomment = machine.AddState(false, false, NoToken);
-        static State comment = machine.AddState(false, false, NoToken);
-		static State commentesc = machine.AddState(false, false, NoToken);
-		static State commentend = machine.AddState(true, false, NoToken);
+            // operators
+            plus = machine.AddState(true, true, TokenizeOp),
+            minus = machine.AddState(true, true, TokenizeOp),
+            and = machine.AddState(true, true, TokenizeOp),
+            or = machine.AddState(true, true, TokenizeOp),
+            forwardslash = machine.AddState(true, true, TokenizeOp),
+            lt = machine.AddState(true, true, TokenizeOp),
+            gt = machine.AddState(true, true, TokenizeOp),
+            equal = machine.AddState(true, true, TokenizeOp),
+            preequal = machine.AddState(true, true, TokenizeOp), // operators that a = can be added to
+            dot = machine.AddState(true, true, TokenizeOp),
+            dotdot = machine.AddState(true, true, TokenizeOp),
+            finalop = machine.AddState(true, true, TokenizeOp), //no more chars can be added to this op
+            // comments
+            linecomment = machine.AddState(false, false, NoToken),
+            comment = machine.AddState(false, false, NoToken),
+            commentesc = machine.AddState(false, false, NoToken),
+            commentend = machine.AddState(true, false, NoToken);
 
 
 		static void InitStates() {

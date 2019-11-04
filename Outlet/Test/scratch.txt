@@ -4,3 +4,34 @@
 }
 print(math.fac(5));
 print(math.pow(10,3));
+
+class Node {
+	Node next;
+	int val;
+
+	Node(Node n, int v) {
+		next = n; val = v;
+	}
+}
+
+class List {
+	
+	Node first;
+
+	List(int[] elements) {
+		Node cur; 
+		for(int i in elements) {
+			cur = Node(cur, elements[i]);
+		}
+		first = cur;
+	}
+
+	int get(int i) {
+		Node cur = first;
+		while(i > 0) {
+			cur = cur.next;
+			i--;
+		}
+		return cur.val;
+	}
+}

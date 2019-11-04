@@ -5,10 +5,10 @@
 	} return closure;
 }
 (string) => int point = MakePoint(1, 2);
-print(point("x"));
-print(point("y"));
+console.print(point("x"));
+console.print(point("y"));
 (string) => int point2 = MakePoint(3, 4);
-print(point2("x"));
-print(point2("y"));
-print(point("x"));
-print(point("y"));
+console.print(point2("x"));
+console.print(point2("y"));
+console.print(point("x"));
+console.print(point("y"));

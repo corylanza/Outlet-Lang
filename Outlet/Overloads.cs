@@ -9,7 +9,7 @@ using Type = Outlet.Operands.Type;
 namespace Outlet {
 	public class Overload<T> where T : IOverloadable {
 
-		private List<T> Overloads = new List<T>(); 
+		private readonly List<T> Overloads = new List<T>(); 
 
 		public Overload(params T[] t) {
 			Overloads = t.ToList();
@@ -17,20 +17,24 @@ namespace Outlet {
 
 		public void Add(T t) => Overloads.Add(t);
 
-		// all functions that use the same name and 
-		public List<T> Candidates() => Overloads;
-		// checks valid arg num and that each arg has a valid conversion
-		public List<T> Viable(params Type[] inputs) => Overloads.Where(x => x.Valid(inputs)).ToList();
 		// finds closest match
-		public T Best(params Type[] inputs) {
-			var viable = Viable(inputs);
-			if(viable.Count == 1) return viable[0];
-			return viable.MinElement(x => x.Level(inputs));
+		public T FindBestMatch(params Type[] inputs) {
+            (T best, int bestLevel) = (default, -1);
+            foreach(T overload in Overloads)
+            {
+                bool valid = overload.Valid(out int level, inputs);
+                if (!valid) continue;
+                if (bestLevel == -1 || level < bestLevel)
+                {
+                    (best, bestLevel) = (overload, level);
+                }
+            }
+
+            return best;
 		}
 	}
 
 	public interface IOverloadable {
-		bool Valid(params Type[] inputs);
-		int Level(params Type[] inputs);
+		bool Valid(out int level, params Type[] inputs);
 	}
 }

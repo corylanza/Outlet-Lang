@@ -9,18 +9,17 @@ namespace Outlet.Operands {
 
 		public dynamic Value;
 		public Type Type;
-		
-		public override bool Equals(object obj) => obj is Operand o && Equals(o);
-		public override int GetHashCode() => base.GetHashCode();
-		
+
 		public abstract bool Equals(Operand b);
 		public abstract override string ToString();
-	}
 
-	public delegate Operand CallFunc(params Operand[] args);
+        public override bool Equals(object obj) => obj is Operand o && Equals(o);
+        public override int GetHashCode() => base.GetHashCode();
+    }
+
 	public delegate Operand Getter(string s);
 	public delegate void Setter(string s, Operand val);
-    public delegate IEnumerable<Operand> Lister();
+    public delegate IEnumerable<(string, Operand)> Lister();
 
 	public interface ICallable {
 		Operand Call(params Operand[] args);

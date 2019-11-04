@@ -42,8 +42,19 @@ namespace Outlet {
 		}
 
 		public void Define(Type t, string s) {
-			if(Defined.ContainsKey(s) && Defined[s].defined) Checker.Error("variable " + s + " already defined in this scope");
-			else Defined[s] = (t, true);
+            if (Defined.ContainsKey(s) && Defined[s].defined)
+            {
+                if(Defined[s].type is FunctionType existingFunc && t is FunctionType newFunc)
+                {
+                    Defined[s] = (new MethodGroupType(existingFunc, newFunc), true);
+                }
+                else if(Defined[s].type is MethodGroupType existing && t is FunctionType added)
+                {
+                    existing.Methods.Add(added);
+                }
+                else Checker.Error("variable " + s + " already defined in this scope");
+            }
+            else Defined[s] = (t, true);
 		}
 
 		public void DefineType(Type t, string name) {
@@ -66,7 +77,8 @@ namespace Outlet {
 
 		public Type FindType(int level, string s) {
 			if(level == 0) return DefinedTypes[s];
-			else return Parent.FindType(level - 1, s);
+            if (Parent is null) return Checker.Error("Something went wrong finding type " + s);
+            else return Parent.FindType(level - 1, s);
 		}
 
 		public Operand Get(int level, string s) {
@@ -75,14 +87,26 @@ namespace Outlet {
 			else return Parent.Get(level - 1, s);
 		}
 
-        public IEnumerable<Operand> List() {
+        public IEnumerable<(string, Operand)> List() {
             foreach(string variableName in Variables.Keys) {
-                yield return Variables[variableName].Value;
+                yield return (variableName, Variables[variableName].Value);
             }
         }
 
 		public void Add(string id, Type t, Operand v) {
-			Variables[id] = (t, v);
+            if(Variables.ContainsKey(id))
+            {
+                if (Variables[id].Value is Function existingFunc && v is Function newFunc)
+                {
+                    var newGroup = new MethodGroup(existingFunc, newFunc);
+                    Variables[id] = (newGroup.Type, newGroup);
+                }
+                else if (Variables[id].Value is MethodGroup existing && v is Function toAdd)
+                {
+                    existing.AddMethod(toAdd);
+                }
+                else throw new OutletException("Variable already exists and cannot be added again, THIS SHOULD NOT PRINT");
+            } else Variables[id] = (t, v);
 		}
 
 		public void Assign(int level, string id, Operand v) {

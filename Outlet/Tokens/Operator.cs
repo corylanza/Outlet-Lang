@@ -32,8 +32,8 @@ namespace Outlet.Tokens {
 			PostDec =		new UnaryOperator("--",    1,  Side.Left,	new UnOp(Int, Int, (l) => new Constant(l.Value--)));
 			Lambda =		new BinaryOperator("=>",   1,  Side.Left);
 			Dot =			new BinaryOperator(".",    1,  Side.Left);
-			ExcRange =		new BinaryOperator("..",   1,  Side.Left,   new BinOp(Int, Int, new ArrayType(Int), (l, r) => Range(l.Value, r.Value, false)));
-			IncRange =		new BinaryOperator("...",  1,  Side.Left,   new BinOp(Int, Int, new ArrayType(Int), (l, r) => Range(l.Value, r.Value, true)));
+			ExcRange =		new BinaryOperator("..",   1,  Side.Right,   new BinOp(Int, Int, new ArrayType(Int), (l, r) => Range(l.Value, r.Value, false)));
+			IncRange =		new BinaryOperator("...",  1,  Side.Right,   new BinOp(Int, Int, new ArrayType(Int), (l, r) => Range(l.Value, r.Value, true)));
 			PreInc =		new UnaryOperator("++",	   1,  Side.Left,	new UnOp(Int, Int, (l) => new Constant(++l.Value)));
 			PreDec =		new UnaryOperator("--",	   1,  Side.Left,	new UnOp(Int, Int, (l) => new Constant(--l.Value)));
 			UnaryPlus =		new UnaryOperator("+",	   2,  Side.Right);

@@ -9,10 +9,13 @@ namespace Outlet.FFI
     [ForeignClass(Name = "person")]
     public class Example
     {
-        [ForeignConstructor]
-        public Example()
-        {
+        [ForeignField(Name = "Hey")]
+        public int Hey;
 
+        [ForeignConstructor]
+        public Example(int hey)
+        {
+            Hey = hey;
         }
     }
 }

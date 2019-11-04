@@ -20,5 +20,17 @@ namespace Outlet.Operands {
 		private Primitive(string name, Class parent, object def) : base(name, parent, def) {
 			Name = name;
 		}
+
+        public new enum Type
+        {
+            Object,
+            Type,
+            Void,
+            Float,
+            Int,
+            Bool,
+            String,
+            Null
+        }
 	}
 }

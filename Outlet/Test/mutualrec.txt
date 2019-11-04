@@ -4,7 +4,7 @@
 }
 bool odd(int n) => n == 0 ? false : even(n-1);
 
-print(odd(4));
-print(even(4));
-print(odd(400));
-print(even(57));
+console.print(odd(4));
+console.print(even(4));
+console.print(odd(400));
+console.print(even(57));

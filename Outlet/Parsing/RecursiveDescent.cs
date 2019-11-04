@@ -99,77 +99,83 @@ namespace Outlet.Parsing {
 			return next;
 		}
 
-		public static Statement NextStatement(LinkedList<Token> tokens) {
-			#region helper
-			bool Match(Token s) {
-				if(tokens.Count > 0 && tokens.First() == s) {
-					tokens.Dequeue(); return true;
-				} else return false;
-			}
-			void Consume(Token s, string error) {
-				if(tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error);
-			}
-			T ConsumeType<T>(string error) where T : Token {
-				if(tokens.Count > 0 && tokens.Dequeue() is T t) return t;
-				else throw new OutletException("Syntax Error: " + error);
-			}
-			#endregion
-			Statement Scope() {
-				List<IASTNode> lines = new List<IASTNode>();
-				List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
-				List<ClassDeclaration> classes = new List<ClassDeclaration>();
-				while(tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
-					var nextdecl = NextDeclaration(tokens);
-					if(nextdecl is FunctionDeclaration fd) funcs.Add(fd);
-					if(nextdecl is ClassDeclaration cd) {
-						if(cd.SuperClass == null) classes.Insert(0, cd);
-						else classes.Add(cd);
-					}
-					lines.Add(nextdecl);
-				}
-				Consume(Delimeter.RightCurly, "Expected } to close code block");
-				return new Block(lines, funcs, classes);
-			}
-			Statement IfStatement() {
-				Consume(Delimeter.LeftParen, "Expected ( after if");
-				Expression condition = NextExpression(tokens);
-				Consume(Delimeter.RightParen, "Expected ) after if condition");
-				Statement iftrue = NextStatement(tokens);
-				Statement ifelse = Match(Keyword.Else) ? NextStatement(tokens) : null;
-				return new IfStatement(condition, iftrue, ifelse);
-			}
-			Statement WhileLoop() {
-				Consume(Delimeter.LeftParen, "Expected ( after while");
-				Expression condition = NextExpression(tokens);
-				Consume(Delimeter.RightParen, "Expected ) after while condition");
-				Statement iftrue = NextStatement(tokens);
-				return new WhileLoop(condition, iftrue);
-			}
-			Statement ForLoop() {
-				Consume(Delimeter.LeftParen, "Expected ( after for");
-				Statement s = NextStatement(tokens);
-				if(s is Declarator loopvar) {
-					Consume(Keyword.In, "expected in after for loop variable");
-					Expression collection = NextExpression(tokens);
-					Consume(Delimeter.RightParen, "Expected ) after for loop collection");
-					Statement body = NextStatement(tokens);
-					return new ForLoop(loopvar, collection, body);
-				}
-				throw new OutletException("expected type followed by an identifier to use as a loop variable");
-			}
-			Statement Return() {
-				Expression retexpr = NextExpression(tokens);
-				Consume(Delimeter.SemiC, "expected ; after return statement");
-				return new ReturnStatement(retexpr);
-			}
+        public static Statement NextStatement(LinkedList<Token> tokens) {
+            #region helper
+            bool Match(Token s) {
+                if (tokens.Count > 0 && tokens.First() == s) {
+                    tokens.Dequeue(); return true;
+                } else return false;
+            }
+            void Consume(Token s, string error) {
+                if (tokens.Count == 0 || tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error);
+            }
+            T ConsumeType<T>(string error) where T : Token {
+                if (tokens.Count > 0 && tokens.Dequeue() is T t) return t;
+                else throw new OutletException("Syntax Error: " + error);
+            }
+            #endregion
+            Statement Scope() {
+                List<IASTNode> lines = new List<IASTNode>();
+                List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
+                List<ClassDeclaration> classes = new List<ClassDeclaration>();
+                while (tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
+                    var nextdecl = NextDeclaration(tokens);
+                    if (nextdecl is FunctionDeclaration fd) funcs.Add(fd);
+                    if (nextdecl is ClassDeclaration cd) {
+                        if (cd.SuperClass == null) classes.Insert(0, cd);
+                        else classes.Add(cd);
+                    }
+                    lines.Add(nextdecl);
+                }
+                Consume(Delimeter.RightCurly, "Expected } to close code block");
+                return new Block(lines, funcs, classes);
+            }
+            Statement IfStatement() {
+                Consume(Delimeter.LeftParen, "Expected ( after if");
+                Expression condition = NextExpression(tokens);
+                Consume(Delimeter.RightParen, "Expected ) after if condition");
+                Statement iftrue = NextStatement(tokens);
+                Statement ifelse = Match(Keyword.Else) ? NextStatement(tokens) : null;
+                return new IfStatement(condition, iftrue, ifelse);
+            }
+            Statement WhileLoop() {
+                Consume(Delimeter.LeftParen, "Expected ( after while");
+                Expression condition = NextExpression(tokens);
+                Consume(Delimeter.RightParen, "Expected ) after while condition");
+                Statement iftrue = NextStatement(tokens);
+                return new WhileLoop(condition, iftrue);
+            }
+            Statement ForLoop() {
+                Consume(Delimeter.LeftParen, "Expected ( after for");
+                Statement s = NextStatement(tokens);
+                if (s is Declarator loopvar) {
+                    Consume(Keyword.In, "expected in after for loop variable");
+                    Expression collection = NextExpression(tokens);
+                    Consume(Delimeter.RightParen, "Expected ) after for loop collection");
+                    Statement body = NextStatement(tokens);
+                    return new ForLoop(loopvar, collection, body);
+                }
+                throw new OutletException("expected type followed by an identifier to use as a loop variable");
+            }
+            Statement Return() {
+                Expression retexpr = NextExpression(tokens);
+                Consume(Delimeter.SemiC, "expected ; after return statement");
+                return new ReturnStatement(retexpr);
+            }
+            Statement Using()
+            {
+                Expression used = NextExpression(tokens);
+                Consume(Delimeter.SemiC, "expected ; after using statement");
+                return new UsingStatement(used);
+            }
 			if(Match(Delimeter.LeftCurly)) return Scope();
 			if(Match(Keyword.If)) return IfStatement();
 			if(Match(Keyword.For)) return ForLoop();
 			if(Match(Keyword.While)) return WhileLoop();
 			if(Match(Keyword.Return)) return Return();
+            if(Match(Keyword.Using)) return Using();
 			Expression expr =  NextExpression(tokens);
-			if(Match(Delimeter.SemiC)) return expr;
-			if(tokens.Count == 0) return expr;
+			if(Match(Delimeter.SemiC) || tokens.Count == 0) return expr;
 			Identifier id = ConsumeType<Identifier>("unexpected token: "+tokens.First().ToString()+", expected: ;");
 			return new Declarator(expr, id.Name);
 		}

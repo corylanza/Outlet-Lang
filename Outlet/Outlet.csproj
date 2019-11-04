@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Operands\Types\Classes\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 

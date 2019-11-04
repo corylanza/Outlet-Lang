@@ -29,14 +29,13 @@ namespace Outlet {
 			return Native(o);
 		}
 
-		public bool Valid(params Type[] inputs) {
-			if(inputs.Length == 1) return inputs[0].Is(Input);
-			return false;
-		}
-
-		public int Level(params Type[] inputs) {
-			if(inputs[0].Is(Input, out int level)) return level;
-			return -1;
+		public bool Valid(out int level, params Type[] inputs) {
+            if (inputs.Length != 1) 
+            {
+                level = -1;
+                return false;
+            }
+            return inputs[0].Is(Input, out level);
 		}
 	}
 
@@ -53,14 +52,15 @@ namespace Outlet {
 			return Native(l, r);
 		}
 
-		public bool Valid(params Type[] inputs) {
-			if(inputs.Length == 2) return inputs[0].Is(Left) && inputs[1].Is(Right);
-			return false;
-		}
-
-		public int Level(params Type[] inputs) {
-			if(inputs[0].Is(Left, out int l) && inputs[1].Is(Right, out int r)) return l+r;
-			return -1;
-		}
+        public bool Valid(out int level, params Type[] inputs)
+        {
+            if (inputs.Length == 2 && inputs[0].Is(Left, out int l) && inputs[1].Is(Right, out int r))
+            {
+                level = l + r;
+                return true;
+            }
+            level = -1;
+            return false;
+        }
 	}
 }

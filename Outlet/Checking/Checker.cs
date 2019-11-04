@@ -208,7 +208,7 @@ namespace Outlet.Checking {
 			Type left = b.Left.Accept(this);
 			Type right = b.Right.Accept(this);
 			if(left == ErrorType || right == ErrorType) return ErrorType;
-			var op = b.Overloads.Best(left, right);
+			var op = b.Overloads.FindBestMatch(left, right);
 			if(op == null) return Error("binary operator not defined for " + left.ToString() + " " + b.Op + " " + right.ToString());
 			b.Oper = op;
 			return op.Result;
@@ -233,6 +233,12 @@ namespace Outlet.Checking {
 					if(ErrorCount == ec) return functype.ReturnType;
 				} return Error(c.Caller+" expects "+"(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
 			}
+            if(calltype is MethodGroupType mgt)
+            {
+                FunctionType bestMatch = mgt.FindBestMatch(argtypes);
+                if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
+                return bestMatch.ReturnType;
+            }
 			return Error("type " + calltype + " is not callable");
 		}
 
@@ -304,7 +310,7 @@ namespace Outlet.Checking {
 		public Type Visit(Unary u) {
 			Type input = u.Expr.Accept(this);
 			if(input == ErrorType) return ErrorType;
-			var op = u.Overloads.Best(input);
+			var op = u.Overloads.FindBestMatch(input);
 			if(op == null) return Error("unary operator " + u.Op + " is not defined for type " + input.ToString());
 			u.Oper = op;
 			return op.Result;
@@ -387,6 +393,14 @@ namespace Outlet.Checking {
             if (w.Body is Statement && !(w.Body is Expression) && body != null) return body;
             return null;
 		}
+
+        public Type Visit(UsingStatement u)
+        {
+            u.Used.Accept(this);
+            Type used = TypeLiteral(u.Used);
+            if(used is Class) return null;
+            throw new CheckerException("Only classes can be used, found " + used);
+        }
 
 		#endregion
 	}

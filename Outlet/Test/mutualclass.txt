@@ -19,7 +19,7 @@ class list {
 	void printlist() {
 		node cur = Head;
 		while(cur != null) {
-			print(cur.Val);
+			console.print(cur.Val);
 			cur = cur.Next;
 		}
 	}

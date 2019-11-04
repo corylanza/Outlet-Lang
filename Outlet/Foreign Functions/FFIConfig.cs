@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Outlet.FFI.Natives;
 using Outlet.Operands;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace Outlet.FFI
 {
@@ -24,16 +21,24 @@ namespace Outlet.FFI
 
         public static Operand FromNative(object o)
         {
-
-            return o is null ? null : Conversions.GetValueOrDefault(o.GetType()) switch
+            Operands.Type type = o is null ? null : Conversions.GetValueOrDefault(o.GetType());
+            return type switch
             {
                 Primitive p when p == Primitive.Int => new Constant((int) o),
                 Primitive p when p == Primitive.Float => new Constant((float) o),
                 Primitive p when p == Primitive.String => new Constant((string) o),
                 Primitive p when p == Primitive.Bool => new Constant((bool) o),
+                NativeClass nc => FromNativeInstance(nc, o),
                 null => null,
                 _ => throw new Exception("Cannot map type")
             };
+        }
+
+        public static Operand FromNativeInstance(NativeClass nc, object o)
+        {
+            Operand Get(string id) => FromNative(o.GetType().GetField(id).GetValue(o));
+            void Set(string id, Operand val) => o.GetType().GetField(id).SetValue(o, ToNative(val));
+            return new Instance(nc, Get, Set, null);
         }
 
         public static object ToNative(Operand o)
@@ -47,7 +52,11 @@ namespace Outlet.FFI
             };
         }
 
-        public static Operands.Type Convert(System.Type input) => Conversions[input];
+        public static Operands.Type Convert(System.Type input)
+        {
+            if (input.IsArray) return new ArrayType(Convert(input.GetElementType()));
+            return Conversions[input];
+        }
 
         public static NativeFunction Convert(string name, MethodInfo method)
         {
@@ -57,19 +66,17 @@ namespace Outlet.FFI
             return new NativeFunction(name, type, method);
         }
 
+        public static NativeConstructor Convert(ConstructorInfo constructor)
+        {
+            var type = new FunctionType(constructor.GetParameters()
+                .Select(param => (Convert(param.ParameterType), param.Name))
+                .ToArray(), Convert(constructor.DeclaringType));
+            return new NativeConstructor("", type, constructor);
+        }
+
         public static Operand Convert(FieldInfo field)
         {
             return FromNative(field.GetValue(null));
-        }
-
-        private static NativeFunction GenerateConstructor(NativeClass nc)
-        {
-            Instance Hidden()
-            {
-                return null;
-            }
-            //return new Native(new FunctionType(nc), Hidden.);
-            return null;
         }
 
         private static IEnumerable<System.Type> GetForeignClasses() => 

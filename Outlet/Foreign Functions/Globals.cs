@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,5 +32,55 @@ namespace Outlet.FFI
 
         [ForeignFunction(Name = "sin")]
         public static float MathSin(float input) => (float) Math.Sin(input);
+    }
+
+    [ForeignClass(Name = "outlet", IsStatic = true)]
+    public class Outlet
+    {
+        [ForeignFunction(Name = "run")]
+        public static void Run(string name)
+        {
+            Program.RunFile(Directory.GetCurrentDirectory() + @"\Outlet\Test\" + name + ".txt");
+        }
+    }
+
+    [ForeignClass(Name = "File", IsStatic = false)]
+    public class OFile
+    {
+        private string Path;
+
+        [ForeignFunction(Name = "open")]
+        public static OFile Open(string path)
+        {
+            return new OFile() {
+                Path = path
+            };
+        }
+
+        [ForeignFunction(Name = "read")]
+        public string[] Read()
+        {
+            return File.ReadAllLines(Path);
+        }
+    }
+
+    [ForeignClass(Name = "Directory")]
+    public class ODirectory
+    {
+        [ForeignFunction(Name = "current")]
+        public static string Current() => Directory.GetCurrentDirectory();
+
+        [ForeignFunction(Name = "cd")]
+        public static void CD(string path) => Directory.SetCurrentDirectory(path);
+
+        [ForeignFunction(Name = "ls")]
+        public static void LS()
+        {
+            var list = Directory.GetFileSystemEntries(Directory.GetCurrentDirectory());
+            foreach (var file in list)
+            {
+                Console.WriteLine(file);
+            }
+        }
     }
 }

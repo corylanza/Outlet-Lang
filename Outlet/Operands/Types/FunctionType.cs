@@ -29,6 +29,23 @@ namespace Outlet.Operands {
 			throw new NotImplementedException();
 		}
 
+        public bool Valid(out int level, params Type[] args)
+        {
+            level = -1;
+            int distance = 0;
+            if (args.Length != Args.Length) return false;
+            for(int i = 0; i < args.Length; i++)
+            {
+                if (!args[i].Is(Args[i].type, out int levels)) return false;
+                else
+                {
+                    distance += levels;
+                }
+            }
+            level = distance;
+            return true;
+        }
+
 		public override bool Equals(Operand b) {
 			throw new NotImplementedException();
 		}

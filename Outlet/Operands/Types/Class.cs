@@ -45,13 +45,14 @@ namespace Outlet.Operands {
 		private readonly Getter StaticGetter;
 		private readonly Setter StaticSetter;
         private readonly Lister GetList;
-		public Action Init;
+		public readonly Action Init;
 
-		public UserDefinedClass(string name, Class parent, Getter get, Setter set, Lister list) : base(name, parent, null) {
+		public UserDefinedClass(string name, Class parent, Getter get, Setter set, Lister list, Action init) : base(name, parent, null) {
 			Name = name;
 			StaticGetter = get;
 			StaticSetter = set;
             GetList = list;
+            Init = init;
 		}
 
 		public Operand GetStatic(string s) => StaticGetter(s);
@@ -60,9 +61,9 @@ namespace Outlet.Operands {
         public override string ToString()
         {
             string output = Name + "{\n";
-            foreach(Operand op in GetList())
+            foreach(var (name, value) in GetList())
             {
-                output += op.ToString() + " \n";
+                output += value.ToString() + " \n";
             }
             return output + "}";
         }
