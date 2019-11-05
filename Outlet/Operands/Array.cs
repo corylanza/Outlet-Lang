@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Operands {
-	public class Array : Operand {
+	public class Array : Operand<ArrayType> {
 		public Array(params Operand[] vals) {
-			Type = new ArrayType(Type.CommonAncestor(vals.Select(x => x.Type).ToArray()));
+			Type = new ArrayType(Operands.Type.CommonAncestor(vals.Select(x => x.GetOutletType()).ToArray()));
 			Value = vals;
 		}
 

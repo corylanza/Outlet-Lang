@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Operands {
-	public class OTuple : Operand {
+	public class OTuple : Operand<TupleType> {
 
 		public OTuple(params Operand[] vals) {
 			Value = vals;
-			Type = new TupleType(vals.Select(val => val.Type).ToArray());
+			Type = new TupleType(vals.Select(val => val.GetOutletType()).ToArray());
 		}
 
 		public override bool Equals(Operand b) {

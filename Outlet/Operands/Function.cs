@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Outlet.Operands {
 
-    public abstract class Function : Operand, ICallable, IOverloadable
+    public abstract class Function : Operand<FunctionType>, ICallable, IOverloadable
     {
         public readonly string Name;
         public Function(string name, FunctionType type) => (Name, Type) = (name, type);

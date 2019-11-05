@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Operands {
-	public class Constant : Operand {
+	public class Constant : Operand<Primitive> {
 
 		//null
 		public Constant() {

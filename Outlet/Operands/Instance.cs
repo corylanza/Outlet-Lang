@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Operands {
-	public class Instance : Operand {
+	public class Instance : Operand<Class> {
 		
 		public readonly Getter GetInstanceVar;
 		public readonly Setter SetInstanceVar;
 
-		public Instance(Type type, Getter get, Setter set, IEnumerable<(string Name, Operand Value)> list) {
+		public Instance(Class type, Getter get, Setter set, IEnumerable<(string Name, Operand Value)> list) {
 			Type = type;
 			GetInstanceVar = get;
 			SetInstanceVar = set;

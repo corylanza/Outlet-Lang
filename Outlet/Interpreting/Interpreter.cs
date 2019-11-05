@@ -153,8 +153,8 @@ namespace Outlet.Interpreting {
 		public Operand Visit(As a) {
 			Operand l = a.Left.Accept(this);
 			Type t = (Type) a.Right.Accept(this);
-			if(l.Type.Is(t)) return l;
-			throw new RuntimeException("cannot implicitly cast " + l.Type.ToString() + " to " + t.ToString());
+			if(l.GetOutletType().Is(t)) return l;
+			throw new RuntimeException("cannot implicitly cast " + l.GetOutletType().ToString() + " to " + t.ToString());
 		}
 
 		public Operand Visit(Assign a) {
@@ -186,7 +186,7 @@ namespace Outlet.Interpreting {
             {
                 return m.FindBestMatch(args).Call(args);
             }
-			else throw new RuntimeException(caller.Type.ToString() + " is not callable SHOULD NOT PRINT");
+			else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(Deref d) {
@@ -199,7 +199,7 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(Is i) {
-			bool val = i.Left.Accept(this).Type.Is((Type)i.Right.Accept(this));
+			bool val = i.Left.Accept(this).GetOutletType().Is((Type)i.Right.Accept(this));
 			return new Constant(i.NotIsnt ? val : !val); 
 		}
 

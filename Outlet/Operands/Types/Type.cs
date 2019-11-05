@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Operands {
-	public abstract class Type : Operand {
+	public abstract class Type : Operand<Type> {
 		
 		public Type() {
 			Type = Primitive.MetaType;

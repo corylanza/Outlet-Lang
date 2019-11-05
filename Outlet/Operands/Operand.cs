@@ -8,13 +8,22 @@ namespace Outlet.Operands {
 	public abstract class Operand {
 
 		public dynamic Value;
-		public Type Type;
+        public abstract Type GetOutletType();
 
-		public abstract bool Equals(Operand b);
+        public abstract bool Equals(Operand b);
 		public abstract override string ToString();
 
         public override bool Equals(object obj) => obj is Operand o && Equals(o);
         public override int GetHashCode() => base.GetHashCode();
+
+    }
+
+    public abstract class Operand<T> : Operand where T : Type
+    {
+        public T Type { get; set; }
+
+        public override Type GetOutletType() => Type;
+
     }
 
 	public delegate Operand Getter(string s);

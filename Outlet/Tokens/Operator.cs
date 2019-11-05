@@ -38,7 +38,7 @@ namespace Outlet.Tokens {
 			PreDec =		new UnaryOperator("--",	   1,  Side.Left,	new UnOp(Int, Int, (l) => new Constant(--l.Value)));
 			UnaryPlus =		new UnaryOperator("+",	   2,  Side.Right);
 			Complement =	new UnaryOperator("~",	   2,  Side.Right,	new UnOp(Int, Int, (l) => new Constant(~l.Value)));
-			UnaryAnd =		new UnaryOperator("&",	   2,  Side.Right,	new UnOp(Obj, Met, (l) => l.Type));
+			UnaryAnd =		new UnaryOperator("&",	   2,  Side.Right,	new UnOp(Obj, Met, (l) => l.GetOutletType()));
 			Negative =		new UnaryOperator("-",	   2,  Side.Right,	new UnOp(Int, Int, (l) => new Constant(-l.Value)), 
 																		new UnOp(Flt, Flt, (l) => new Constant(-l.Value)),
 																		new UnOp(Str, Str, (l) => new Constant("olleh")));
