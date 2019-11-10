@@ -52,9 +52,7 @@ namespace Outlet.Checking {
 
 		public static void Cast(Type from, Type to, string message = "cannot convert type {0} to type {1}") {
 			if(from == ErrorType || to == ErrorType) return;
-			if(from == Primitive.Null) {
-				if(to is Primitive) Error("cannot assign null to non nullable type: "+to.ToString());
-			} else  if(!from.Is(to)) Error(string.Format(message, from, to));
+            if(!from.Is(to)) Error(string.Format(message, from, to));
 		}
 
 		private readonly Type Bool = Primitive.Bool;
@@ -179,11 +177,13 @@ namespace Outlet.Checking {
 		public Type Visit(Access a) {
 			Type elem = a.Collection.Accept(this);
 			if(elem == Primitive.MetaType) return Primitive.MetaType;
-			if(a.Index.Length != 1) return Error("array access requires exactly 1 index");
-			Type idxType = a.Index[0].Accept(this);
-			if(idxType != Primitive.Int) return Error("only ints can be used to index into an array, found: " + idxType.ToString());
-			if(elem is ArrayType at) return at.ElementType;
-			return Error("invalid array type");
+            if (a.Index.Length != 1)
+                return Error("array access requires exactly 1 index");
+            Type idxType = a.Index[0].Accept(this);
+            if (idxType != Primitive.Int)
+                return Error("only ints can be used to index into an array, found: " + idxType.ToString());
+            if (elem is ArrayType at) return at.ElementType;
+			return Error("type " + elem.ToString() + " is not accessable by array access operator []");
 		}
 
 		public Type Visit(As a) {
@@ -212,7 +212,7 @@ namespace Outlet.Checking {
 			var op = b.Overloads.FindBestMatch(left, right);
 			if(op == null) return Error("binary operator not defined for " + left.ToString() + " " + b.Op + " " + right.ToString());
 			b.Oper = op;
-			return op.Result;
+			return op.GetResultType();
 		}
 
 		public Type Visit(Call c) {
@@ -229,7 +229,7 @@ namespace Outlet.Checking {
 				if(argtypes.Length == funcargs.Length) {
 					int ec = ErrorCount;
 					for(int i = 0; i < c.Args.Length; i++) {
-						Cast(argtypes[i], funcargs[i].type, "");
+						Cast(argtypes[i], funcargs[i].type, "Could not cast {0} to {1}");
 					}
 					if(ErrorCount == ec) return functype.ReturnType;
 				} return Error(c.Caller+" expects "+"(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
@@ -252,6 +252,13 @@ namespace Outlet.Checking {
 				d.ArrayLength = true;
 				return Primitive.Int;
 			}
+            if(inst is TupleType tt && int.TryParse(d.Right, out int result))
+            {
+                if (result >= tt.Types.Length) 
+                    return Error("cannot access element " + result + " of tuple type " + 
+                        tt.ToString() + " which has only " + tt.Types.Length + " elements");
+                return tt.Types[result];
+            }
 			if(inst is ICheckableClass t) return t.GetInstanceType(d.Right);
 			if(inst == Primitive.MetaType) {
 				Type actual = TypeLiteral(d.Left);
@@ -283,7 +290,7 @@ namespace Outlet.Checking {
 			return new ArrayType(Type.CommonAncestor(l.Args.Select(x => x.Accept(this)).ToArray()));
 		}
 
-		public Type Visit(Literal c) => c.Type;
+		public Type Visit<E>(Literal<E> c) => c.Type;
 
 		public Type Visit(ShortCircuit s) {
 			Type l = s.Left.Accept(this);
@@ -314,7 +321,7 @@ namespace Outlet.Checking {
 			var op = u.Overloads.FindBestMatch(input);
 			if(op == null) return Error("unary operator " + u.Op + " is not defined for type " + input.ToString());
 			u.Oper = op;
-			return op.Result;
+			return op.GetResultType();
 		}
 
 		public Type Visit(Variable v) {

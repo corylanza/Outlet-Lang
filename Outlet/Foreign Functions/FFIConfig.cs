@@ -24,12 +24,12 @@ namespace Outlet.FFI
             Operands.Type type = o is null ? null : Conversions.GetValueOrDefault(o.GetType());
             return type switch
             {
-                Primitive p when p == Primitive.Int => new Constant((int) o),
-                Primitive p when p == Primitive.Float => new Constant((float) o),
-                Primitive p when p == Primitive.String => new Constant((string) o),
-                Primitive p when p == Primitive.Bool => new Constant((bool) o),
+                Primitive p when p == Primitive.Int => Constant.Int((int) o),
+                Primitive p when p == Primitive.Float => Constant.Float((float) o),
+                Primitive p when p == Primitive.String => Constant.String((string) o),
+                Primitive p when p == Primitive.Bool => Constant.Bool((bool) o),
                 NativeClass nc => FromNativeInstance(nc, o),
-                null => null,
+                null => Constant.Null(),
                 _ => throw new Exception("Cannot map type")
             };
         }
@@ -46,7 +46,7 @@ namespace Outlet.FFI
             // TODO maybe make this an abstract method for operands
             return o switch
             {
-                Constant c => c.Value,
+                Constant c => c.GetValue(),
                 Operands.Array a => a.Values().Select(val => ToNative(val)),
                 _ => throw new NotImplementedException()
             };

@@ -118,7 +118,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(VariableDeclaration v) {
 			Type type = (Type)v.Decl.Accept(this);
-			Operand initial = v.Initializer?.Accept(this) ?? new Constant(type.Default());
+			Operand initial = v.Initializer?.Accept(this) ?? type.Default();
 			CurScope().Add(v.Decl.ID, type, initial);
 			return null;
 		}
@@ -133,9 +133,9 @@ namespace Outlet.Interpreting {
 			else throw new OutletException(d.Type.ToString() + " is not a valid type SHOULD NOT PRINT");
 		}
 
-		public Operand Visit(Literal c) {
-			if(c.Value != null) return new Constant(c.Value);
-			return new Constant();
+		public Operand Visit<E>(Literal<E> c) {
+			if(c.Value != null) return new Constant<E>(c.Value) { Type = c.Type};
+			return Constant.Null();
 		}
 
 		public Operand Visit(Access a) {
@@ -144,7 +144,7 @@ namespace Outlet.Interpreting {
 			Operands.Array c = (Operands.Array) a.Collection.Accept(this);
 			// Index is 0 because all array access is one-dimensional as of now
 			// multi-dimensional arrays can be accessed through chained accesses
-			int idx = a.Index[0].Accept(this).Value;
+			int idx = (a.Index[0].Accept(this) as Constant<int>).Value;
 			int len = c.Values().Length;
 			if(idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
 			return c.Values()[idx];
@@ -191,16 +191,17 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(Deref d) {
 			Operand left = d.Left.Accept(this);
-			if(left is Operands.Array a && d.ArrayLength) return new Constant(a.Values().Length);
+			if(left is Operands.Array a && d.ArrayLength) return Constant.Int(a.Values().Length);
+            if (left is OTuple t && int.TryParse(d.Right, out int idx)) return t.Values()[idx];
 			if(left is IRuntimeClass c) return c.GetStatic(d.Right);
 			if(left is Instance i) return i.GetInstanceVar(d.Right);
-			if(left is Constant n && n.Value is null) throw new RuntimeException("null pointer exception");
+			if(left is Constant<object> n && n.Value is null) throw new RuntimeException("null pointer exception");
 			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(Is i) {
 			bool val = i.Left.Accept(this).GetOutletType().Is((Type)i.Right.Accept(this));
-			return new Constant(i.NotIsnt ? val : !val); 
+			return Constant.Bool(i.NotIsnt ? val : !val); 
 		}
 
 		public Operand Visit(Lambda l) {
@@ -214,15 +215,16 @@ namespace Outlet.Interpreting {
 		public Operand Visit(ListLiteral l) => new Operands.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());
 
 		public Operand Visit(ShortCircuit s) {
-			bool b = s.Left.Accept(this).Value;
-			if(s.isand == b) {
-				return new Constant(s.Right.Accept(this).Value);
-			} else return new Constant(!s.isand);
+			bool left= (s.Left.Accept(this) as Constant<bool>).Value;
+			if(s.isand == left) {
+                bool right = (s.Right.Accept(this) as Constant<bool>).Value;
+                return Constant.Bool(right);
+			} else return Constant.Bool(!s.isand);
 		}
 
 		public Operand Visit(Ternary t) {
-			if(t.Condition.Accept(this).Value is bool b) {
-				return b ? t.IfTrue.Accept(this) : t.IfFalse.Accept(this);
+			if(t.Condition.Accept(this) is Constant<bool> b) {
+				return b.Value ? t.IfTrue.Accept(this) : t.IfFalse.Accept(this);
 			}
 			throw new RuntimeException("expected boolean in ternary condition SHOULD NOT PRINT");
 		}
@@ -283,7 +285,7 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(IfStatement i) {
-			if(i.Condition.Accept(this).Value is bool b && b) {
+			if(i.Condition.Accept(this) is Constant<bool> b && b.Value) {
 				var ret = i.Iftrue.Accept(this);
 				if(i.Iftrue is Statement s && !(s is Expression)) return ret;
 			} else {
@@ -298,7 +300,7 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(WhileLoop w) {
-			while(w.Condition.Accept(this).Value is bool b && b) {
+			while(w.Condition.Accept(this) is Constant<bool> b && b.Value) {
 				var ret = w.Body.Accept(this);
                 if (w.Body is Statement s && !(s is Expression) && ret != null) return ret;
             }

@@ -7,16 +7,19 @@ using System.Threading.Tasks;
 namespace Outlet.Operands {
 	public class OTuple : Operand<TupleType> {
 
+        private Operand[] Vals; 
 		public OTuple(params Operand[] vals) {
-			Value = vals;
+			Vals = vals;
 			Type = new TupleType(vals.Select(val => val.GetOutletType()).ToArray());
 		}
 
-		public override bool Equals(Operand b) {
+        public Operand[] Values() => Vals;
+
+        public override bool Equals(Operand b) {
 			if(b is OTuple oth) {
-				if (Value.Length != b.Value.Length) return false;
-				for (int i = 0; i < Value.Length; i++) {
-					if (!Value[i].Equals(oth.Value[i])) return false;
+				if (Vals.Length != oth.Vals.Length) return false;
+				for (int i = 0; i < Vals.Length; i++) {
+					if (!Vals[i].Equals(oth.Vals[i])) return false;
 			}
 				return true;
 			}
@@ -25,7 +28,7 @@ namespace Outlet.Operands {
 
 		public override string ToString() {
 			string s = "(";
-			foreach(Operand e in Value) {
+			foreach(Operand e in Vals) {
 				s += e.ToString() + ", ";
 			}
 			return s.Substring(0, s.Length-2) + ")";

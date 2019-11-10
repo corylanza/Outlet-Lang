@@ -13,7 +13,7 @@ namespace Outlet.Operands {
 
 		public abstract bool Is(Type t);
 		public abstract bool Is(Type t, out int level);
-		public virtual dynamic Default() => null;
+		public virtual Operand Default() => Constant.Null();
 
 		private static Type ClosestAncestor(Type a, Type b) {
 			if(!(a is Class && b is Class)) throw new NotImplementedException("common ancestor only currently works for classes");

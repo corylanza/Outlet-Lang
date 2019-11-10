@@ -12,7 +12,7 @@ namespace Outlet.FFI.Natives
         private readonly Dictionary<string, MemberInfo> InstanceMembers = new Dictionary<string, MemberInfo>();
 
         public NativeClass(string name, Class parent, IEnumerable<MemberInfo> members)
-            : base(name, parent, null)
+            : base(name, parent)
         {
             foreach (var member in members)
             {

@@ -4,40 +4,51 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.Operands {
-	public class Constant : Operand<Primitive> {
+namespace Outlet.Operands 
+{
+    public abstract class Constant : Operand<Primitive>
+    {
+        public static Constant<int> Int(int value) =>
+            new Constant<int>(value) { Type = Primitive.Int };
+        public static Constant<float> Float(float value) =>
+            new Constant<float>(value) { Type = Primitive.Float };
+        public static Constant<string> String(string value) =>
+            new Constant<string>(value) { Type = Primitive.String };
+        public static Constant<bool> Bool(bool value) =>
+            new Constant<bool>(value) { Type = Primitive.Bool };
+        public static Constant<object> Null() =>
+            new Constant<object>() { Type = Primitive.Object };
 
-		//null
-		public Constant() {
-			Type = Primitive.Null;
-			Value = null;
-		}
+        public abstract object GetValue();
+        public abstract override bool Equals(Operand b);
+        public abstract override string ToString();
+    }
 
-		public Constant(int value) {
-			Type = Primitive.Int;
-			Value = value;
-		}
 
-		public Constant(string value) {
-			Type = Primitive.String;
-			Value = value;
-		}
+    public class Constant<E> : Constant
+    {
+        public E Value;
 
-		public Constant(float value) {
-			Type = Primitive.Float;
-			Value = value;
-		}
+        public Constant(E value)
+        {
+            Value = value;
+        }
 
-		public Constant(bool value) {
-			Type = Primitive.Bool;
-			Value = value;
-		}
+        public Constant()
+        {
 
-		public override bool Equals(Operand b) {
-			if(Value is null) return b.Value is null;
-			else return Value.Equals(b.Value);
-		}
+        }
 
-		public override string ToString() => (Value ?? "null").ToString();
-	}
+        public override object GetValue() => Value;
+        
+        public override bool Equals(Operand b)
+        {
+            return b is Constant<E> other && Value.Equals(other.Value);
+        }
+
+        public override string ToString()
+        {
+            return Value is null ? "null" : Value.ToString();
+        }
+    }
 }

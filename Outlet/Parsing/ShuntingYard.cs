@@ -16,7 +16,7 @@ namespace Outlet.Parsing {
 			bool expectOperand = true;
 			bool done = false;
 			var (output, stack, arity) = (new Stack<Expression>(), new Stack<Token>(), new Stack<int>());
-			Token cur = null, last = null;
+			Token cur = null, last;
 			bool ValidToken() =>
 				tokens.Count > 0 && tokens.First() is Token i &&
 				((i is Delimeter d && (d != Delimeter.LeftCurly && d != Delimeter.RightCurly && d != Delimeter.SemiC)) ||
@@ -35,10 +35,9 @@ namespace Outlet.Parsing {
 						output.Push(new Variable(id.Name));
 						expectOperand = false;
 						break;
-					case TokenLiteral l:
-						if(NotExpectingOperand(l)) break;
-						if(l.Value == null) output.Push(new Literal());
-						else output.Push(new Literal(l.Value));
+					case TokenLiteral literal:
+						if(NotExpectingOperand(literal)) break;
+                        output.Push(literal.ToLiteral());
 						expectOperand = false;
 						break;
 					case Operator o:
@@ -168,5 +167,17 @@ namespace Outlet.Parsing {
 				} else throw new OutletException("Syntax Error: Incomplete expression, tried to reduce");
 			} else throw new OutletException("Expression invalid, more operators than needed operands");
 		}
+
+        public static Literal ToLiteral(this TokenLiteral literal)
+        {
+            return literal switch {
+                IntLiteral i => new Literal<int>(i.Value),
+                FloatLiteral f => new Literal<float>(f.Value),
+                BoolLiteral b => new Literal<bool>(b.Value),
+                StringLiteral s => new Literal<string>(s.Value),
+                NullLiteral _ => new Literal<object>(),
+                _ => throw new NotImplementedException()
+            }; 
+        }
 	}
 }

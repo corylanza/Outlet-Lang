@@ -7,13 +7,6 @@ using Type = Outlet.Operands.Type;
 namespace Outlet {
 	public static class ForeignFunctions {
 
-		private static readonly Type Int = Primitive.Int;
-		private static readonly Type Float = Primitive.Float;
-		private static readonly Type Void = Primitive.Void;
-		private static readonly Type String = Primitive.String;
-		private static readonly Type Bool = Primitive.Bool;
-		private static readonly Type Object = Primitive.Object;
-
 	public static FunctionType MakeType(params Type[] t) {
 			if (t.Length == 0) throw new Exception("Foreign Function type invalid");
 			return new FunctionType(t.Take(t.Length - 1).Select(x => (x, "")).ToArray(), t.Last());

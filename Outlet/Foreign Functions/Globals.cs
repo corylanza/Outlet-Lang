@@ -32,6 +32,12 @@ namespace Outlet.FFI
 
         [ForeignFunction(Name = "sin")]
         public static float MathSin(float input) => (float) Math.Sin(input);
+
+        [ForeignFunction(Name = "max")]
+        public static int Max(int a, int b) => a > b ? a : b;
+
+        [ForeignFunction(Name = "max")]
+        public static int Max(int a, int b, int c) => a > b ? a : b > c ? b : c;
     }
 
     [ForeignClass(Name = "outlet", IsStatic = true)]

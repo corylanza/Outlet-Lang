@@ -14,7 +14,8 @@ namespace Outlet.AST {
 		public Deref(Expression left, Expression right) {
 			Left = left;
 			if (right is Variable id) Right = id.Name;
-			else throw new OutletException("expected identifier following dereferencing " + left.ToString());
+            if (right is Literal<int> tupleIdx) Right = tupleIdx.Value.ToString();
+            else throw new OutletException("expected identifier following dereferencing " + left.ToString());
 		}
 
 		public override T Accept<T>(IVisitor<T> visitor) {

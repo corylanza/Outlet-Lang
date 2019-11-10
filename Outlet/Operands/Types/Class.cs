@@ -8,12 +8,10 @@ namespace Outlet.Operands {
 
 		public string Name;
 		public Class Parent;
-		public object DefaultValue;
 
-		public Class(string name, Class parent, object def) {
+		public Class(string name, Class parent) {
 			Name = name;
 			Parent = parent;
-			DefaultValue = def;
 		}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
@@ -34,9 +32,7 @@ namespace Outlet.Operands {
 			level = -1;
 			return false;
 		}
-
-		public override dynamic Default() => DefaultValue;
-
+        
 		public override string ToString() => Name;
 	}
 
@@ -47,7 +43,7 @@ namespace Outlet.Operands {
         private readonly Lister GetList;
 		public readonly Action Init;
 
-		public UserDefinedClass(string name, Class parent, Getter get, Setter set, Lister list, Action init) : base(name, parent, null) {
+		public UserDefinedClass(string name, Class parent, Getter get, Setter set, Lister list, Action init) : base(name, parent) {
 			Name = name;
 			StaticGetter = get;
 			StaticSetter = set;
@@ -74,7 +70,7 @@ namespace Outlet.Operands {
 		public readonly Decls Statics;
 		public readonly Decls Instances;
 
-		public ProtoClass(string name, Class parent, Decls instances, Decls statics) : base(name, parent, null) {
+		public ProtoClass(string name, Class parent, Decls instances, Decls statics) : base(name, parent) {
 			Instances = instances;
 			Statics = statics;
 		}

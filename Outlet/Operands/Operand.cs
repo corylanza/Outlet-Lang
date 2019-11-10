@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace Outlet.Operands {
 	public abstract class Operand {
-
-		public dynamic Value;
         public abstract Type GetOutletType();
 
         public abstract bool Equals(Operand b);

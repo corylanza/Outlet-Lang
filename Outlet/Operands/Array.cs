@@ -6,27 +6,30 @@ using System.Threading.Tasks;
 
 namespace Outlet.Operands {
 	public class Array : Operand<ArrayType> {
+
+        private Operand[] Vals;
+
 		public Array(params Operand[] vals) {
 			Type = new ArrayType(Operands.Type.CommonAncestor(vals.Select(x => x.GetOutletType()).ToArray()));
-			Value = vals;
+			Vals = vals;
 		}
 
-		public Operand[] Values() => Value;
+		public Operand[] Values() => Vals;
 
 		public override bool Equals(Operand b) {
 			if (b is Array oth) {
-				if(Value.Length != b.Value.Length) return false;
-				for (int i = 0; i < Value.Length; i++) {
-					if (!Value[i].Equals(oth.Value[i])) return false;
+				if(Vals.Length != oth.Vals.Length) return false;
+				for (int i = 0; i < Vals.Length; i++) {
+					if (!Vals[i].Equals(oth.Vals[i])) return false;
 				} return true;
 			} return false;
 		}
 
 
 		public override string ToString() {
-			if (Value.Length == 0) return "[]";
+			if (Vals.Length == 0) return "[]";
 			string s = "[";
-			foreach (Operand e in Value) {
+			foreach (Operand e in Vals) {
 				s += e.ToString() + ", ";
 			}
 			return s.Substring(0, s.Length - 2) + "]";

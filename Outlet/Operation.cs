@@ -6,55 +6,75 @@ using System.Threading.Tasks;
 using Outlet.Operands;
 using Type = Outlet.Operands.Type;
 
-namespace Outlet {
-    public class UnOp : IOverloadable {
+namespace Outlet
+{
+    public abstract class UnOp : IOverloadable
+    {
+        protected Type Input, Output;
 
-		public readonly Type Input, Result;
-		private readonly Func<Operand, Operand> Native;
-		private readonly UserDefinedFunction UserDefined;
+        public UnOp(Type input, Type output) => (Input, Output) = (input, output);
 
-        public UnOp(Type input, Type result, Func<Operand, Operand> f) {
-			Input = input;
-			Result = result;
-			Native = f;
+        public abstract Operand Perform(Operand input);
+
+        public abstract bool Valid(out int level, params Type[] inputs);
+        public abstract Type GetResultType();
+    }
+
+    public class UnOp<I, O> : UnOp where I : Operand where O : Operand
+    {
+        private readonly Func<I, O> Underlying;
+
+        public UnOp(Func<I, O> func) : base(Conversions.GetRuntimeType<I>(), Conversions.GetRuntimeType<O>())
+        {
+            Underlying = func;
         }
 
-		public UnOp(Type input, Type result, UserDefinedFunction f) {
-			Input = input;
-			Result = result;
-			UserDefined = f;
-		}
+        public override Operand Perform(Operand input) => 
+            input is I arg ? Underlying(arg) : throw new OutletException("invalid operation for type SHOULD NOT PRINT");
 
-		public Operand Perform(Operand o) {
-			return Native(o);
-		}
-
-		public bool Valid(out int level, params Type[] inputs) {
-            if (inputs.Length != 1) 
+        public override bool Valid(out int level, params Type[] inputs)
+        {
+            if (inputs.Length != 1)
             {
                 level = -1;
                 return false;
             }
             return inputs[0].Is(Input, out level);
-		}
-	}
+        }
 
-	public class BinOp : IOverloadable {
+        public override Type GetResultType() => Output;
+    }
 
-		public readonly Type Left, Right, Result;
-		private readonly Func<Operand, Operand, Operand> Native;
+    public abstract class BinOp : IOverloadable
+    {
 
-		public BinOp(Type l, Type r, Type res, Func<Operand, Operand, Operand> f) {
-			(Left, Right, Result, Native) = (l, r, res, f);
-		}
+        protected Type LeftInput, RightInput, Output;
 
-		public Operand Perform(Operand l, Operand r) {
-			return Native(l, r);
-		}
+        public BinOp(Type left, Type right, Type output) => (LeftInput, RightInput, Output) = (left, right, output);
 
-        public bool Valid(out int level, params Type[] inputs)
+        public abstract Operand Perform(Operand l, Operand r);
+        public abstract bool Valid(out int level, params Type[] inputs);
+        public abstract Type GetResultType();
+    }
+
+    public class BinOp<L, R, O> : BinOp where L : Operand where R : Operand where O : Operand
+    {
+        private readonly Func<L, R, O> Underlying;
+
+        public BinOp(Func<L, R, O> func) : base(
+            Conversions.GetRuntimeType<L>(), 
+            Conversions.GetRuntimeType<R>(), 
+            Conversions.GetRuntimeType<O>())
         {
-            if (inputs.Length == 2 && inputs[0].Is(Left, out int l) && inputs[1].Is(Right, out int r))
+            Underlying = func;
+        }
+        public override Operand Perform(Operand l, Operand r) => 
+            l is L lArg &&
+            r is R rArg ? Underlying(lArg, rArg) : throw new OutletException("Cannot perform operation as types do not match compile time types. SHOULD NOT PRINT");
+
+        public override bool Valid(out int level, params Type[] inputs)
+        {
+            if (inputs.Length == 2 && inputs[0].Is(LeftInput, out int l) && inputs[1].Is(RightInput, out int r))
             {
                 level = l + r;
                 return true;
@@ -62,5 +82,8 @@ namespace Outlet {
             level = -1;
             return false;
         }
-	}
+
+        public override Type GetResultType() => Primitive.Int;// Output;
+    }
 }
+
