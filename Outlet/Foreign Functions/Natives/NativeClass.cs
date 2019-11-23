@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Outlet.Operands;
 using System.Reflection;
 using Outlet.Checking;
+using System.Linq;
 
 namespace Outlet.FFI.Natives
 {
@@ -79,6 +80,12 @@ namespace Outlet.FFI.Natives
             }
             throw new OutletException("Type " + Name + " does not contain static member " + s);
         }
+
+        public IEnumerable<(string id, Operand val)> GetStaticMembers()
+        {
+            return StaticMembers.Select(member => (member.Key, GetStatic(member.Key)));
+        }
+
         public Operands.Type GetStaticType(string s) => StaticMembers.ContainsKey(s) ? StaticMembers[s] switch
         {
             FieldInfo field => FFIConfig.Convert(field.FieldType),
@@ -97,5 +104,10 @@ namespace Outlet.FFI.Natives
             _ => throw new Exception("")
         }
         : Checker.Error(this + " does not contain instance field: " + s);
+
+        public IEnumerable<(string id, Operands.Type type)> GetStaticMemberTypes()
+        {
+            return StaticMembers.Select(member => (member.Key, GetStaticType(member.Key)));
+        }
     }
 }

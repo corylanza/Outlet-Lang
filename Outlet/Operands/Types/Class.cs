@@ -1,6 +1,8 @@
 ﻿using System;
 using Decls = System.Collections.Generic.Dictionary<string, Outlet.Operands.Type>;
 using Outlet.Checking;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Outlet.Operands {
 
@@ -54,6 +56,11 @@ namespace Outlet.Operands {
 		public Operand GetStatic(string s) => StaticGetter(s);
 		public void SetStatic(string s, Operand val) => StaticSetter(s, val);
 
+        public IEnumerable<(string id, Operand val)> GetStaticMembers()
+        {
+            return GetList();
+        }
+
         public override string ToString()
         {
             string output = Name + "{\n";
@@ -88,15 +95,22 @@ namespace Outlet.Operands {
 			}
 			return Checker.Error(this + " does not contain instance field: " + s);
 		}
+
+        public IEnumerable<(string id, Type type)> GetStaticMemberTypes()
+        {
+            return Statics.Select(member => (member.Key, member.Value));
+        }
 	}
 	
 	public interface ICheckableClass {
 		Type GetStaticType(string s);
 		Type GetInstanceType(string s);
+        IEnumerable<(string id, Type type)> GetStaticMemberTypes();
 	}
 
 	public interface IRuntimeClass {
 		Operand GetStatic(string s);
-		void SetStatic(string s, Operand val); 
+		void SetStatic(string s, Operand val);
+        IEnumerable<(string id, Operand val)> GetStaticMembers();
 	}
 }

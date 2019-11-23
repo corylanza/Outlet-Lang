@@ -312,7 +312,11 @@ namespace Outlet.Interpreting {
             Operand toUse = u.Used.Accept(this);
             if (toUse is IRuntimeClass rc) 
             {
-                Console.WriteLine("using " + rc);
+                foreach(var (id, val) in rc.GetStaticMembers())
+                {
+                    CurScope().Add(id, val.GetOutletType(), val);
+                    Console.WriteLine("defined " + id);
+                }
                 return null;
             } 
             else throw new OutletException(u + " is not a valid using statement");

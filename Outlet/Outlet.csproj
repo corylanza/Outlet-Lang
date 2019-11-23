@@ -11,11 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Operands\Types\Classes\**" />
+    <EmbeddedResource Remove="Operands\Types\Classes\**" />
+    <None Remove="Operands\Types\Classes\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Operands\Types\Classes\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 

@@ -406,7 +406,14 @@ namespace Outlet.Checking {
         {
             u.Used.Accept(this);
             Type used = TypeLiteral(u.Used);
-            if(used is Class) return null;
+            if (used is ICheckableClass c)
+                foreach(var (id, type) in c.GetStaticMemberTypes())
+                {
+                    Define(type, id);
+                }
+            {
+                return null;
+            }
             throw new CheckerException("Only classes can be used, found " + used);
         }
 

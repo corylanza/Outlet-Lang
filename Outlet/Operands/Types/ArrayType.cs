@@ -27,6 +27,11 @@ namespace Outlet.Operands {
             throw new NotImplementedException();
         }
 
+        public IEnumerable<(string id, Type type)> GetStaticMemberTypes()
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool Is(Type t) => t == Primitive.Object || t is ArrayType at && ElementType.Is(at.ElementType);
 
 		public override bool Is(Type t, out int level) {
