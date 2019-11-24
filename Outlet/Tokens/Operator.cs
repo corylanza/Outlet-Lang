@@ -109,7 +109,7 @@ namespace Outlet.Tokens {
 
 	public class BinaryOperator : Operator {
 
-		public Overload<BinOp> Overloads;
+		public readonly Overload<BinOp> Overloads;
 
 		public BinaryOperator(string name, int p, Side a, params BinOp[] defaultoverloads) : base(name, p, a) {
 			Overloads = new Overload<BinOp>(defaultoverloads);
@@ -122,6 +122,11 @@ namespace Outlet.Tokens {
 			if (this == Dot) return new Deref(l, r);
 			if (this == Lambda) return new Lambda(l, r);
 			if (this == Equal) return new Assign(l, r);
+            if (this == PlusEqual) return new Assign(l, new Binary(Plus.Name, l, r, Plus.Overloads));
+            if (this == MinusEqual) return new Assign(l, new Binary(Minus.Name, l, r, Minus.Overloads));
+            if (this == MultEqual) return new Assign(l, new Binary(Times.Name, l, r, Times.Overloads));
+            if (this == DivEqual) return new Assign(l, new Binary(Divide.Name, l, r, Divide.Overloads));
+            if (this == ModEqual) return new Assign(l, new Binary(Modulus.Name, l, r, Modulus.Overloads));
 			if (this == LogicalAnd || this == LogicalOr) return new ShortCircuit(l, this, r);
 			return new Binary(Name, l, r, Overloads);
 		}
@@ -129,7 +134,7 @@ namespace Outlet.Tokens {
 
 	public class UnaryOperator : Operator {
 
-		public Overload<UnOp> Overloads;
+		public readonly Overload<UnOp> Overloads;
 
 		public UnaryOperator(string name, int p, Side a, params UnOp[] overloads) : base(name, p, a) {
 			Overloads = new Overload<UnOp>(overloads);

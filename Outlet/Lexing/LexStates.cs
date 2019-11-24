@@ -96,6 +96,7 @@ namespace Outlet.Lexing {
 			start.SetTransition(CharType.Question, finalop);
 			equal.SetTransition(CharType.GT, finalop);
 			equal.SetTransition(CharType.Equals, finalop);
+            forwardslash.SetTransition(CharType.Equals, finalop);
 			preequal.SetTransition(CharType.Equals, finalop);
             plus.SetTransition(CharType.Equals, finalop);
 			plus.SetTransition(CharType.Plus, finalop);
