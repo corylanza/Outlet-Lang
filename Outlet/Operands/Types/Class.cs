@@ -18,16 +18,11 @@ namespace Outlet.Operands {
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override bool Is(Type t) {
-			if(Equals(t)) return true;
-			if(!(Parent is null)) return Parent.Is(t);
-			return false;
-		}
-
 		public override bool Is(Type t, out int level) {
+            if (t is UnionType ut) return ut.Is(this, out level);
 			level = 0;
 			if(Equals(t)) return true;
-			if(!(Parent is null) && Parent.Is(t, out int l)) {
+			if(Parent != null && Parent.Is(t, out int l)) {
 				level = l + 1;
 				return true;
 			}
@@ -66,7 +61,7 @@ namespace Outlet.Operands {
             string output = Name + "{\n";
             foreach(var (name, value) in GetList())
             {
-                output += value.ToString() + " \n";
+                output += "\t" + name + ": " + value.ToString() + " \n";
             }
             return output + "}";
         }

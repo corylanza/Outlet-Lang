@@ -11,7 +11,7 @@ namespace Outlet.Operands {
 			Type = Primitive.MetaType;
 		}
 
-		public abstract bool Is(Type t);
+        public bool Is(Type t) => Is(t, out int _);
 		public abstract bool Is(Type t, out int level);
 		public virtual Operand Default() => Constant.Null();
 

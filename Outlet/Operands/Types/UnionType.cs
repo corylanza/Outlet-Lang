@@ -24,11 +24,6 @@ namespace Outlet.Operands
             return b is UnionType u && ((First.Equals(u.First) && Second.Equals(u.Second)) || (Second.Equals(u.First) && First.Equals(u.Second))); 
         }
 
-        public override bool Is(Type t)
-        {
-            return First.Is(t) || Second.Is(t);
-        }
-
         public override bool Is(Type t, out int level)
         {
             return First.Is(t, out level) || Second.Is(t, out level);

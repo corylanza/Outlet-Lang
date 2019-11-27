@@ -31,11 +31,22 @@ namespace Outlet.Operands {
         {
             throw new NotImplementedException();
         }
-
-        public override bool Is(Type t) => t == Primitive.Object || t is ArrayType at && ElementType.Is(at.ElementType);
-
+        
 		public override bool Is(Type t, out int level) {
-			throw new NotImplementedException();
+            if(t is ArrayType at && ElementType.Is(at.ElementType, out level))
+            {
+                return true;
+            }
+            if(t == Primitive.Object)
+            {
+                level = int.MaxValue;
+                return true;
+            }
+            else
+            {
+                level = -1;
+                return false;
+            }
 		}
 
 		public override string ToString() => ElementType.ToString() + "[]";

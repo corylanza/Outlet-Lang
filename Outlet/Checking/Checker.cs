@@ -65,7 +65,11 @@ namespace Outlet.Checking {
 			if(e is TupleLiteral tl) return new TupleType(tl.Args.Select(arg => TypeLiteral(arg)).ToArray());
 			if(e is Lambda l) return new FunctionType(((TupleType)TypeLiteral(l.Left)).Types.Select(x => (x, "")).ToArray(), TypeLiteral(l.Right));
 			if(e is Access a) return new ArrayType(TypeLiteral(a.Collection));
-            if (e is Binary b && b.Op == "/") return new UnionType(TypeLiteral(b.Left), TypeLiteral(b.Right));
+            if (e is Binary b && b.Op == "/")
+            {
+                b.Oper = b.Overloads.FindBestMatch(b.Left.Accept(this), b.Right.Accept(this));
+                return new UnionType(TypeLiteral(b.Left), TypeLiteral(b.Right));
+            }
 			return Error("declaration requires valid type, found: " + e.ToString());
 		}
 

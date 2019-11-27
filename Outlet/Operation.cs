@@ -83,7 +83,7 @@ namespace Outlet
             return false;
         }
 
-        public override Type GetResultType() => Primitive.Int;// Output;
+        public override Type GetResultType() => Output;
     }
 }
 

@@ -73,8 +73,9 @@ namespace Outlet.Interpreting {
 				// Hidden functions that act as getters and setters for instance variables/methods
 				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
 				Operand Get(string s) => instancescope.Get(0, s);
-				// Create the new instance and define this
-				Instance inst = new Instance(type, Get, Set, instancescope.List());
+                IEnumerable<(string, Operand)> List() => instancescope.List();
+                // Create the new instance and define this
+                Instance inst = new Instance(type, Get, Set, List);
 				instancescope.Add("this", type, inst);
 				// Enter the scope of the constructor
 				Scope constructorscope = new Scope(instancescope);
@@ -315,7 +316,6 @@ namespace Outlet.Interpreting {
                 foreach(var (id, val) in rc.GetStaticMembers())
                 {
                     CurScope().Add(id, val.GetOutletType(), val);
-                    Console.WriteLine("defined " + id);
                 }
                 return null;
             } 

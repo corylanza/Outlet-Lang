@@ -9,12 +9,13 @@ namespace Outlet.Operands {
 		
 		public readonly Getter GetInstanceVar;
 		public readonly Setter SetInstanceVar;
+        public readonly Lister GetInstanceVars;
 
-		public Instance(Class type, Getter get, Setter set, IEnumerable<(string Name, Operand Value)> list) {
+		public Instance(Class type, Getter get, Setter set, Lister list) {
 			Type = type;
 			GetInstanceVar = get;
 			SetInstanceVar = set;
-            
+            GetInstanceVars = list;
 		}
 
 		public override bool Equals(Operand b) {
@@ -22,8 +23,12 @@ namespace Outlet.Operands {
 		}
 
 		public override string ToString() {
-			string s = Type.ToString()+" instance";
-			return s;
+			string s = Type.ToString()+" {\n";
+            foreach(var (id, val) in GetInstanceVars())
+            {
+                s += "\t" + id + ": " + val.ToString() + "\n";
+            }
+			return s + "}";
 		}
 	}
 }

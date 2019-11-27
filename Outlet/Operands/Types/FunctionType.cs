@@ -15,19 +15,28 @@ namespace Outlet.Operands {
 			ReturnType = returntype;
 		}
 
-		public override bool Is(Type t) {
-			if(t == Primitive.Object) return true;
-			if(t is FunctionType ft && Args.Length == ft.Args.Length) {
-				for(int i = 0; i < Args.Length; i++) {
-					if(!Args[i].type.Is(ft.Args[i].type)) return false;
-				}
-				return ReturnType.Is(ft.ReturnType);
-			} return false;
-		}
-
 		public override bool Is(Type t, out int level) {
-			throw new NotImplementedException();
-		}
+            level = 0;
+            if (t is FunctionType ft && Args.Length == ft.Args.Length)
+            {
+                for (int i = 0; i < Args.Length; i++)
+                {
+                    if (Args[i].type.Is(ft.Args[i].type, out int elementLevel))
+                    {
+                        level += elementLevel;
+                    }
+                    else return false;
+                }
+                return true;
+            }
+            if (t == Primitive.Object)
+            {
+                level = int.MaxValue;
+                return true;
+            }
+            level = -1;
+            return false;
+        }
 
         public bool Valid(out int level, params Type[] args)
         {

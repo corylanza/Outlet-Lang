@@ -109,5 +109,15 @@ namespace Outlet.FFI.Natives
         {
             return StaticMembers.Select(member => (member.Key, GetStaticType(member.Key)));
         }
+
+        public override string ToString()
+        {
+            string output = Name + "{\n";
+            foreach (var (name, value) in GetStaticMembers())
+            {
+                output += "\t" + name + ": " + value.ToString() + " \n";
+            }
+            return output + "}";
+        }
     }
 }

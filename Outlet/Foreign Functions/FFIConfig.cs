@@ -38,7 +38,8 @@ namespace Outlet.FFI
         {
             Operand Get(string id) => FromNative(o.GetType().GetField(id).GetValue(o));
             void Set(string id, Operand val) => o.GetType().GetField(id).SetValue(o, ToNative(val));
-            return new Instance(nc, Get, Set, null);
+            IEnumerable<(string id, Operand val)> List() => o.GetType().GetFields().Select(field => (field.Name, FromNative(field.GetValue(o))));
+            return new Instance(nc, Get, Set, List);
         }
 
         public static object ToNative(Operand o)

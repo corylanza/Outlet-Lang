@@ -32,10 +32,6 @@ namespace Outlet.Operands
 
 
         public override bool Equals(Operand b) => ReferenceEquals(this, b);
-        public override bool Is(Type t)
-        {
-            return false;
-        }
 
         public override bool Is(Type t, out int level)
         {
