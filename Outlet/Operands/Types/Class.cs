@@ -8,18 +8,20 @@ namespace Outlet.Operands {
 
 	public abstract class Class : Type {
 
-		public string Name;
-		public Class Parent;
+		public readonly string Name;
+		public readonly Class Parent;
+        public readonly Type[] GenericArguments;
 
-		public Class(string name, Class parent) {
+		public Class(string name, Class parent, params Type[] genericArguments) {
 			Name = name;
 			Parent = parent;
+            GenericArguments = genericArguments;
 		}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
 		public override bool Is(Type t, out int level) {
-            if (t is UnionType ut) return ut.Is(this, out level);
+            //if (t is UnionType ut) return ut.Is(this, out level);
 			level = 0;
 			if(Equals(t)) return true;
 			if(Parent != null && Parent.Is(t, out int l)) {
@@ -33,7 +35,7 @@ namespace Outlet.Operands {
 		public override string ToString() => Name;
 	}
 
-	public class UserDefinedClass : Class, IRuntimeClass {
+    public class UserDefinedClass : Class, IRuntimeClass {
 
 		private readonly Getter StaticGetter;
 		private readonly Setter StaticSetter;
@@ -41,7 +43,6 @@ namespace Outlet.Operands {
 		public readonly Action Init;
 
 		public UserDefinedClass(string name, Class parent, Getter get, Setter set, Lister list, Action init) : base(name, parent) {
-			Name = name;
 			StaticGetter = get;
 			StaticSetter = set;
             GetList = list;

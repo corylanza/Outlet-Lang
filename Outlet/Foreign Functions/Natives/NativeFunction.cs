@@ -27,6 +27,6 @@ namespace Outlet.FFI.Natives
         }
 
         public override Operand Call(params Operand[] args) =>
-            FFIConfig.FromNativeInstance(Type.ReturnType as NativeClass, Underlying.Invoke(args.Select(arg => FFIConfig.ToNative(arg)).ToArray()));
+            FFIConfig.FromNativeInstance(RuntimeType.ReturnType as NativeClass, Underlying.Invoke(args.Select(arg => FFIConfig.ToNative(arg)).ToArray()));
     }
 }

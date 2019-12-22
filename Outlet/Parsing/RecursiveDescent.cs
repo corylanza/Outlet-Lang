@@ -58,12 +58,23 @@ namespace Outlet.Parsing {
 				return new ConstructorDeclaration(decl, argnames, body);
 			}
 			ClassDeclaration ClassDef() {
-				Identifier name = ConsumeType<Identifier>("Expected class identifier"); ;
-				List<Declaration> instance = new List<Declaration>();
+                List<string> genericParameters = new List<string>();
+                List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				ConstructorDeclaration constructor = null;
 				Variable superclass = null;
-				if(Match(Keyword.Extends)) {
+                Identifier name = ConsumeType<Identifier>("Expected class identifier");
+                if (Match(Delimeter.LeftBrace))
+                {
+                    genericParameters.Add(ConsumeType<Identifier>("Generic class must have at least one identifier as a generic parameter").Name);
+                    while(tokens.Count > 0 && tokens.First() != Delimeter.RightBrace)
+                    {
+                        Consume(Delimeter.Comma, "commas must be used between generic parameters");
+                        genericParameters.Add(ConsumeType<Identifier>("Generic class parameters must be identifiers").Name);
+                    }
+                    Consume(Delimeter.RightBrace, "expected ] to close generic type definition");
+                }
+                if (Match(Keyword.Extends)) {
 					 superclass = new Variable(ConsumeType<Identifier>("expected name of super class after extends keyword").Name);
 				}
 				if(Match(Delimeter.LeftCurly)) {
@@ -87,7 +98,7 @@ namespace Outlet.Parsing {
 					}
 				}
 				if(constructor == null) constructor = new ConstructorDeclaration(new Declarator(new Variable(name.Name), ""), new List<Declarator>(), new Block(new List<IASTNode>(), new List<FunctionDeclaration>(), new List<ClassDeclaration>()));
-				return new ClassDeclaration(name.Name, superclass, constructor, instance, statics);
+				return new ClassDeclaration(name.Name, superclass, genericParameters, constructor, instance, statics);
 			}
 			if(Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement(tokens);

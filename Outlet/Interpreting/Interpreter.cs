@@ -56,7 +56,7 @@ namespace Outlet.Interpreting {
 			// leave the static scope
 			ExitScope();
 			// Define the class
-			CurScope().Add(c.Name, Primitive.MetaType, newclass);
+			CurScope().Add(c.Name, new MetaType(newclass), newclass);
 			return null;
 		}
 
@@ -95,7 +95,7 @@ namespace Outlet.Interpreting {
 			// as it cannot be stored in the instance scope despite its being resolved 
 			// at the instance level)
 			var func = new UserDefinedFunction(c.Decl.ID, c.Type, UnderlyingConstructor);
-			staticscope.Add("", func.Type, func);
+			staticscope.Add("", func.RuntimeType, func);
 			return null;
 		}
 
@@ -113,7 +113,7 @@ namespace Outlet.Interpreting {
 				return returnval;
 			}
 			var func = new UserDefinedFunction(f.Decl.ID, f.Type, HiddenFunc);
-			CurScope().Add(f.Decl.ID, func.Type, func);
+			CurScope().Add(f.Decl.ID, func.RuntimeType, func);
 			return null;
 		}
 
@@ -135,20 +135,23 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit<E>(Literal<E> c) {
-			if(c.Value != null) return new Constant<E>(c.Value) { Type = c.Type};
+			if(c.Value != null) return new Constant<E>(c.Type, c.Value);
 			return Constant.Null();
 		}
 
 		public Operand Visit(Access a) {
 			Operand col = a.Collection.Accept(this);
 			if(col is Type at && a.Index.Length == 0) return new ArrayType(at);
-			Operands.Array c = (Operands.Array) a.Collection.Accept(this);
-			// Index is 0 because all array access is one-dimensional as of now
-			// multi-dimensional arrays can be accessed through chained accesses
-			int idx = (a.Index[0].Accept(this) as Constant<int>).Value;
-			int len = c.Values().Length;
-			if(idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
-			return c.Values()[idx];
+            if(col is Operands.Array c)
+            {
+                // Index is 0 because all array access is one-dimensional as of now
+                // multi-dimensional arrays can be accessed through chained accesses
+                int idx = (a.Index[0].Accept(this) as Constant<int>).Value;
+                int len = c.Values().Length;
+                if (idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
+                return c.Values()[idx];
+            }
+            throw new OutletException("cannot acccess this type SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(As a) {
@@ -183,10 +186,6 @@ namespace Outlet.Interpreting {
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
 			if(caller is IRuntimeClass cl) caller = cl.GetStatic("");
 			if(caller is ICallable f) return f.Call(args);
-            if(caller is MethodGroup m)
-            {
-                return m.FindBestMatch(args).Call(args);
-            }
 			else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
 		}
 

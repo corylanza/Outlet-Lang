@@ -30,7 +30,6 @@ namespace Outlet.Operands
             return best;
         }
 
-
         public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
         public override bool Is(Type t, out int level)

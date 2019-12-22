@@ -26,7 +26,8 @@ namespace Outlet.Operands
 
         public override bool Is(Type t, out int level)
         {
-            return First.Is(t, out level) || Second.Is(t, out level);
+            level = -1;
+            return false;// First.Is(t, out level) || Second.Is(t, out level);
         }
 
         public override string ToString()

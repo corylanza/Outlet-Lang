@@ -25,16 +25,5 @@ namespace Outlet.Operands {
         private Primitive(string name, Class parent) : base(name, parent) { Initialize = base.Default; }
 
         public override Operand Default() => Initialize();
-
-        public new enum Type
-        {
-            Object,
-            Type,
-            Void,
-            Float,
-            Int,
-            Bool,
-            String
-        }
 	}
 }

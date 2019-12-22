@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Outlet.Operands {
 	public class Instance : Operand<Class> {
-		
+
 		public readonly Getter GetInstanceVar;
 		public readonly Setter SetInstanceVar;
         public readonly Lister GetInstanceVars;
 
 		public Instance(Class type, Getter get, Setter set, Lister list) {
-			Type = type;
+			RuntimeType = type;
 			GetInstanceVar = get;
 			SetInstanceVar = set;
             GetInstanceVars = list;
@@ -23,7 +23,7 @@ namespace Outlet.Operands {
 		}
 
 		public override string ToString() {
-			string s = Type.ToString()+" {\n";
+			string s = RuntimeType.ToString()+" {\n";
             foreach(var (id, val) in GetInstanceVars())
             {
                 s += "\t" + id + ": " + val.ToString() + "\n";

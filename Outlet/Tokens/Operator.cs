@@ -25,12 +25,6 @@ namespace Outlet.Tokens {
 											  IncRange, ExcRange, ModEqual;
 
 		static Operator() {
-			//Type Int = Primitive.Int;
-			//Type Flt = Primitive.Float;
-			//Type Str = Primitive.String;
-			//Type Obj = Primitive.Object;
-			//Type Bln = Primitive.Bool;
-			Type Met = Primitive.MetaType;
 
 
 			PostInc =		new UnaryOperator("++",    1,  Side.Left,	new UnOp<Int, Int>((l) => Constant.Int(l.Value++)));

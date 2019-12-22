@@ -7,7 +7,7 @@ namespace Outlet.Operands {
     public abstract class Function : Operand<FunctionType>, ICallable, IOverloadable
     {
         public readonly string Name;
-        public Function(string name, FunctionType type) => (Name, Type) = (name, type);
+        public Function(string name, FunctionType type) => (Name, RuntimeType) = (name, type);
 
         public abstract Operand Call(params Operand[] args);
 
@@ -15,12 +15,12 @@ namespace Outlet.Operands {
 
         public override string ToString()
         {
-            return Name + Type.ToString();
+            return Name + RuntimeType.ToString();
         }
 
         public bool Valid(out int level, params Type[] inputs)
         {
-            return (Type as FunctionType).Valid(out level, inputs);
+            return (RuntimeType as FunctionType).Valid(out level, inputs);
         }
     }
 

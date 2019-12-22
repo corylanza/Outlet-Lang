@@ -5,23 +5,22 @@ using System.Text;
 
 namespace Outlet.Operands
 {
-    public class MethodGroup : Operand<MethodGroupType>
+    public class MethodGroup : Operand<MethodGroupType>, ICallable
     {
-        public readonly List<Function> Methods;
+        private readonly List<Function> Methods;
 
         public MethodGroup(params Function[] functions)
         {
             Methods = functions.ToList();
-            Type = GetMethodGroupType();
         }
 
         public void AddMethod(Function toAdd)
         {
             Methods.Add(toAdd);
-            Type = GetMethodGroupType();
+            RuntimeType = GetMethodGroupType();
         }
 
-        public Function FindBestMatch(params Operand[] inputs)
+        private Function FindBestMatch(params Operand[] inputs)
         {
             (Function best, int bestLevel) = (default, -1);
             foreach (Function overload in Methods)
@@ -39,14 +38,19 @@ namespace Outlet.Operands
 
         private MethodGroupType GetMethodGroupType()
         {
-            return new MethodGroupType(Methods.Select(method => method.Type).ToArray());
+            return new MethodGroupType(Methods.Select(method => method.RuntimeType).ToArray());
         }
 
         public override bool Equals(Operand other) => ReferenceEquals(this, other);
 
         public override string ToString()
         {
-            throw new NotImplementedException();
+            string s = "MethodGroup {\n";
+            Methods.ForEach(method => s += "\t" + method + "\n");
+            s += "}";
+            return s;
         }
+
+        public Operand Call(params Operand[] args) => FindBestMatch(args).Call(args);
     }
 }

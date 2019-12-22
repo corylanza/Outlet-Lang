@@ -89,8 +89,8 @@ namespace Outlet.FFI.Natives
         public Operands.Type GetStaticType(string s) => StaticMembers.ContainsKey(s) ? StaticMembers[s] switch
         {
             FieldInfo field => FFIConfig.Convert(field.FieldType),
-            MethodInfo method => FFIConfig.Convert(s, method).Type,
-            ConstructorInfo constructor => FFIConfig.Convert(constructor).Type,
+            MethodInfo method => FFIConfig.Convert(s, method).RuntimeType,
+            ConstructorInfo constructor => FFIConfig.Convert(constructor).RuntimeType,
             _ => throw new Exception("")
         }
         : (s == "") ? Checker.Error("type " + this + " is not instantiable")
@@ -99,8 +99,8 @@ namespace Outlet.FFI.Natives
         public Operands.Type GetInstanceType(string s) => InstanceMembers.ContainsKey(s) ? InstanceMembers[s] switch
         {
             FieldInfo field => FFIConfig.Convert(field.FieldType),
-            MethodInfo method => FFIConfig.Convert(s, method).Type,
-            ConstructorInfo constructor => FFIConfig.Convert(constructor).Type,
+            MethodInfo method => FFIConfig.Convert(s, method).RuntimeType,
+            ConstructorInfo constructor => FFIConfig.Convert(constructor).RuntimeType,
             _ => throw new Exception("")
         }
         : Checker.Error(this + " does not contain instance field: " + s);

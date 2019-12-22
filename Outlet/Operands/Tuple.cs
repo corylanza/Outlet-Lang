@@ -10,7 +10,7 @@ namespace Outlet.Operands {
         private Operand[] Vals; 
 		public OTuple(params Operand[] vals) {
 			Vals = vals;
-			Type = new TupleType(vals.Select(val => val.GetOutletType()).ToArray());
+			RuntimeType = new TupleType(vals.Select(val => val.GetOutletType()).ToArray());
 		}
 
         public Operand[] Values() => Vals;

@@ -19,9 +19,9 @@ namespace Outlet.Operands {
             level = 0;
             if (t is FunctionType ft && Args.Length == ft.Args.Length)
             {
-                for (int i = 0; i < Args.Length; i++)
+                foreach (var (arg, argType) in Args.Zip(ft.Args))
                 {
-                    if (Args[i].type.Is(ft.Args[i].type, out int elementLevel))
+                    if (arg.type.Is(argType.type, out int elementLevel))
                     {
                         level += elementLevel;
                     }

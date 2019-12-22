@@ -7,7 +7,7 @@ namespace Outlet
 {
     public class Conversions
     {
-        private Dictionary<System.Type, Operands.Type> Compiled = new Dictionary<System.Type, Operands.Type>
+        private readonly Dictionary<System.Type, Operands.Type> Compiled = new Dictionary<System.Type, Operands.Type>
         {
             {typeof(Constant<int>), Primitive.Int},
             {typeof(Constant<int>), Primitive.Int},
@@ -27,8 +27,21 @@ namespace Outlet
             if (typeof(T) == typeof(Constant<string>)) return Primitive.String;
             if (typeof(T) == typeof(Constant<object>)) return Primitive.Object;
             if (typeof(T) == typeof(Operand)) return Primitive.Object;
-            if (typeof(T) == typeof(Operands.Type) || typeof(T).IsSubclassOf(typeof(Operands.Type))) return Primitive.MetaType;
+            if (typeof(T) == typeof(Operands.Type) || typeof(T).IsSubclassOf(typeof(Operands.Type))) return new MetaType(Primitive.Object);
             throw new Exception(typeof(T).FullName + " is not a compile tiime constant type");
+        }
+    }
+
+    public interface IOutletTypable
+    {
+        Operands.Type ToOutletType();
+    }
+
+    public class OutletType<T> : IOutletTypable
+    {
+        public Operands.Type ToOutletType()
+        {
+            throw new NotImplementedException();
         }
     }
 }

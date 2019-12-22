@@ -92,5 +92,15 @@ namespace Outlet {
 			}
 			return res;
 		}
+
+        public static bool SameLengthAndAll<T, U>(this IEnumerable<T> list, IEnumerable<U> other, Func<T, U, bool> predicate)
+        {
+            if (list.Count() != other.Count()) return false;
+            for(int i = 0; i < list.Count(); i++)
+            {
+                if (!predicate(list.ElementAt(i), other.ElementAt(i))) return false;
+            }
+            return true;
+        }
 	}
 }

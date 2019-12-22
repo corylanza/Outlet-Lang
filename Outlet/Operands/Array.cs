@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 namespace Outlet.Operands {
 	public class Array : Operand<ArrayType> {
 
-        private Operand[] Vals;
+        private readonly Operand[] Vals;
 
 		public Array(params Operand[] vals) {
-			Type = new ArrayType(Operands.Type.CommonAncestor(vals.Select(x => x.GetOutletType()).ToArray()));
+            RuntimeType = new ArrayType(Type.CommonAncestor(vals.Select(x => x.GetOutletType()).ToArray()));
 			Vals = vals;
 		}
 
-		public Operand[] Values() => Vals;
+        public Operand[] Values() => Vals;
 
 		public override bool Equals(Operand b) {
 			if (b is Array oth) {
