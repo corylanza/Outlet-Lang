@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Outlet.Types;
+using Type = Outlet.Types.Type;
 
 namespace Outlet.Operands {
 	public class Array : Operand<ArrayType> {

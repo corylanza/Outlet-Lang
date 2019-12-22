@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Outlet.Operands {
+﻿namespace Outlet.Types {
 	public class TupleType : Type {
 
-		public readonly Type[] Types;
+		public readonly ITyped[] Types;
 
-		public TupleType(params Type[] types) {
+		public TupleType(params ITyped[] types) {
 			Types = types;
 		}
 
-		public override bool Is(Type t, out int level) {
+		public override bool Is(ITyped t, out int level) {
             level = 0;
             if (t is TupleType tt && tt.Types.Length == Types.Length)
             {
@@ -36,13 +30,13 @@ namespace Outlet.Operands {
             return false;
         }
 
-		public override bool Equals(Operand b) {
-			if(b is TupleType t && t.Types.Length == Types.Length) {
-				for(int i = 0; i < Types.Length; i++) {
-					if (!Types[i].Equals(t.Types[i])) return false;
-				} return true;
-			} return false;
-		}
+		//public override bool Equals(Operand b) {
+		//	if(b is TupleType t && t.Types.Length == Types.Length) {
+		//		for(int i = 0; i < Types.Length; i++) {
+		//			if (!Types[i].Equals(t.Types[i])) return false;
+		//		} return true;
+		//	} return false;
+		//}
 
 		public override string ToString() {
 			string s = "(";

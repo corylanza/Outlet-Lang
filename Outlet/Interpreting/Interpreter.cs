@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Outlet.AST;
 using Outlet.Operands;
-using Type = Outlet.Operands.Type;
+using Outlet.Types;
+using Type = Outlet.Types.Type;
 
 namespace Outlet.Interpreting {
 	public class Interpreter : IVisitor<Operand> {
@@ -37,7 +37,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(ClassDeclaration c) {
 			// Find super class, if none it will always be object
-			Class super = c.SuperClass != null ? c.SuperClass.Accept(this) as Class : Primitive.Object;
+			Class super = c.SuperClass != null ? (c.SuperClass.Accept(this) as TypeObject).Encapsulated as Class : Primitive.Object;
 			// Enter new scope and declare all statics there
 			Scope closure = EnterScope();
 			foreach(Declaration d in c.StaticDecls) d.Accept(this);
@@ -56,7 +56,7 @@ namespace Outlet.Interpreting {
 			// leave the static scope
 			ExitScope();
 			// Define the class
-			CurScope().Add(c.Name, new MetaType(newclass), newclass);
+			CurScope().Add(c.Name, Primitive.MetaType, new TypeObject(newclass));
 			return null;
 		}
 
@@ -68,7 +68,7 @@ namespace Outlet.Interpreting {
 				Scope instancescope = new Scope(staticscope);
 				Scopes.Push(instancescope);
 				// Call the constructors hidden init function to initialize instance variables/methods
-				UserDefinedClass type = staticscope.Get(1, c.Decl.Type.ToString()) as UserDefinedClass;
+				UserDefinedClass type = (staticscope.Get(1, c.Decl.Type.ToString()) as TypeObject).Encapsulated as UserDefinedClass;
 				type.Init();
 				// Hidden functions that act as getters and setters for instance variables/methods
 				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
@@ -118,9 +118,9 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(VariableDeclaration v) {
-			Type type = (Type)v.Decl.Accept(this);
-			Operand initial = v.Initializer?.Accept(this) ?? type.Default();
-			CurScope().Add(v.Decl.ID, type, initial);
+			TypeObject type = (TypeObject) v.Decl.Accept(this);
+			Operand initial = v.Initializer?.Accept(this) ?? type.Encapsulated.Default();
+			CurScope().Add(v.Decl.ID, type.Encapsulated, initial);
 			return null;
 		}
 
@@ -130,7 +130,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(Declarator d) {
 			Operand t = d.Type.Accept(this);
-			if(t is Type type) return type;
+			if(t is TypeObject type) return type;
 			else throw new OutletException(d.Type.ToString() + " is not a valid type SHOULD NOT PRINT");
 		}
 
@@ -141,7 +141,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(Access a) {
 			Operand col = a.Collection.Accept(this);
-			if(col is Type at && a.Index.Length == 0) return new ArrayType(at);
+			if(col is TypeObject at && a.Index.Length == 0) return new TypeObject(new ArrayType(at.Encapsulated));
             if(col is Operands.Array c)
             {
                 // Index is 0 because all array access is one-dimensional as of now
@@ -156,8 +156,8 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(As a) {
 			Operand l = a.Left.Accept(this);
-			Type t = (Type) a.Right.Accept(this);
-			if(l.GetOutletType().Is(t)) return l;
+			TypeObject t = (TypeObject) a.Right.Accept(this);
+			if(l.GetOutletType().Is(t.Encapsulated)) return l;
 			throw new RuntimeException("cannot implicitly cast " + l.GetOutletType().ToString() + " to " + t.ToString());
 		}
 
@@ -171,7 +171,7 @@ namespace Outlet.Interpreting {
 				if(temp is Instance i) {
 					i.SetInstanceVar(d.Right, val);
 					return val;
-				} else if(temp is IRuntimeClass c) {
+				} else if(temp is TypeObject meta && meta.Encapsulated is IRuntimeClass c) {
 					c.SetStatic(d.Right, val);
 					return val;
 				}
@@ -184,7 +184,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Call c) {
 			Operand caller = c.Caller.Accept(this);
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
-			if(caller is IRuntimeClass cl) caller = cl.GetStatic("");
+			if(caller is TypeObject meta && meta.Encapsulated is IRuntimeClass cl) caller = cl.GetStatic("");
 			if(caller is ICallable f) return f.Call(args);
 			else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
 		}
@@ -193,22 +193,22 @@ namespace Outlet.Interpreting {
 			Operand left = d.Left.Accept(this);
 			if(left is Operands.Array a && d.ArrayLength) return Constant.Int(a.Values().Length);
             if (left is OTuple t && int.TryParse(d.Right, out int idx)) return t.Values()[idx];
-			if(left is IRuntimeClass c) return c.GetStatic(d.Right);
+			if(left is TypeObject meta && meta.Encapsulated is IRuntimeClass c) return c.GetStatic(d.Right);
 			if(left is Instance i) return i.GetInstanceVar(d.Right);
 			if(left is Constant<object> n && n.Value is null) throw new RuntimeException("null pointer exception");
 			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(Is i) {
-			bool val = i.Left.Accept(this).GetOutletType().Is((Type)i.Right.Accept(this));
+			bool val = i.Left.Accept(this).GetOutletType().Is(((TypeObject) i.Right.Accept(this)).Encapsulated);
 			return Constant.Bool(i.NotIsnt ? val : !val); 
 		}
 
 		public Operand Visit(Lambda l) {
 			Operand left = l.Left.Accept(this);
 			Operand right = l.Right.Accept(this);
-			if(left is TupleType tt && right is Type r)
-				return new FunctionType(tt.Types.Select(x => (x, "")).ToArray(), r);
+			if(left is TypeObject lt && lt.Encapsulated is TupleType tt && right is TypeObject rt)
+				return new TypeObject(new FunctionType(tt.Types.Select(x => (x, "")).ToArray(), rt.Encapsulated));
 			throw new RuntimeException("lambda invalid SHOULD NOT PRINT");
 		}
 
@@ -231,7 +231,8 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(TupleLiteral t) {
 			IEnumerable<Operand> evaled = t.Args.Select(arg => arg.Accept(this));
-			if(evaled.All(elem => elem is Type)) return new TupleType(evaled.Select(elem => elem as Type).ToArray());
+			if(evaled.All(elem => elem is TypeObject)) 
+                return new TypeObject(new TupleType(evaled.Select(elem => (elem as TypeObject).Encapsulated).ToArray()));
 			if(t.Args.Length == 1) return t.Args[0].Accept(this);
 			else return new OTuple(evaled.ToArray());
 		}
@@ -273,7 +274,7 @@ namespace Outlet.Interpreting {
 			Operands.Array c = (Operands.Array) f.Collection.Accept(this);
 			foreach(Operand o in c.Values()) {
 				EnterScope();
-				Type looptype = (Type)f.LoopVar.Accept(this);
+				Type looptype = (f.LoopVar.Accept(this) as TypeObject).Encapsulated;
 				CurScope().Add(f.LoopVar.ID, looptype, o);
 				Operand res = f.Body.Accept(this);
 				ExitScope();

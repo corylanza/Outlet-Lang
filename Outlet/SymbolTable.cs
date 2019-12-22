@@ -1,7 +1,7 @@
 ﻿using Outlet.Checking;
 using Outlet.Operands;
+using Outlet.Types;
 using System.Collections.Generic;
-using Type = Outlet.Operands.Type;
 
 namespace Outlet
 {
@@ -9,7 +9,7 @@ namespace Outlet
     {
         public static SymbolTable Global = new SymbolTable();
 
-        private readonly Dictionary<string, Type> Symbols = new Dictionary<string, Type>();
+        private readonly Dictionary<string, ITyped> Symbols = new Dictionary<string, ITyped>();
         public readonly SymbolTable Parent;
 
         private SymbolTable()
@@ -23,7 +23,7 @@ namespace Outlet
             foreach (string s in ForeignFunctions.NativeTypes.Keys)
             {
                 Type t = ForeignFunctions.NativeTypes[s];
-                Define(t.GetOutletType(), s);
+                Define(new TypeObject(t), s);
             }
         }
 
@@ -32,7 +32,7 @@ namespace Outlet
             Parent = parent;
         }
 
-        public void Define(Type t, string s)
+        public void Define(ITyped t, string s)
         {
             if (Symbols.ContainsKey(s))
             {
@@ -49,19 +49,19 @@ namespace Outlet
             else Symbols[s] = t;
         }
 
-        public (Type, int) Find(string s)
+        public (ITyped, int) Find(string s)
         {
             if (Symbols.ContainsKey(s)) return (Symbols[s], 0);
             if (Parent != null)
             {
-                (Type type, int level) = Parent.Find(s);
+                (ITyped type, int level) = Parent.Find(s);
                 // if not found in parent scope pass along not found (-1), otherwise add 1 level
                 return (type, level == -1 ? -1 : level + 1);
             }
             return (null, -1);
         }
 
-        public IEnumerable<(string ID, Type Type)> List()
+        public IEnumerable<(string ID, ITyped Type)> List()
         {
             foreach (string id in Symbols.Keys)
             {
@@ -70,14 +70,14 @@ namespace Outlet
             }
         }
 
-        public Type GetType(int level, string s)
+        public ITyped GetType(int level, string s)
         {
             if (level == 0 && !Symbols.ContainsKey(s)) throw new CheckerException("failed to get type");
             if (level == 0) return Symbols[s];
             else return Parent.GetType(level - 1, s);
         }
 
-        public Type this[string id] {
+        public ITyped this[string id] {
             get {
                 return Symbols[id];
             }

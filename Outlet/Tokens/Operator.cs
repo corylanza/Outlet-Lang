@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Outlet.AST;
 using Outlet.Operands;
+using Outlet.Types;
 using Int = Outlet.Operands.Constant<int>;
 using Bln = Outlet.Operands.Constant<bool>;
 using Flt = Outlet.Operands.Constant<float>;
 using Str = Outlet.Operands.Constant<string>;
 using Obj = Outlet.Operands.Operand;
-using Type = Outlet.Operands.Type;
 
 namespace Outlet.Tokens {
 	public enum Side { Left, Right }
@@ -37,7 +33,7 @@ namespace Outlet.Tokens {
 			PreDec =		new UnaryOperator("--",	   1,  Side.Left,	new UnOp<Int, Int>((l) => Constant.Int(--l.Value)));
 			UnaryPlus =		new UnaryOperator("+",	   2,  Side.Right);
 			Complement =	new UnaryOperator("~",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Constant.Int(~l.Value)));
-			UnaryAnd =		new UnaryOperator("&",	   2,  Side.Right,	new UnOp<Obj, Type> ((l) => l.GetOutletType()));
+			UnaryAnd =		new UnaryOperator("&",	   2,  Side.Right,	new UnOp<Obj, TypeObject> ((l) => new TypeObject(l.GetOutletType())));
 			Negative =		new UnaryOperator("-",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Constant.Int(-l.Value)), 
 																		new UnOp<Flt, Flt>((l) => Constant.Float(-l.Value)),
 																		new UnOp<Str, Str>((l) => Constant.String("olleh")));
@@ -50,7 +46,7 @@ namespace Outlet.Tokens {
 																		new BinOp<Flt, Flt, Flt>((l, r) => r.Value == 0 ?
 																			throw new RuntimeException("Divide By 0") :
 																			Constant.Float(l.Value / r.Value)),
-                                                                        new BinOp<Type, Type, UnionType>((l, r) => new UnionType(l, r)));
+                                                                        new BinOp<TypeObject, TypeObject, TypeObject>((l, r) => new TypeObject(new UnionType(l.Encapsulated, r.Encapsulated))));
 			Modulus =		new BinaryOperator("%",    3,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => r.Value == 0 ? 
 																			throw new RuntimeException("Divide By 0") : 
 																			Constant.Int(l.Value % r.Value)));

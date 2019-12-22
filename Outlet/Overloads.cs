@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Outlet.Operands;
-using Type = Outlet.Operands.Type;
+using Outlet.Types;
 
 namespace Outlet {
 	public class Overload<T> where T : IOverloadable {
@@ -18,7 +14,7 @@ namespace Outlet {
 		public void Add(T t) => Overloads.Add(t);
 
 		// finds closest match
-		public T FindBestMatch(params Type[] inputs) {
+		public T FindBestMatch(params ITyped[] inputs) {
             (T best, int bestLevel) = (default, -1);
             foreach(T overload in Overloads)
             {
@@ -35,6 +31,6 @@ namespace Outlet {
 	}
 
 	public interface IOverloadable {
-		bool Valid(out int level, params Type[] inputs);
+		bool Valid(out int level, params ITyped[] inputs);
 	}
 }

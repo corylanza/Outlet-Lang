@@ -1,23 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Outlet.Operands;
-using Type = Outlet.Operands.Type;
+using Outlet.Types;
 
 namespace Outlet
 {
     public abstract class UnOp : IOverloadable
     {
-        protected Type Input, Output;
+        protected ITyped Input, Output;
 
-        public UnOp(Type input, Type output) => (Input, Output) = (input, output);
+        public UnOp(ITyped input, ITyped output) => (Input, Output) = (input, output);
 
         public abstract Operand Perform(Operand input);
 
-        public abstract bool Valid(out int level, params Type[] inputs);
-        public abstract Type GetResultType();
+        public abstract bool Valid(out int level, params ITyped[] inputs);
+        public abstract ITyped GetResultType();
     }
 
     public class UnOp<I, O> : UnOp where I : Operand where O : Operand
@@ -32,7 +28,7 @@ namespace Outlet
         public override Operand Perform(Operand input) => 
             input is I arg ? Underlying(arg) : throw new OutletException("invalid operation for type SHOULD NOT PRINT");
 
-        public override bool Valid(out int level, params Type[] inputs)
+        public override bool Valid(out int level, params ITyped[] inputs)
         {
             if (inputs.Length != 1)
             {
@@ -42,19 +38,19 @@ namespace Outlet
             return inputs[0].Is(Input, out level);
         }
 
-        public override Type GetResultType() => Output;
+        public override ITyped GetResultType() => Output;
     }
 
     public abstract class BinOp : IOverloadable
     {
 
-        protected Type LeftInput, RightInput, Output;
+        protected ITyped LeftInput, RightInput, Output;
 
-        public BinOp(Type left, Type right, Type output) => (LeftInput, RightInput, Output) = (left, right, output);
+        public BinOp(ITyped left, ITyped right, ITyped output) => (LeftInput, RightInput, Output) = (left, right, output);
 
         public abstract Operand Perform(Operand l, Operand r);
-        public abstract bool Valid(out int level, params Type[] inputs);
-        public abstract Type GetResultType();
+        public abstract bool Valid(out int level, params ITyped[] inputs);
+        public abstract ITyped GetResultType();
     }
 
     public class BinOp<L, R, O> : BinOp where L : Operand where R : Operand where O : Operand
@@ -72,7 +68,7 @@ namespace Outlet
             l is L lArg &&
             r is R rArg ? Underlying(lArg, rArg) : throw new OutletException("Cannot perform operation as types do not match compile time types. SHOULD NOT PRINT");
 
-        public override bool Valid(out int level, params Type[] inputs)
+        public override bool Valid(out int level, params ITyped[] inputs)
         {
             if (inputs.Length == 2 && inputs[0].Is(LeftInput, out int l) && inputs[1].Is(RightInput, out int r))
             {
@@ -83,7 +79,7 @@ namespace Outlet
             return false;
         }
 
-        public override Type GetResultType() => Output;
+        public override ITyped GetResultType() => Output;
     }
 }
 

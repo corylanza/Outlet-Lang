@@ -1,25 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Outlet.Operands;
+using Outlet.Types;
 
 namespace Outlet
 {
     public class Conversions
     {
-        private readonly Dictionary<System.Type, Operands.Type> Compiled = new Dictionary<System.Type, Operands.Type>
-        {
-            {typeof(Constant<int>), Primitive.Int},
-            {typeof(Constant<int>), Primitive.Int},
-            {typeof(Constant<int>), Primitive.Int},
-            {typeof(Constant<int>), Primitive.Int},
-            {typeof(Constant<int>), Primitive.Int},
-            {typeof(Operands.Type), Primitive.Int},
-        };
-
-
-
-        public static Operands.Type GetRuntimeType<T>() where T : Operand
+        public static ITyped GetRuntimeType<T>() where T : Operand
         {
             if (typeof(T) == typeof(Constant<int>)) return Primitive.Int;
             if (typeof(T) == typeof(Constant<bool>)) return Primitive.Bool;
@@ -27,21 +15,8 @@ namespace Outlet
             if (typeof(T) == typeof(Constant<string>)) return Primitive.String;
             if (typeof(T) == typeof(Constant<object>)) return Primitive.Object;
             if (typeof(T) == typeof(Operand)) return Primitive.Object;
-            if (typeof(T) == typeof(Operands.Type) || typeof(T).IsSubclassOf(typeof(Operands.Type))) return new MetaType(Primitive.Object);
+            if (typeof(T) == typeof(TypeObject)) return Primitive.MetaType;
             throw new Exception(typeof(T).FullName + " is not a compile tiime constant type");
-        }
-    }
-
-    public interface IOutletTypable
-    {
-        Operands.Type ToOutletType();
-    }
-
-    public class OutletType<T> : IOutletTypable
-    {
-        public Operands.Type ToOutletType()
-        {
-            throw new NotImplementedException();
         }
     }
 }

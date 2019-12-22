@@ -1,5 +1,6 @@
 ﻿using Outlet.FFI.Natives;
 using Outlet.Operands;
+using Outlet.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Outlet.FFI
     public static class FFIConfig
     {
 
-        private static readonly Dictionary<System.Type, Operands.Type> Conversions = new Dictionary<System.Type, Operands.Type>() {
+        private static readonly Dictionary<System.Type, Types.Type> Conversions = new Dictionary<System.Type, Types.Type>() {
             {typeof(object), Primitive.Object },
             {typeof(string), Primitive.String },
             {typeof(int), Primitive.Int },
@@ -21,7 +22,7 @@ namespace Outlet.FFI
 
         public static Operand FromNative(object o)
         {
-            Operands.Type type = o is null ? null : Conversions.GetValueOrDefault(o.GetType());
+            Types.Type type = o is null ? null : Conversions.GetValueOrDefault(o.GetType());
             return type switch
             {
                 Primitive p when p == Primitive.Int => Constant.Int((int) o),
@@ -53,7 +54,7 @@ namespace Outlet.FFI
             };
         }
 
-        public static Operands.Type Convert(System.Type input)
+        public static Types.Type Convert(System.Type input)
         {
             if (input.IsArray) return new ArrayType(Convert(input.GetElementType()));
             return Conversions[input];
@@ -62,7 +63,7 @@ namespace Outlet.FFI
         public static NativeFunction Convert(string name, MethodInfo method)
         {
             var type = new FunctionType(method.GetParameters()
-                .Select(param => (Convert(param.ParameterType), param.Name))
+                .Select(param => (Convert(param.ParameterType) as ITyped, param.Name))
                 .ToArray(), Convert(method.ReturnType));
             return new NativeFunction(name, type, method);
         }
@@ -70,7 +71,7 @@ namespace Outlet.FFI
         public static NativeConstructor Convert(ConstructorInfo constructor)
         {
             var type = new FunctionType(constructor.GetParameters()
-                .Select(param => (Convert(param.ParameterType), param.Name))
+                .Select(param => (Convert(param.ParameterType) as ITyped, param.Name))
                 .ToArray(), Convert(constructor.DeclaringType));
             return new NativeConstructor("", type, constructor);
         }

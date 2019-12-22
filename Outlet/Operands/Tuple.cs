@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
+using Outlet.Types;
 
 namespace Outlet.Operands {
 	public class OTuple : Operand<TupleType> {

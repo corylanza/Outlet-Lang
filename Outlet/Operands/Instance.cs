@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Outlet.Types;
 
 namespace Outlet.Operands {
 	public class Instance : Operand<Class> {
@@ -23,7 +19,7 @@ namespace Outlet.Operands {
 		}
 
 		public override string ToString() {
-			string s = RuntimeType.ToString()+" {\n";
+			string s = RuntimeType.Name + " {\n";
             foreach(var (id, val) in GetInstanceVars())
             {
                 s += "\t" + id + ": " + val.ToString() + "\n";

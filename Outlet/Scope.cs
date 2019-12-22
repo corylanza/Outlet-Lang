@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Outlet.Operands;
-using Type = Outlet.Operands.Type;
+using Outlet.Types;
+using Type = Outlet.Types.Type;
 
 namespace Outlet 
 {
@@ -10,7 +10,7 @@ namespace Outlet
 
 		public static Scope Global = new Scope();
 
-		private readonly Dictionary<string, (Type Type, Operand Value)> Variables = new Dictionary<string, (Type, Operand)>();
+		private readonly Dictionary<string, (ITyped Type, Operand Value)> Variables = new Dictionary<string, (ITyped, Operand)>();
 
 		public readonly Scope Parent;
 
@@ -25,7 +25,7 @@ namespace Outlet
 			foreach(string s in ForeignFunctions.NativeTypes.Keys) 
             {
 				Type t = ForeignFunctions.NativeTypes[s];
-				Add(s, t.GetOutletType(), t);
+				Add(s, Primitive.MetaType, new TypeObject(t));
 			}
 		}
 
@@ -49,7 +49,7 @@ namespace Outlet
             }
         }
 
-		public void Add(string id, Type t, Operand v) 
+		public void Add(string id, ITyped t, Operand v) 
         {
             if(Variables.ContainsKey(id))
             {
@@ -70,7 +70,7 @@ namespace Outlet
         {
 			if(level == 0) 
             {
-				Type t = Variables[id].Type;
+				ITyped t = Variables[id].Type;
 				//if(v.Type.Is(t)) 
 				Variables[id] = (t, v);
 				//else throw new RuntimeException("cannot convert type " + v.Type.ToString() + " to type " + t.ToString());

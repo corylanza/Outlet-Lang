@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using Outlet.Operands;
-using Type = Outlet.Operands.Type;
+using Outlet.Types;
+using Type = Outlet.Types.Type;
 
 namespace Outlet {
 	public static class ForeignFunctions {
 
 	public static FunctionType MakeType(params Type[] t) {
 			if (t.Length == 0) throw new Exception("Foreign Function type invalid");
-			return new FunctionType(t.Take(t.Length - 1).Select(x => (x, "")).ToArray(), t.Last());
+			return new FunctionType(t.Take(t.Length - 1).Select(x => (x as ITyped, "")).ToArray(), t.Last());
 		}
 
         public static Dictionary<string, Function> NativeFunctions = new Dictionary<string, Function>(); /*{

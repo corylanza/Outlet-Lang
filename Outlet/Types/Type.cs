@@ -1,21 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Outlet.Operands;
 
-namespace Outlet.Operands {
-	public abstract class Type : Operand {
+namespace Outlet.Types {
 
-        public override Type GetOutletType()
-        {
-            return new MetaType(this);
-        }
+    public interface ITyped
+    {
+        bool Is(ITyped t);
 
-        public bool Is(Type t) => NewIs(this, t); //Is(t, out int _);
-		public abstract bool Is(Type t, out int level);
+        bool Is(ITyped t, out int level);
+    }
 
-        public static bool NewIs(Type from, Type to)
+	public abstract class Type : ITyped {
+
+        public bool Is(ITyped t) => NewIs(this, t); //Is(t, out int _);
+		public abstract bool Is(ITyped t, out int level);
+
+        public static bool NewIs(ITyped from, ITyped to)
         {
             return (from, to) switch
             {
@@ -24,7 +24,7 @@ namespace Outlet.Operands {
                 (TupleType ttFrom, TupleType ttTo) =>ttFrom.Types.SameLengthAndAll(ttTo.Types, (fromElementType, toElementType) => NewIs(fromElementType, toElementType)),
                 (FunctionType funcFrom, FunctionType funcTo) => true,
                 (Class classFrom, Class classTo) => (classFrom.Equals(classTo) || (classFrom.Parent != null && NewIs(classFrom.Parent, classTo))),
-                (MetaType meta, Primitive type) => type == Primitive.MetaType,
+                (TypeObject meta, Primitive type) => type == Primitive.MetaType,
                 (Type any, Primitive obj) => obj == Primitive.Object,
                 _ => throw new NotImplementedException()
             };
@@ -32,7 +32,7 @@ namespace Outlet.Operands {
 
 		public virtual Operand Default() => Constant.Null();
 
-		private static Type ClosestAncestor(Type a, Type b) {
+		private static ITyped ClosestAncestor(ITyped a, ITyped b) {
 			if(!(a is Class && b is Class)) throw new NotImplementedException("common ancestor only currently works for classes");
 			Class cur = a as Class;
 			while(cur != Primitive.Object) {
@@ -47,13 +47,18 @@ namespace Outlet.Operands {
 			return Primitive.Object;
 		}
 
-		public static Type CommonAncestor(params Type[] types) {
+		public static Type CommonAncestor(params ITyped[] types) {
 			if(types.Length == 0) return Primitive.Object;
-			Type ancestor = types[0];
-			foreach(Type cur in types) {
-				ancestor = ClosestAncestor(ancestor, cur);
+			ITyped ancestor = types[0];
+			foreach(ITyped cur in types) {
+                if(cur is TypeObject)
+                {
+                    ancestor = Primitive.MetaType;
+                    break;
+                }
+                else ancestor = ClosestAncestor(ancestor, cur);
 			}
-			return ancestor;
+			return ancestor as Type;
 		}
 		
 	}

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Outlet.Operands;
 
-namespace Outlet.Operands {
+namespace Outlet.Types {
 	public class Primitive : Class {
 		
 		public static readonly Primitive MetaType = new Primitive("type", null);

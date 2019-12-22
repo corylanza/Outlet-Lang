@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Outlet.Operands;
+using Outlet.Types;
 using System.Reflection;
 using Outlet.Checking;
 using System.Linq;
@@ -86,7 +87,7 @@ namespace Outlet.FFI.Natives
             return StaticMembers.Select(member => (member.Key, GetStatic(member.Key)));
         }
 
-        public Operands.Type GetStaticType(string s) => StaticMembers.ContainsKey(s) ? StaticMembers[s] switch
+        public Types.Type GetStaticType(string s) => StaticMembers.ContainsKey(s) ? StaticMembers[s] switch
         {
             FieldInfo field => FFIConfig.Convert(field.FieldType),
             MethodInfo method => FFIConfig.Convert(s, method).RuntimeType,
@@ -96,7 +97,7 @@ namespace Outlet.FFI.Natives
         : (s == "") ? Checker.Error("type " + this + " is not instantiable")
         : Checker.Error(this + " does not contain static field: " + s);
 
-        public Operands.Type GetInstanceType(string s) => InstanceMembers.ContainsKey(s) ? InstanceMembers[s] switch
+        public Types.Type GetInstanceType(string s) => InstanceMembers.ContainsKey(s) ? InstanceMembers[s] switch
         {
             FieldInfo field => FFIConfig.Convert(field.FieldType),
             MethodInfo method => FFIConfig.Convert(s, method).RuntimeType,
@@ -105,18 +106,18 @@ namespace Outlet.FFI.Natives
         }
         : Checker.Error(this + " does not contain instance field: " + s);
 
-        public IEnumerable<(string id, Operands.Type type)> GetStaticMemberTypes()
+        public IEnumerable<(string id, Types.Type type)> GetStaticMemberTypes()
         {
             return StaticMembers.Select(member => (member.Key, GetStaticType(member.Key)));
         }
 
         public override string ToString()
         {
-            string output = Name + "{\n";
-            foreach (var (name, value) in GetStaticMembers())
-            {
-                output += "\t" + name + ": " + value.ToString() + " \n";
-            }
+            string output = Name + "{\n tostring not implemented";
+            //foreach (var (name, value) in GetStaticMembers())
+            //{
+            //    output += "\t" + name + ": " + value.ToString() + " \n";
+            //}
             return output + "}";
         }
     }

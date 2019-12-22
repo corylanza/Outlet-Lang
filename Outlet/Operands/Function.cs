@@ -1,6 +1,4 @@
-﻿using Outlet;
-using System;
-using System.Collections.Generic;
+﻿using Outlet.Types;
 
 namespace Outlet.Operands {
 
@@ -18,7 +16,7 @@ namespace Outlet.Operands {
             return Name + RuntimeType.ToString();
         }
 
-        public bool Valid(out int level, params Type[] inputs)
+        public bool Valid(out int level, params ITyped[] inputs)
         {
             return (RuntimeType as FunctionType).Valid(out level, inputs);
         }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Outlet.Operands
+namespace Outlet.Types
 {
     public class UnionType : Type
     {
@@ -19,12 +19,12 @@ namespace Outlet.Operands
         }
 
 
-        public override bool Equals(Operand b)
-        {
-            return b is UnionType u && ((First.Equals(u.First) && Second.Equals(u.Second)) || (Second.Equals(u.First) && First.Equals(u.Second))); 
-        }
+        //public override bool Equals(Operand b)
+        //{
+        //    return b is UnionType u && ((First.Equals(u.First) && Second.Equals(u.Second)) || (Second.Equals(u.First) && First.Equals(u.Second))); 
+        //}
 
-        public override bool Is(Type t, out int level)
+        public override bool Is(ITyped t, out int level)
         {
             level = -1;
             return false;// First.Is(t, out level) || Second.Is(t, out level);

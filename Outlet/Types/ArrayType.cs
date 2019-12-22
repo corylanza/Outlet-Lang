@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Outlet.Operands {
+namespace Outlet.Types {
 	public class ArrayType : Type, ICheckableClass {
 
 		public Type ElementType;
@@ -13,7 +10,7 @@ namespace Outlet.Operands {
 			ElementType = elem;
 		}
 
-		public override bool Equals(Operand b) => b is ArrayType at && ElementType.Equals(at.ElementType);
+		//public override bool Equals(Operand b) => b is ArrayType at && ElementType.Equals(at.ElementType);
 
         public Type GetInstanceType(string s)
         {
@@ -32,7 +29,7 @@ namespace Outlet.Operands {
             throw new NotImplementedException();
         }
         
-		public override bool Is(Type t, out int level) {
+		public override bool Is(ITyped t, out int level) {
             if(t is ArrayType at && ElementType.Is(at.ElementType, out level))
             {
                 return true;

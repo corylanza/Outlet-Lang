@@ -1,10 +1,11 @@
 ﻿using System;
-using Decls = System.Collections.Generic.Dictionary<string, Outlet.Operands.Type>;
+using Decls = System.Collections.Generic.Dictionary<string, Outlet.Types.Type>;
+using Outlet.Operands;
 using Outlet.Checking;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Outlet.Operands {
+namespace Outlet.Types {
 
 	public abstract class Class : Type {
 
@@ -18,9 +19,9 @@ namespace Outlet.Operands {
             GenericArguments = genericArguments;
 		}
 
-		public override bool Equals(Operand b) => ReferenceEquals(this, b);
+		//public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override bool Is(Type t, out int level) {
+		public override bool Is(ITyped t, out int level) {
             //if (t is UnionType ut) return ut.Is(this, out level);
 			level = 0;
 			if(Equals(t)) return true;
