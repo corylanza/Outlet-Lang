@@ -40,8 +40,16 @@ namespace Outlet.Interpreting {
 		public Operand Visit(ClassDeclaration c) {
 			// Find super class, if none it will always be object
 			Class super = c.SuperClass != null ? (c.SuperClass.Accept(this) as TypeObject).Encapsulated as Class : Primitive.Object;
-			// Enter new scope and declare all statics there
-			Scope closure = EnterScope();
+
+            // if there are any generic parameters define their value as their class constraint
+            foreach (var (id, classConstraint) in c.GenericParameters)
+            {
+                Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
+                CurScope().Add(id, Primitive.MetaType, new TypeObject(constraint));
+            }
+
+            // Enter new scope and declare all statics there
+            Scope closure = EnterScope();
 			foreach(Declaration d in c.StaticDecls) d.Accept(this);
 			// Hidden functions for getting and setting statics
 			Operand Get(string s) => closure.Get(0, s);

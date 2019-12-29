@@ -1,0 +1,9 @@
+﻿class Node[T] {
+	T Value;
+	
+	Node(T val) {
+		Value = val;
+	}
+}
+
+Node[int] = Node[int](5);

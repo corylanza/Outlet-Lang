@@ -82,7 +82,14 @@ namespace Outlet.Checking
                         else Error("cannot extend anything other than a class");
                     }
                 }
-                Define(new TypeObject(new ProtoClass(c.Name, parent, instances, statics)), c.Name);
+
+                foreach(var (id, classConstraint) in c.GenericParameters)
+                {
+                    Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
+                    Define(new TypeObject(constraint), id);
+                }
+
+                Define(new TypeObject(new ProtoClass(c.Name, parent, statics, instances)), c.Name);
                 EnterScope();
                 foreach (Declaration d in c.StaticDecls)
                 {

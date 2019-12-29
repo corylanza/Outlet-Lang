@@ -58,7 +58,7 @@ namespace Outlet.Parsing {
 				return new ConstructorDeclaration(decl, argnames, body);
 			}
 			ClassDeclaration ClassDef() {
-                List<string> genericParameters = new List<string>();
+                List<(string id, Variable constraint)> genericParameters = new List<(string, Variable)>();
                 List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				ConstructorDeclaration constructor = null;
@@ -66,11 +66,18 @@ namespace Outlet.Parsing {
                 Identifier name = ConsumeType<Identifier>("Expected class identifier");
                 if (Match(Delimeter.LeftBrace))
                 {
-                    genericParameters.Add(ConsumeType<Identifier>("Generic class must have at least one identifier as a generic parameter").Name);
+                    string genericId = ConsumeType<Identifier>("Generic class must have at least one identifier as a generic parameter").Name;
+                    if (Match(Keyword.Extends)) genericParameters.Add((genericId, 
+                        new Variable(ConsumeType<Identifier>("expected class constraint on generic parameter " + genericId).Name)));
+                    else genericParameters.Add((genericId, null));
                     while(tokens.Count > 0 && tokens.First() != Delimeter.RightBrace)
                     {
                         Consume(Delimeter.Comma, "commas must be used between generic parameters");
-                        genericParameters.Add(ConsumeType<Identifier>("Generic class parameters must be identifiers").Name);
+                        genericId = ConsumeType<Identifier>("Generic class parameters must be identifiers").Name;
+
+                        if (Match(Keyword.Extends)) genericParameters.Add((genericId,
+                        new Variable(ConsumeType<Identifier>("expected class constraint on generic parameter " + genericId).Name)));
+                        else genericParameters.Add((genericId, null));
                     }
                     Consume(Delimeter.RightBrace, "expected ] to close generic type definition");
                 }
