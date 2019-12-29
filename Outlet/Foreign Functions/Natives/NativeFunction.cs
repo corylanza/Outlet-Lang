@@ -15,7 +15,7 @@ namespace Outlet.FFI.Natives
         }
 
         public override Operand Call(params Operand[] args) =>
-            FFIConfig.FromNative(Underlying.Invoke(null, args.Select(arg => FFIConfig.ToNative(arg)).ToArray()));
+            NativeInitializer.ToOutletOperand(Underlying.Invoke(null, args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }
 
     public class NativeConstructor : Function
@@ -28,6 +28,6 @@ namespace Outlet.FFI.Natives
         }
 
         public override Operand Call(params Operand[] args) =>
-            FFIConfig.FromNativeInstance(RuntimeType.ReturnType as NativeClass, Underlying.Invoke(args.Select(arg => FFIConfig.ToNative(arg)).ToArray()));
+            NativeInitializer.ToOutletInstance(RuntimeType.ReturnType as Class, Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }
 }

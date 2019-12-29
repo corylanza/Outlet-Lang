@@ -7,28 +7,30 @@ using Outlet.Operands;
 
 namespace Outlet.FFI
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-    public class ForeignFunction : Attribute
-    {
-        public string Name { get; set; }
-    }
-
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public class ForeignField : Attribute
-    {
-        public string Name { get; set; }
-
-    }
-
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class ForeignClass : Attribute
+    public class ForeignInterface : Attribute
     {
         public string Name { get; set; }
         public bool IsStatic { get; set; }
     }
-    [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = true)]
-    public class ForeignConstructor : Attribute
-    {
 
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    public class ForeignFunction : ForeignInterface
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    public class ForeignField : ForeignInterface
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class ForeignClass : ForeignInterface
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = true)]
+    public class ForeignConstructor : ForeignInterface
+    {
     }
 }

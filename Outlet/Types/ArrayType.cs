@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace Outlet.Types {
-	public class ArrayType : Type, ICheckableClass {
+	public class ArrayType : Type {
 
 		public Type ElementType;
 
@@ -11,13 +11,6 @@ namespace Outlet.Types {
 		}
 
 		//public override bool Equals(Operand b) => b is ArrayType at && ElementType.Equals(at.ElementType);
-
-        public Type GetInstanceType(string s)
-        {
-            //return new FunctionType(new (Type, string)[] { }, Primitive.Bool);
-            // TODO needed to create methods such as list.count()
-            throw new NotImplementedException();
-        }
 
         public Type GetStaticType(string s)
         {

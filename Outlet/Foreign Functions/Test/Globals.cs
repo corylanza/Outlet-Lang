@@ -50,43 +50,44 @@ namespace Outlet.FFI
         }
     }
 
-    [ForeignClass(Name = "File", IsStatic = false)]
-    public class OFile
-    {
-        private string Path;
+    //[ForeignClass(Name = "File", IsStatic = false)]
+    //public class OFile
+    //{
+    //    private string Path;
 
-        [ForeignFunction(Name = "open")]
-        public static OFile Open(string path)
-        {
-            return new OFile() {
-                Path = path
-            };
-        }
+    //    [ForeignFunction(Name = "open")]
+    //    public static OFile Open(string path)
+    //    {
+    //        return new OFile()
+    //        {
+    //            Path = path
+    //        };
+    //    }
 
-        [ForeignFunction(Name = "read")]
-        public string[] Read()
-        {
-            return File.ReadAllLines(Path);
-        }
-    }
+    //    [ForeignFunction(Name = "read")]
+    //    public string[] Read()
+    //    {
+    //        return File.ReadAllLines(Path);
+    //    }
+    //}
 
-    [ForeignClass(Name = "Directory")]
-    public class ODirectory
-    {
-        [ForeignFunction(Name = "current")]
-        public static string Current() => Directory.GetCurrentDirectory();
+    //[ForeignClass(Name = "Directory")]
+    //public class ODirectory
+    //{
+    //    [ForeignFunction(Name = "current")]
+    //    public static string Current() => Directory.GetCurrentDirectory();
 
-        [ForeignFunction(Name = "cd")]
-        public static void CD(string path) => Directory.SetCurrentDirectory(path);
+    //    [ForeignFunction(Name = "cd")]
+    //    public static void CD(string path) => Directory.SetCurrentDirectory(path);
 
-        [ForeignFunction(Name = "ls")]
-        public static void LS()
-        {
-            var list = Directory.GetFileSystemEntries(Directory.GetCurrentDirectory());
-            foreach (var file in list)
-            {
-                Console.WriteLine(file);
-            }
-        }
-    }
+    //    [ForeignFunction(Name = "ls")]
+    //    public static void LS()
+    //    {
+    //        var list = Directory.GetFileSystemEntries(Directory.GetCurrentDirectory());
+    //        foreach (var file in list)
+    //        {
+    //            Console.WriteLine(file);
+    //        }
+    //    }
+    //}
 }

@@ -1,30 +1,35 @@
 ﻿using Outlet.Types;
+using System.Collections.Generic;
 
 namespace Outlet.Operands {
-	public class Instance : Operand<Class> {
+	public class Instance : Operand<Class>, IDereferenceable
+    {
 
-		public readonly Getter GetInstanceVar;
-		public readonly Setter SetInstanceVar;
-        public readonly Lister GetInstanceVars;
+		private readonly Getter GetInstanceVar;
+		private readonly Setter SetInstanceVar;
+        private readonly Lister GetInstanceVars;
 
-		public Instance(Class type, Getter get, Setter set, Lister list) {
+		public Instance(Class type, Getter get, Setter set, Lister list) 
+        {
 			RuntimeType = type;
 			GetInstanceVar = get;
 			SetInstanceVar = set;
             GetInstanceVars = list;
 		}
 
-		public override bool Equals(Operand b) {
-			return ReferenceEquals(this, b);
-		}
+		public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override string ToString() {
+        public Operand GetMember(string field) => GetInstanceVar(field);
+        public void SetMember(string field, Operand value) => SetInstanceVar(field, value);
+        public IEnumerable<(string id, Operand val)> GetMembers() => GetInstanceVars();
+
+        public override string ToString() {
 			string s = RuntimeType.Name + " {\n";
-            foreach(var (id, val) in GetInstanceVars())
+            foreach (var (id, val) in GetInstanceVars())
             {
-                s += "\t" + id + ": " + val.ToString() + "\n";
+                if(id != "this") s += "    \"" + id + "\": " + val.ToString() + "\n";
             }
-			return s + "}";
+            return s + "}";
 		}
 	}
 }

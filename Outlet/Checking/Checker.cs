@@ -36,7 +36,7 @@ namespace Outlet.Checking
         private Checker() => Scopes.Push(SymbolTable.Global);
         public static void Define(ITyped t, string s) => Scopes.Peek().Define(t, s);
         public static ITyped Get(int level, string s) => Scopes.Peek().GetType(level, s);
-        public static (ITyped type, int level) Find(string s) => Scopes.Peek().Find(s);
+        public static (ITyped type, int level, int id) Find(string s) => Scopes.Peek().Bind(s);
 
         public static SymbolTable EnterScope()
         {
@@ -116,12 +116,12 @@ namespace Outlet.Checking
                 EnterScope();
                 foreach (Declaration d in c.StaticDecls) d.Accept(this);
                 foreach (Declaration d in c.StaticDecls) if (d is FunctionDeclaration fd) Define(fd.Type, fd.Name);
-                if (parent != null) foreach (KeyValuePair<string, Type> d in parent.Statics) Define(d.Value, d.Key);
+                // if (parent != null) foreach (KeyValuePair<string, Type> d in parent.Statics) Define(d.Value, d.Key);
                 EnterScope();
                 Define(Get(2, c.Name), "this");
                 foreach (Declaration d in c.InstanceDecls) d.Accept(this);
                 foreach (Declaration d in c.InstanceDecls) if (d is FunctionDeclaration fd) Define(fd.Type, fd.Name);
-                if (parent != null) foreach (KeyValuePair<string, Type> d in parent.Instances) Define(d.Value, d.Key);
+                if (parent != null) foreach (KeyValuePair<string, Type> d in parent.InstanceMembers) Define(d.Value, d.Key);
                 c.Constructor.Accept(this);
                 ExitScope();
                 ExitScope();
@@ -194,17 +194,17 @@ namespace Outlet.Checking
         public ITyped Visit(Access a)
         {
             ITyped elem = a.Collection.Accept(this);
-            if (elem is TypeObject meta)
+            ITyped idxType = a.Index.Length > 0 ? a.Index[0].Accept(this) : null;
+            if (elem is TypeObject meta && meta.Encapsulated is Class c)
             {
-                if (meta.Encapsulated is Class c && a.Index.Length > 0)
-                {
+                if (idxType is TypeObject)
                     return Error("Generics not supported yet");
-                }
-                return new TypeObject(new ArrayType(meta.Encapsulated));
+                // array types are defined with empty braces []
+                if(idxType == null)
+                    return new TypeObject(new ArrayType(meta.Encapsulated));
             }
             if (a.Index.Length != 1)
                 return Error("array access requires exactly 1 index");
-            ITyped idxType = a.Index[0].Accept(this);
             if (idxType != Primitive.Int)
                 return Error("only ints can be used to index into an array, found: " + idxType.ToString());
             if (elem is ArrayType at) return at.ElementType;
@@ -249,11 +249,9 @@ namespace Outlet.Checking
         {
             ITyped calltype = c.Caller.Accept(this);
             if (calltype == ErrorType) return ErrorType;
-            if (calltype is TypeObject constructor)
-            {
-                if (constructor.Encapsulated is ICheckableClass cl) calltype = cl.GetStaticType("");
-                else return Error("type " + constructor.Encapsulated + " is not instantiable");
-            }
+            if (calltype is TypeObject t && t.Encapsulated is ProtoClass containsConstructor) 
+                calltype = containsConstructor.GetStaticMemberType("");
+
             ITyped[] argtypes = c.Args.Select(x => x.Accept(this)).ToArray();
             if (calltype is FunctionType functype)
             {
@@ -264,9 +262,16 @@ namespace Outlet.Checking
             }
             if (calltype is MethodGroupType mgt)
             {
-                FunctionType bestMatch = mgt.FindBestMatch(argtypes);
-                if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
-                return bestMatch.ReturnType;
+                if(c.Caller is Variable v)
+                {
+                    FunctionType bestMatch = mgt.FindBestMatch(argtypes);
+                    if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
+                    return bestMatch.ReturnType;
+                }
+                else
+                {
+                    throw new System.Exception("Should not be able to have method group for non variable");
+                }
             }
             return Error("type " + calltype + " is not callable");
         }
@@ -284,24 +289,23 @@ namespace Outlet.Checking
         {
             ITyped inst = d.Left.Accept(this);
             if (inst == ErrorType) return ErrorType;
-            if (inst is ArrayType && d.Right == "length")
+            if (inst is ArrayType && d.Identifier == "length")
             {
                 d.ArrayLength = true;
                 return Primitive.Int;
             }
-            if (inst is TupleType tt && int.TryParse(d.Right, out int result))
+            if (inst is TupleType tt && int.TryParse(d.Identifier, out int result))
             {
                 if (result >= tt.Types.Length)
                     return Error("cannot access element " + result + " of tuple type " +
                         tt.ToString() + " which has only " + tt.Types.Length + " elements");
                 return tt.Types[result];
             }
-            if (inst is ICheckableClass t) return t.GetInstanceType(d.Right);
-            if (inst is TypeObject staticClass)
-            {
-                if (staticClass.Encapsulated is ICheckableClass c) return c.GetStaticType(d.Right);
-                return Error("type " + staticClass.Encapsulated.ToString() + " does not contain static field: " + d.Right);
-            }
+            if (inst is ProtoClass instances) 
+                return instances.GetInstanceMemberType(d.Identifier);
+            if (inst is TypeObject t && t.Encapsulated is ProtoClass statics) 
+                return statics.GetStaticMemberType(d.Identifier);
+
             return Error("cannot dereference type: " + inst.ToString());
         }
 
@@ -369,10 +373,11 @@ namespace Outlet.Checking
 
         public ITyped Visit(Variable v)
         {
-            (ITyped t, int l) = Find(v.Name);
-            v.resolveLevel = l;
-            if (l == -1) return Error("variable " + v.Name + " could not be resolved");
-            return t;
+            (ITyped type, int level, int id) = Find(v.Name);
+            v.resolveLevel = level;
+            v.id = id;
+            if (level == -1) return Error("variable " + v.Name + " could not be resolved");
+            return type;
         }
 
         #endregion
@@ -461,8 +466,8 @@ namespace Outlet.Checking
         public ITyped Visit(UsingStatement u)
         {
             ITyped used = u.Used.Accept(this);
-            if (used is TypeObject meta && meta.Encapsulated is ICheckableClass c)
-                foreach (var (id, type) in c.GetStaticMemberTypes())
+            if (used is TypeObject t && t.Encapsulated is ProtoClass staticClass)
+                foreach (var (id, type) in staticClass.GetStaticMemberTypes())
                 {
                     Define(type, id);
                 }

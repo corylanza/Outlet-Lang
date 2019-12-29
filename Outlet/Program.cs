@@ -17,7 +17,7 @@ namespace Outlet {
 	public static class Program {
 
 		public static void Main(string[] args) {
-            FFIConfig.Register();
+            NativeInitializer.Register();
             if(args.Length == 0) REPL();
 			if(args.Length == 1 && args[0] == "run") {
 				while(true) {

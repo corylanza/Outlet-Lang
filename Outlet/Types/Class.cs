@@ -1,8 +1,8 @@
 ﻿using System;
-using Decls = System.Collections.Generic.Dictionary<string, Outlet.Types.Type>;
 using Outlet.Operands;
 using Outlet.Checking;
 using System.Collections.Generic;
+using Decls = System.Collections.Generic.Dictionary<string, Outlet.Types.Type>;
 using System.Linq;
 
 namespace Outlet.Types {
@@ -32,82 +32,60 @@ namespace Outlet.Types {
 			level = -1;
 			return false;
 		}
-        
-		public override string ToString() => Name;
-	}
 
-    public class UserDefinedClass : Class, IRuntimeClass {
+        public override string ToString() => Name;
+    }
+
+    public class RuntimeClass : Class, IDereferenceable {
 
 		private readonly Getter StaticGetter;
 		private readonly Setter StaticSetter;
         private readonly Lister GetList;
 		public readonly Action Init;
 
-		public UserDefinedClass(string name, Class parent, Getter get, Setter set, Lister list, Action init) : base(name, parent) {
+		public RuntimeClass(string name, Class parent, Getter get, Setter set, Lister list, Action init) : base(name, parent) {
 			StaticGetter = get;
 			StaticSetter = set;
             GetList = list;
             Init = init;
 		}
 
-		public Operand GetStatic(string s) => StaticGetter(s);
-		public void SetStatic(string s, Operand val) => StaticSetter(s, val);
-
-        public IEnumerable<(string id, Operand val)> GetStaticMembers()
+		public Operand GetMember(string s) => StaticGetter(s);
+		public void SetMember(string s, Operand val) => StaticSetter(s, val);
+        public IEnumerable<(string id, Operand val)> GetMembers()
         {
             return GetList();
         }
-
-        public override string ToString()
-        {
-            string output = Name + "{\n";
-            foreach(var (name, value) in GetList())
-            {
-                output += "\t" + name + ": " + value.ToString() + " \n";
-            }
-            return output + "}";
-        }
     }
 
-	public class ProtoClass : Class, ICheckableClass {
+	public class ProtoClass : Class {
 
-		public readonly Decls Statics;
-		public readonly Decls Instances;
+        public readonly Decls InstanceMembers;
+        public readonly Decls StaticMembers;
 
-		public ProtoClass(string name, Class parent, Decls instances, Decls statics) : base(name, parent) {
-			Instances = instances;
-			Statics = statics;
+        public ProtoClass(string name, Class parent, Decls statics, Decls instances) : base(name, parent) {
+            InstanceMembers = instances;
+            StaticMembers = statics;
 		}
 
-		public Type GetStaticType(string s) {
-			if(Statics.ContainsKey(s)) return Statics[s];
-			if(s == "") return Checker.Error("type " + this + " is not instantiable");
-			return Checker.Error(this + " does not contain static field: " + s);
-		}
-		public Type GetInstanceType(string s) {
-			Class cur = this;
-			while(cur != null) {
-				if(cur is ProtoClass pc && pc.Instances.ContainsKey(s)) return pc.Instances[s];
-				cur = cur.Parent;
-			}
-			return Checker.Error(this + " does not contain instance field: " + s);
-		}
-
-        public IEnumerable<(string id, Type type)> GetStaticMemberTypes()
+        public Type GetStaticMemberType(string s)
         {
-            return Statics.Select(member => (member.Key, member.Value));
+            if (StaticMembers.ContainsKey(s)) return StaticMembers[s];
+            if (s == "") return Checker.Error("type " + this + " is not instantiable");
+            return Checker.Error(this + " does not contain static field: " + s);
         }
-	}
-	
-	public interface ICheckableClass {
-		Type GetStaticType(string s);
-		Type GetInstanceType(string s);
-        IEnumerable<(string id, Type type)> GetStaticMemberTypes();
-	}
+        public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.Select(member => (member.Key, member.Value));
 
-	public interface IRuntimeClass {
-		Operand GetStatic(string s);
-		void SetStatic(string s, Operand val);
-        IEnumerable<(string id, Operand val)> GetStaticMembers();
-	}
+        public Type GetInstanceMemberType(string s)
+        {
+            Class cur = this;
+            while (cur != null)
+            {
+                if (cur is ProtoClass pc && pc.InstanceMembers.ContainsKey(s)) return pc.InstanceMembers[s];
+                cur = cur.Parent;
+            }
+            return Checker.Error(this + " does not contain instance field: " + s);
+        }
+        public IEnumerable<(string id, Type type)> GetIntanceMemberTypes() => InstanceMembers.Select(member => (member.Key, member.Value));
+    }
 }

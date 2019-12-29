@@ -11,6 +11,7 @@ namespace Outlet.Interpreting {
 		#region Helpers
 
 		public static Stack<Scope> Scopes = new Stack<Scope>();
+        public static Stack<StackFrame> CallStack = new Stack<StackFrame>();
 
 		public static Operand Interpret(IASTNode program) {
 			while(Scopes.Count != 1) Scopes.Pop();
@@ -22,6 +23,7 @@ namespace Outlet.Interpreting {
 		}
 
 		public static Scope CurScope() => Scopes.Peek();
+        //public static Operand GetLocalVariable(Variable v) => CallStack.ElementAt(v.resolveLevel).LocalVariables.ElementAt(v.id);
 
 		public static Scope EnterScope() {
 			if(Scopes.Count == 0) Scopes.Push(new Scope(null));
@@ -48,10 +50,10 @@ namespace Outlet.Interpreting {
 			// Hidden function for initializing instance variables/methods
 			void Init() {
 				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
-				if(super is UserDefinedClass udc) udc.Init();
+				if(super is RuntimeClass udc) udc.Init();
 			}
             // Create class
-            UserDefinedClass newclass = new UserDefinedClass(c.Name, super, Get, Set, List, Init);
+            RuntimeClass newclass = new RuntimeClass(c.Name, super, Get, Set, List, Init);
 			c.Constructor.Accept(this);
 			// leave the static scope
 			ExitScope();
@@ -68,7 +70,7 @@ namespace Outlet.Interpreting {
 				Scope instancescope = new Scope(staticscope);
 				Scopes.Push(instancescope);
 				// Call the constructors hidden init function to initialize instance variables/methods
-				UserDefinedClass type = (staticscope.Get(1, c.Decl.Type.ToString()) as TypeObject).Encapsulated as UserDefinedClass;
+				RuntimeClass type = (staticscope.Get(1, c.Decl.Type.ToString()) as TypeObject).Encapsulated as RuntimeClass;
 				type.Init();
 				// Hidden functions that act as getters and setters for instance variables/methods
 				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
@@ -142,7 +144,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Access a) {
 			Operand col = a.Collection.Accept(this);
 			if(col is TypeObject at && a.Index.Length == 0) return new TypeObject(new ArrayType(at.Encapsulated));
-            if(col is Operands.Array c)
+            if(col is Array c)
             {
                 // Index is 0 because all array access is one-dimensional as of now
                 // multi-dimensional arrays can be accessed through chained accesses
@@ -166,15 +168,9 @@ namespace Outlet.Interpreting {
 			if(a.Left is Variable v) {
 				CurScope().Assign(v.resolveLevel, v.Name, val);
 				return val;
-			} else if(a.Left is Deref d) {
-				Operand temp = d.Left.Accept(this);
-				if(temp is Instance i) {
-					i.SetInstanceVar(d.Right, val);
-					return val;
-				} else if(temp is TypeObject meta && meta.Encapsulated is IRuntimeClass c) {
-					c.SetStatic(d.Right, val);
-					return val;
-				}
+			} else if(a.Left is Deref d && d.Left.Accept(this) is IDereferenceable dereferenced) {
+                dereferenced.SetMember(d.Identifier, val);
+                return val;
 			}
 			throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
 		}
@@ -184,17 +180,21 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Call c) {
 			Operand caller = c.Caller.Accept(this);
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
-			if(caller is TypeObject meta && meta.Encapsulated is IRuntimeClass cl) caller = cl.GetStatic("");
-			if(caller is ICallable f) return f.Call(args);
-			else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
+            if (caller is ICallable f)
+            {
+                CallStack.Push(new StackFrame("called " + caller.ToString()));
+                var returned = f.Call(args);
+                CallStack.Pop();
+                return returned;
+            }
+            else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
 		}
 
 		public Operand Visit(Deref d) {
 			Operand left = d.Left.Accept(this);
-			if(left is Operands.Array a && d.ArrayLength) return Constant.Int(a.Values().Length);
-            if (left is OTuple t && int.TryParse(d.Right, out int idx)) return t.Values()[idx];
-			if(left is TypeObject meta && meta.Encapsulated is IRuntimeClass c) return c.GetStatic(d.Right);
-			if(left is Instance i) return i.GetInstanceVar(d.Right);
+			if(left is Array a && d.ArrayLength) return Constant.Int(a.Values().Length);
+            if (left is OTuple t && int.TryParse(d.Identifier, out int idx)) return t.Values()[idx];
+            if (left is IDereferenceable dereferenceable) return dereferenceable.GetMember(d.Identifier);
 			if(left is Constant<object> n && n.Value is null) throw new RuntimeException("null pointer exception");
 			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
 		}
@@ -240,9 +240,13 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Unary u) => u.Oper.Perform(u.Expr.Accept(this));
 
 		public Operand Visit(Variable v) {
-			if(v.resolveLevel == -1) {
-				throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
-			} else return CurScope().Get(v.resolveLevel, v.Name);
+            if (v.resolveLevel == -1)
+            {
+                throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
+            }
+            //if (Scope.Global.Has(v.Name)) 
+                return CurScope().Get(v.resolveLevel, v.Name);
+            //else return GetLocalVariable(v);
 		}
 
 		#endregion
@@ -311,9 +315,9 @@ namespace Outlet.Interpreting {
         public Operand Visit(UsingStatement u)
         {
             Operand toUse = u.Used.Accept(this);
-            if (toUse is IRuntimeClass rc) 
+            if (toUse is TypeObject rc) 
             {
-                foreach(var (id, val) in rc.GetStaticMembers())
+                foreach(var (id, val) in rc.GetMembers())
                 {
                     CurScope().Add(id, val.GetOutletType(), val);
                 }

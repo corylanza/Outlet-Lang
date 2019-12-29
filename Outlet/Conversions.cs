@@ -7,7 +7,17 @@ namespace Outlet
 {
     public class Conversions
     {
-        public static ITyped GetRuntimeType<T>() where T : Operand
+        public static readonly Dictionary<System.Type, Types.Type> OutletType = new Dictionary<System.Type, Types.Type>()
+        {
+            {typeof(object), Primitive.Object },
+            {typeof(string), Primitive.String },
+            {typeof(int), Primitive.Int },
+            {typeof(bool), Primitive.Bool },
+            {typeof(float), Primitive.Float },
+            {typeof(void), Primitive.Void }
+        };
+
+        public static Types.Type GetRuntimeType<T>() where T : Operand
         {
             if (typeof(T) == typeof(Constant<int>)) return Primitive.Int;
             if (typeof(T) == typeof(Constant<bool>)) return Primitive.Bool;

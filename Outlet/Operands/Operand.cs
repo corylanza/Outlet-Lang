@@ -27,10 +27,15 @@ namespace Outlet.Operands {
 
 	public interface ICallable {
 		Operand Call(params Operand[] args);
-	}/*
-	public interface IDereferenceable {
-		Operand Dereference(string field);
 	}
+
+	public interface IDereferenceable {
+		Operand GetMember(string field);
+        void SetMember(string field, Operand value);
+        IEnumerable<(string id, Operand val)> GetMembers();
+	}
+
+    /*
 	public interface ICollection {
 		Operand[] Values();
 	}*/

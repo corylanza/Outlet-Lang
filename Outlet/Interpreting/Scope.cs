@@ -3,7 +3,7 @@ using Outlet.Operands;
 using Outlet.Types;
 using Type = Outlet.Types.Type;
 
-namespace Outlet 
+namespace Outlet.Interpreting
 {
 	public class Scope 
     {
@@ -17,17 +17,17 @@ namespace Outlet
 		private Scope() 
         {
 			Parent = null;
-			foreach(string s in ForeignFunctions.NativeFunctions.Keys) 
+            //foreach(string s in ForeignFunctions.NativeFunctions.Keys) 
+            //         {
+            //	Function f = ForeignFunctions.NativeFunctions[s];
+            //	Add(s, f.GetOutletType(), f);
+            //}
+            foreach (string s in ForeignFunctions.NativeTypes.Keys)
             {
-				Function f = ForeignFunctions.NativeFunctions[s];
-				Add(s, f.GetOutletType(), f);
-			}
-			foreach(string s in ForeignFunctions.NativeTypes.Keys) 
-            {
-				Type t = ForeignFunctions.NativeTypes[s];
-				Add(s, Primitive.MetaType, new TypeObject(t));
-			}
-		}
+                Type t = ForeignFunctions.NativeTypes[s];
+                Add(s, Primitive.MetaType, new TypeObject(t));
+            }
+        }
 
 		public Scope(Scope parent) 
         {
@@ -40,6 +40,8 @@ namespace Outlet
 			if(level == 0) return Variables[s].Value;
 			else return Parent.Get(level - 1, s);
 		}
+
+        public bool Has(string s) => Variables.ContainsKey(s);
 
         public IEnumerable<(string, Operand)> List() 
         {

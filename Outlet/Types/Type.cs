@@ -60,7 +60,9 @@ namespace Outlet.Types {
 			}
 			return ancestor as Type;
 		}
-		
-	}
+
+        public abstract override string ToString();
+
+    }
 
 }

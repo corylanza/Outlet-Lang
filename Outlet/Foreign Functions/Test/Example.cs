@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace Outlet.FFI
 {
-    [ForeignClass(Name = "person")]
+    [ForeignClass(Name = "example")]
     public class Example
     {
-        [ForeignField(Name = "Hey")]
-        public int Hey;
+        [ForeignField(Name = "id")]
+        public int Id;
 
         [ForeignConstructor]
-        public Example(int hey)
+        public Example(int id)
         {
-            Hey = hey;
+            Id = id;
         }
     }
 }
