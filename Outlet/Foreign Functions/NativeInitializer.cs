@@ -20,45 +20,62 @@ namespace Outlet.FFI
                 Primitive p when p == Primitive.Int => Constant.Int((int)o),
                 Primitive p when p == Primitive.Bool => Constant.Bool((bool)o),
                 Primitive p when p == Primitive.Float => Constant.Float((float)o),
-                Class nc => ToOutletInstance(nc, o),
+                NativeClass nc => ToOutletInstance(nc, o),
                 null => Constant.Null(),
                 _ => throw new Exception("Cannot map type")
             };
         }
 
-        public static Operand ToOutletInstance(Class nc, object o)
-        {
-            Operand Get(string id) => ToOutletOperand(o.GetType().GetField(id).GetValue(o));
-            void Set(string id, Operand val) => o.GetType().GetField(id).SetValue(o, ToCSharpOperand(val));
-            IEnumerable<(string id, Operand val)> List() => o.GetType().GetFields().Select(field => (field.Name, ToOutletOperand(field.GetValue(o))));
-            return new Instance(nc, Get, Set, List);
-        }
-
-        public static RuntimeClass ToOutletClass(string name, Dictionary<string, MemberInfo> members)
+        public static Operand ToOutletInstance(NativeClass nc, object o)
         {
 
-            Operand Get(string id) => members[id] switch
+            Operand Get(string id) => nc.InstanceMembers[id] switch
             {
                 MethodInfo method => Convert(id, method),
-                FieldInfo field => ToOutletOperand(field.DeclaringType.GetField(field.Name).GetValue(null)),
-                ConstructorInfo constructor => Convert(constructor),
-                _ => throw new NotImplementedException()
+                FieldInfo field => ToOutletOperand(o.GetType().GetField(field.Name).GetValue(o)),
+                _ => throw new NotSupportedException()
             };
 
             void Set(string id, Operand val)
             {
-                if(members[id] is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(null, ToCSharpOperand(val));
+                if(nc.InstanceMembers[id] is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(o, ToCSharpOperand(val));
             }
+
             IEnumerable<(string id, Operand val)> List()
             {
-                foreach(var name in members.Keys)
+                foreach (var name in nc.InstanceMembers.Keys)
                 {
                     yield return (name, Get(name));
                 }
             }
-            static void Init() { }
 
-            return new RuntimeClass(name, Primitive.Object, Get, Set, List, Init);
+            return new NativeInstance(nc, Get, Set, List);
+        }
+
+        public static NativeClass ToOutletClass(string name, Dictionary<string, MemberInfo> staticMembers, Dictionary<string, MemberInfo> instanceMembers)
+        {
+
+            Operand Get(string id) => staticMembers[id] switch
+            {
+                MethodInfo method => Convert(id, method),
+                FieldInfo field => ToOutletOperand(field.DeclaringType.GetField(field.Name).GetValue(null)),
+                ConstructorInfo constructor => Convert(constructor),
+                _ => throw new NotSupportedException()
+            };
+
+            void Set(string id, Operand val)
+            {
+                if(staticMembers[id] is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(null, ToCSharpOperand(val));
+            }
+            IEnumerable<(string id, Operand val)> List()
+            {
+                foreach(var name in staticMembers.Keys)
+                {
+                    yield return (name, Get(name));
+                }
+            }
+
+            return new NativeClass(name, Primitive.Object, Get, Set, List, instanceMembers);
         }
 
         public static object ToCSharpOperand(Operand o)
@@ -179,7 +196,7 @@ namespace Outlet.FFI
 
 
                 // Runtime
-                Class c = ToOutletClass(className, staticMembers);
+                NativeClass c = ToOutletClass(className, staticMembers, instanceMembers);
                 TypeObject runtime = new TypeObject(c);
                 Scope.Global.Add(className, Primitive.MetaType, runtime);
 

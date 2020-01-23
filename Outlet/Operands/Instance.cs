@@ -1,35 +1,38 @@
 ﻿using Outlet.Types;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Outlet.Operands {
-	public class Instance : Operand<Class>, IDereferenceable
+	public abstract class Instance : Operand<Class>, IDereferenceable
     {
-
-		private readonly Getter GetInstanceVar;
-		private readonly Setter SetInstanceVar;
-        private readonly Lister GetInstanceVars;
-
-		public Instance(Class type, Getter get, Setter set, Lister list) 
+		public Instance(Class type)
         {
 			RuntimeType = type;
-			GetInstanceVar = get;
-			SetInstanceVar = set;
-            GetInstanceVars = list;
 		}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
-
-        public Operand GetMember(string field) => GetInstanceVar(field);
-        public void SetMember(string field, Operand value) => SetInstanceVar(field, value);
-        public IEnumerable<(string id, Operand val)> GetMembers() => GetInstanceVars();
+        public abstract Operand GetMember(string field);
+        public abstract void SetMember(string field, Operand value);
+        public abstract IEnumerable<(string id, Operand val)> GetMembers();
 
         public override string ToString() {
 			string s = RuntimeType.Name + " {\n";
-            foreach (var (id, val) in GetInstanceVars())
+            foreach (var (id, val) in GetMembers())
             {
                 if(id != "this") s += "    \"" + id + "\": " + val.ToString() + "\n";
             }
             return s + "}";
 		}
 	}
+
+    public class UserDefinedInstance : Instance
+    {
+        private readonly Dictionary<string, Field> Members = new Dictionary<string, Field>();
+
+        public UserDefinedInstance(Class type) : base(type) { }
+
+        public override Operand GetMember(string field) => Members[field].Value;
+        public override void SetMember(string field, Operand value) => Members[field] = new Field() { Value = value };
+        public override IEnumerable<(string id, Operand val)> GetMembers() => Members.Select(member => (member.Key, member.Value.Value));
+    }
 }

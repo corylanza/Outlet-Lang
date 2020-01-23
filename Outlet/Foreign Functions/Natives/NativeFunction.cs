@@ -28,6 +28,6 @@ namespace Outlet.FFI.Natives
         }
 
         public override Operand Call(params Operand[] args) =>
-            NativeInitializer.ToOutletInstance(RuntimeType.ReturnType as Class, Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
+            NativeInitializer.ToOutletInstance(RuntimeType.ReturnType as NativeClass, Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }
 }

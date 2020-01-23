@@ -6,4 +6,5 @@
 	}
 }
 
-Node[int] = Node[int](5);
+Node[int] a = Node[int](5);
+int b = a.Value;

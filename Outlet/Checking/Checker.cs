@@ -83,14 +83,15 @@ namespace Outlet.Checking
                     }
                 }
 
-                foreach(var (id, classConstraint) in c.GenericParameters)
+                Define(new TypeObject(new ProtoClass(c.Name, parent, statics, instances)), c.Name);
+                EnterScope();
+
+                foreach (var (id, classConstraint) in c.GenericParameters)
                 {
                     Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
                     Define(new TypeObject(constraint), id);
                 }
 
-                Define(new TypeObject(new ProtoClass(c.Name, parent, statics, instances)), c.Name);
-                EnterScope();
                 foreach (Declaration d in c.StaticDecls)
                 {
                     d.Accept(this);
@@ -125,7 +126,7 @@ namespace Outlet.Checking
                 foreach (Declaration d in c.StaticDecls) if (d is FunctionDeclaration fd) Define(fd.Type, fd.Name);
                 // if (parent != null) foreach (KeyValuePair<string, Type> d in parent.Statics) Define(d.Value, d.Key);
                 EnterScope();
-                Define(Get(2, c.Name), "this");
+                Define((Get(2, c.Name) as TypeObject).Encapsulated, "this");
                 foreach (Declaration d in c.InstanceDecls) d.Accept(this);
                 foreach (Declaration d in c.InstanceDecls) if (d is FunctionDeclaration fd) Define(fd.Type, fd.Name);
                 if (parent != null) foreach (KeyValuePair<string, Type> d in parent.InstanceMembers) Define(d.Value, d.Key);

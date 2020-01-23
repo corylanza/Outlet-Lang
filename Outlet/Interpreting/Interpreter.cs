@@ -41,6 +41,9 @@ namespace Outlet.Interpreting {
 			// Find super class, if none it will always be object
 			Class super = c.SuperClass != null ? (c.SuperClass.Accept(this) as TypeObject).Encapsulated as Class : Primitive.Object;
 
+            // Enter new scope and declare all statics there
+            Scope closure = EnterScope();
+
             // if there are any generic parameters define their value as their class constraint
             foreach (var (id, classConstraint) in c.GenericParameters)
             {
@@ -48,20 +51,19 @@ namespace Outlet.Interpreting {
                 CurScope().Add(id, Primitive.MetaType, new TypeObject(constraint));
             }
 
-            // Enter new scope and declare all statics there
-            Scope closure = EnterScope();
-			foreach(Declaration d in c.StaticDecls) d.Accept(this);
-			// Hidden functions for getting and setting statics
-			Operand Get(string s) => closure.Get(0, s);
-			void Set(string s, Operand val) => closure.Assign(0, s, val);
-            IEnumerable<(string, Operand)> List() => closure.List();
+            var staticFields = new Dictionary<string, Field>();
+            foreach (Declaration d in c.StaticDecls) d.Accept(this);
+            c.Constructor.Accept(this);
+            foreach (var (id, value) in CurScope().List()) staticFields.Add(id, new Field { Value = value });
+
 			// Hidden function for initializing instance variables/methods
-			void Init() {
+			void Init(Instance i) {
 				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
-				if(super is RuntimeClass udc) udc.Init();
+                foreach(var (id, value) in CurScope().List()) i.SetMember(id, value);
+				if(super is UserDefinedClass udc) udc.Init(i);
 			}
             // Create class
-            RuntimeClass newclass = new RuntimeClass(c.Name, super, Get, Set, List, Init);
+            UserDefinedClass newclass = new UserDefinedClass(c.Name, super, staticFields, Init);
 			c.Constructor.Accept(this);
 			// leave the static scope
 			ExitScope();
@@ -77,16 +79,15 @@ namespace Outlet.Interpreting {
 				// Enter the instance scope
 				Scope instancescope = new Scope(staticscope);
 				Scopes.Push(instancescope);
-				// Call the constructors hidden init function to initialize instance variables/methods
-				RuntimeClass type = (staticscope.Get(1, c.Decl.Type.ToString()) as TypeObject).Encapsulated as RuntimeClass;
-				type.Init();
-				// Hidden functions that act as getters and setters for instance variables/methods
-				void Set(string s, Operand val) => instancescope.Assign(0, s, val);
-				Operand Get(string s) => instancescope.Get(0, s);
-                IEnumerable<(string, Operand)> List() => instancescope.List();
-                // Create the new instance and define this
-                Instance inst = new Instance(type, Get, Set, List);
-				instancescope.Add("this", type, inst);
+
+                // Call the constructors hidden init function to initialize instance variables/methods
+                UserDefinedClass type = (staticscope.Get(1, c.Decl.Type.ToString()) as TypeObject).Encapsulated as UserDefinedClass;
+
+                // Create the new instance, initialize all fields, and define this
+                Instance inst = new UserDefinedInstance(type);
+                type.Init(inst);
+                instancescope.Add("this", type, inst);
+
 				// Enter the scope of the constructor
 				Scope constructorscope = new Scope(instancescope);
 				Scopes.Push(constructorscope);
@@ -131,7 +132,7 @@ namespace Outlet.Interpreting {
 			TypeObject type = (TypeObject) v.Decl.Accept(this);
 			Operand initial = v.Initializer?.Accept(this) ?? type.Encapsulated.Default();
 			CurScope().Add(v.Decl.ID, type.Encapsulated, initial);
-			return null;
+			return initial;
 		}
 
 		#endregion

@@ -11,12 +11,10 @@ namespace Outlet.Types {
 
 		public readonly string Name;
 		public readonly Class Parent;
-        public readonly Type[] GenericArguments;
 
-		public Class(string name, Class parent, params Type[] genericArguments) {
+		public Class(string name, Class parent) {
 			Name = name;
 			Parent = parent;
-            GenericArguments = genericArguments;
 		}
 
 		//public override bool Equals(Operand b) => ReferenceEquals(this, b);
@@ -36,26 +34,21 @@ namespace Outlet.Types {
         public override string ToString() => Name;
     }
 
-    public class RuntimeClass : Class, IDereferenceable {
+    public class UserDefinedClass : Class, IDereferenceable {
 
-		private readonly Getter StaticGetter;
-		private readonly Setter StaticSetter;
-        private readonly Lister GetList;
-		public readonly Action Init;
+		public readonly Action<Instance> Init;
+        private readonly Dictionary<string, Field> Members;
 
-		public RuntimeClass(string name, Class parent, Getter get, Setter set, Lister list, Action init) : base(name, parent) {
-			StaticGetter = get;
-			StaticSetter = set;
-            GetList = list;
-            Init = init;
-		}
-
-		public Operand GetMember(string s) => StaticGetter(s);
-		public void SetMember(string s, Operand val) => StaticSetter(s, val);
-        public IEnumerable<(string id, Operand val)> GetMembers()
+        public UserDefinedClass(string name, Class parent, Dictionary<string, Field> members, Action<Instance> init) : base(name, parent)
         {
-            return GetList();
+            Members = members;
+            Init = init;
         }
+
+		public Operand GetMember(string id) => Members[id].Value;
+		public void SetMember(string id, Operand value) => Members[id] = new Field { Value = value };
+
+        public IEnumerable<(string id, Operand val)> GetMembers() => Members.Select(member => (member.Key, member.Value.Value));
     }
 
 	public class ProtoClass : Class {
@@ -87,5 +80,16 @@ namespace Outlet.Types {
             return Checker.Error(this + " does not contain instance field: " + s);
         }
         public IEnumerable<(string id, Type type)> GetIntanceMemberTypes() => InstanceMembers.Select(member => (member.Key, member.Value));
+    }
+
+    public class GenericClass : Class
+    {
+
+        public readonly Type[] GenericArguments;
+
+        public GenericClass(Class encapsulated, params Type[] genericArguments) : base(encapsulated.Name, encapsulated)
+        {
+            GenericArguments = genericArguments;
+        }
     }
 }

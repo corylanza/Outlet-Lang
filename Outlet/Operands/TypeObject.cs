@@ -41,10 +41,10 @@ namespace Outlet.Operands
         {
             string s = "type(";
             if(Encapsulated is ProtoClass p) return s += p.Name + ")";
-            else if(Encapsulated is RuntimeClass r)
+            else if(Encapsulated is Class c && c is IDereferenceable d)
             {
-                s+= r.Name + "{\n";
-                foreach (var (name, value) in r.GetMembers())
+                s+= c.Name + "{\n";
+                foreach (var (name, value) in d.GetMembers())
                 {
                     s += "    \"" + name + "\": " + value.ToString() + " \n";
                 }
