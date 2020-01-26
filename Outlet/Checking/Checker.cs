@@ -92,19 +92,17 @@ namespace Outlet.Checking
                     Define(new TypeObject(constraint), id);
                 }
 
-                foreach (Declaration d in c.StaticDecls)
+                foreach (Declaration d in c.StaticDecls) d.Accept(this);
+                foreach ((string id, ITyped type) in Scopes.Peek().List())
                 {
-                    d.Accept(this);
-                    if (Find(d.Name).type is Type declType)
-                        statics.Add(d.Name, declType);
+                    if (type is Type declType) statics.Add(id, declType);
                     else Error("not supported");
                 }
                 EnterScope();
-                foreach (Declaration d in c.InstanceDecls)
+                foreach (Declaration d in c.InstanceDecls) d.Accept(this);
+                foreach((string id, ITyped type) in Scopes.Peek().List())
                 {
-                    d.Accept(this);
-                    if (Find(d.Name).type is Type declType)
-                        instances.Add(d.Name, declType);
+                    if (type is Type declType) instances.Add(id, declType);
                     else Error("not supported");
                 }
                 c.Constructor.Accept(this);
@@ -270,16 +268,9 @@ namespace Outlet.Checking
             }
             if (calltype is MethodGroupType mgt)
             {
-                if(c.Caller is Variable v)
-                {
-                    FunctionType bestMatch = mgt.FindBestMatch(argtypes);
-                    if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
-                    return bestMatch.ReturnType;
-                }
-                else
-                {
-                    throw new System.Exception("Should not be able to have method group for non variable");
-                }
+                FunctionType bestMatch = mgt.FindBestMatch(argtypes);
+                if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
+                return bestMatch.ReturnType;
             }
             return Error("type " + calltype + " is not callable");
         }
