@@ -12,40 +12,44 @@ namespace Outlet.Checking
 
         #region Helpers
 
-        public static readonly Stack<bool> DoImpl = new Stack<bool>();
-        public static readonly Stack<SymbolTable> Scopes = new Stack<SymbolTable>();
+        public readonly Stack<bool> DoImpl = new Stack<bool>();
+        public readonly Stack<SymbolTable> Scopes = new Stack<SymbolTable>();
         private static readonly Type ErrorType = new ProtoClass("error", null, null, null);
         public static int ErrorCount = 0;
 
-        public static void Check(IASTNode program)
+        public Checker()
+        {
+            Scopes.Push(SymbolTable.Global);
+        }
+
+        public void Check(IASTNode program)
         {
             ErrorCount = 0;
             if (program is FunctionDeclaration || program is ClassDeclaration)
             {
                 DoImpl.Push(false);
-                program.Accept(Hidden);
+                program.Accept(this);
                 DoImpl.Pop();
                 DoImpl.Push(true);
-                program.Accept(Hidden);
+                program.Accept(this);
                 DoImpl.Pop();
             }
-            else program.Accept(Hidden);
+            else program.Accept(this);
             if (ErrorCount > 0) throw new CheckerException(ErrorCount + " Checking errors encountered");
         }
-        private static readonly Checker Hidden = new Checker();
-        private Checker() => Scopes.Push(SymbolTable.Global);
-        public static void Define(ITyped t, string s) => Scopes.Peek().Define(t, s);
-        public static ITyped Get(int level, string s) => Scopes.Peek().GetType(level, s);
-        public static (ITyped type, int level, int id) Find(string s) => Scopes.Peek().Bind(s);
 
-        public static SymbolTable EnterScope()
+        public void Define(ITyped t, string s) => Scopes.Peek().Define(t, s);
+        public ITyped Get(int level, string s) => Scopes.Peek().GetType(level, s);
+        public (ITyped type, int level, int id) Find(string s) => Scopes.Peek().Bind(s);
+
+        public SymbolTable EnterScope()
         {
             if (Scopes.Count == 0) Scopes.Push(SymbolTable.Global);
             else Scopes.Push(new SymbolTable(Scopes.Peek()));
             return Scopes.Peek();
         }
 
-        public static void ExitScope() => Scopes.Pop();
+        public void ExitScope() => Scopes.Pop();
 
         public static Type Error(string message)
         {
@@ -54,7 +58,7 @@ namespace Outlet.Checking
             return ErrorType;
         }
 
-        public static ITyped Cast(ITyped from, ITyped to, string message = "cannot convert type {0} to type {1}")
+        public ITyped Cast(ITyped from, ITyped to, string message = "cannot convert type {0} to type {1}")
         {
             if (from == ErrorType || to == ErrorType) return ErrorType;
             if (!from.Is(to)) return Error(string.Format(message, from, to));
@@ -93,6 +97,8 @@ namespace Outlet.Checking
                 }
 
                 foreach (Declaration d in c.StaticDecls) d.Accept(this);
+                foreach (var constructor in c.Constructors) constructor.Accept(this);
+                
                 foreach ((string id, ITyped type) in Scopes.Peek().List())
                 {
                     if (type is Type declType) statics.Add(id, declType);
@@ -100,13 +106,11 @@ namespace Outlet.Checking
                 }
                 EnterScope();
                 foreach (Declaration d in c.InstanceDecls) d.Accept(this);
-                foreach((string id, ITyped type) in Scopes.Peek().List())
+                foreach ((string id, ITyped type) in Scopes.Peek().List())
                 {
                     if (type is Type declType) instances.Add(id, declType);
                     else Error("not supported");
                 }
-                c.Constructor.Accept(this);
-                statics.Add("", c.Constructor.Type);
                 ExitScope();
                 ExitScope();
             }
@@ -122,13 +126,12 @@ namespace Outlet.Checking
                 EnterScope();
                 foreach (Declaration d in c.StaticDecls) d.Accept(this);
                 foreach (Declaration d in c.StaticDecls) if (d is FunctionDeclaration fd) Define(fd.Type, fd.Name);
-                // if (parent != null) foreach (KeyValuePair<string, Type> d in parent.Statics) Define(d.Value, d.Key);
                 EnterScope();
                 Define((Get(2, c.Name) as TypeObject).Encapsulated, "this");
                 foreach (Declaration d in c.InstanceDecls) d.Accept(this);
                 foreach (Declaration d in c.InstanceDecls) if (d is FunctionDeclaration fd) Define(fd.Type, fd.Name);
                 if (parent != null) foreach (KeyValuePair<string, Type> d in parent.InstanceMembers) Define(d.Value, d.Key);
-                c.Constructor.Accept(this);
+                foreach (var constructor in c.Constructors) constructor.Accept(this);
                 ExitScope();
                 ExitScope();
             }

@@ -10,28 +10,35 @@ namespace Outlet.Interpreting {
 
 		#region Helpers
 
-		public static Stack<Scope> Scopes = new Stack<Scope>();
-        public static Stack<StackFrame> CallStack = new Stack<StackFrame>();
+		public Stack<Scope> Scopes = new Stack<Scope>();
+        public Stack<StackFrame> CallStack = new Stack<StackFrame>();
 
-		public static Operand Interpret(IASTNode program) {
+        public Interpreter()
+        {
+            Scopes.Push(Scope.Global);
+        }
+
+        public Operand Interpret(IASTNode program) {
 			while(Scopes.Count != 1) Scopes.Pop();
-			return program.Accept(Hidden);
-		}
-		private static readonly Interpreter Hidden = new Interpreter();
-		private Interpreter() {
-			Scopes.Push(Scope.Global);
+            try
+            {
+                return program.Accept(this);
+            } catch (RuntimeException r)
+            {
+                throw new RuntimeException(r.Message, this);
+            }
 		}
 
-		public static Scope CurScope() => Scopes.Peek();
-        //public static Operand GetLocalVariable(Variable v) => CallStack.ElementAt(v.resolveLevel).LocalVariables.ElementAt(v.id);
+		public Scope CurScope() => Scopes.Peek();
+        //public Operand GetLocalVariable(Variable v) => CallStack.ElementAt(v.resolveLevel).LocalVariables.ElementAt(v.id);
 
-		public static Scope EnterScope() {
+		public Scope EnterScope() {
 			if(Scopes.Count == 0) Scopes.Push(new Scope(null));
 			else Scopes.Push(new Scope(Scopes.Peek()));
 			return Scopes.Peek();
 		}
 
-		public static void ExitScope() => Scopes.Pop();
+		public void ExitScope() => Scopes.Pop();
 
 		#endregion
 
@@ -53,7 +60,7 @@ namespace Outlet.Interpreting {
 
             var staticFields = new Dictionary<string, Field>();
             foreach (Declaration d in c.StaticDecls) d.Accept(this);
-            c.Constructor.Accept(this);
+            foreach (var constructor in c.Constructors) constructor.Accept(this);
             foreach (var (id, value) in CurScope().List()) staticFields.Add(id, new Field { Value = value });
 
 			// Hidden function for initializing instance variables/methods
@@ -64,7 +71,6 @@ namespace Outlet.Interpreting {
 			}
             // Create class
             UserDefinedClass newclass = new UserDefinedClass(c.Name, super, staticFields, Init);
-			c.Constructor.Accept(this);
 			// leave the static scope
 			ExitScope();
 			// Define the class

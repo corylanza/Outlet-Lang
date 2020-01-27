@@ -61,7 +61,7 @@ namespace Outlet.Parsing {
                 List<(string id, Variable constraint)> genericParameters = new List<(string, Variable)>();
                 List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
-				ConstructorDeclaration constructor = null;
+				List<ConstructorDeclaration> constructors = new List<ConstructorDeclaration>();
 				Variable superclass = null;
                 Identifier name = ConsumeType<Identifier>("Expected class identifier");
                 if (Match(Delimeter.LeftBrace))
@@ -91,8 +91,7 @@ namespace Outlet.Parsing {
 						if(Match(name)) {
 							if(Match(Delimeter.LeftParen)) {
 								Declarator constr = new Declarator(new Variable(name.Name), "");
-								if(constructor != null) throw new OutletException("class cannot have two constructors");
-								constructor = ConstructDef(constr);
+								constructors.Add(ConstructDef(constr));
 								continue;
 							} else tokens.AddFirst(name);
 						}
@@ -104,8 +103,8 @@ namespace Outlet.Parsing {
 						} else throw new OutletException("statement: " + nextfield.ToString() + " must be inside a function body");
 					}
 				}
-				if(constructor == null) constructor = new ConstructorDeclaration(new Declarator(new Variable(name.Name), ""), new List<Declarator>(), new Block(new List<IASTNode>(), new List<FunctionDeclaration>(), new List<ClassDeclaration>()));
-				return new ClassDeclaration(name.Name, superclass, genericParameters, constructor, instance, statics);
+				if(constructors.Count == 0) constructors.Add(new ConstructorDeclaration(new Declarator(new Variable(name.Name), ""), new List<Declarator>(), new Block(new List<IASTNode>(), new List<FunctionDeclaration>(), new List<ClassDeclaration>())));
+				return new ClassDeclaration(name.Name, superclass, genericParameters, constructors, instance, statics);
 			}
 			if(Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement(tokens);

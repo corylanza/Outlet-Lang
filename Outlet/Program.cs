@@ -16,7 +16,11 @@ using Outlet.FFI;
 namespace Outlet {
 	public static class Program {
 
-		public static void Main(string[] args) {
+
+        public static Checker checker = new Checker();
+        public static Interpreter interpreter = new Interpreter();
+
+        public static void Main(string[] args) {
             NativeInitializer.Register();
             if(args.Length == 0) REPL();
 			if(args.Length == 1 && args[0] == "run") {
@@ -55,8 +59,8 @@ namespace Outlet {
 			try {
 				LinkedList<Token> lexout = Lexer.Scan(bytes);
 				IASTNode program = Parser.Parse(lexout);
-				Checker.Check(program);
-				Operand res = Interpreter.Interpret(program);
+				checker.Check(program);
+				Operand res = interpreter.Interpret(program);
 				if(res != null) Console.WriteLine("Expression returned " + res);
 			} catch(OutletException ex) {
 				Console.ForegroundColor = ConsoleColor.Red;

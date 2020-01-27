@@ -11,6 +11,7 @@ namespace Outlet.Operands
         public MethodGroup(params Function[] functions)
         {
             Methods = functions.ToList();
+            RuntimeType = GetMethodGroupType();
         }
 
         public void AddMethod(Function toAdd)

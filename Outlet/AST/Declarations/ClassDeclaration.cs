@@ -11,11 +11,12 @@ namespace Outlet.AST {
 		public readonly List<Declaration> InstanceDecls;
 		public readonly List<Declaration> StaticDecls;
         public readonly List<(string id, Variable classConstraint)> GenericParameters;
-        public readonly ConstructorDeclaration Constructor;
+        public readonly List<ConstructorDeclaration> Constructors;
 
 		public ClassDeclaration
             (string name, Variable superclass,
-            List<(string id, Variable classConstraint)> genericParams, ConstructorDeclaration constructor, 
+            List<(string id, Variable classConstraint)> genericParams, 
+            List<ConstructorDeclaration> constructors, 
             List<Declaration> instance, List<Declaration> statics) 
         {
 			Name = name;
@@ -23,7 +24,7 @@ namespace Outlet.AST {
 			InstanceDecls = instance;
 			StaticDecls = statics;
             GenericParameters = genericParams;
-			Constructor = constructor;
+			Constructors = constructors;
 		}
 
 		public override T Accept<T>(IVisitor<T> visitor) {

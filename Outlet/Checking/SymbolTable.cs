@@ -15,11 +15,6 @@ namespace Outlet.Checking
         private SymbolTable()
         {
             Parent = null;
-            //foreach (string s in ForeignFunctions.NativeFunctions.Keys)
-            //{
-            //    Function f = ForeignFunctions.NativeFunctions[s];
-            //    Define(f.GetOutletType(), s);
-            //}
             foreach (string s in ForeignFunctions.NativeTypes.Keys)
             {
                 Type t = ForeignFunctions.NativeTypes[s];
@@ -88,15 +83,3 @@ namespace Outlet.Checking
 
     }
 }
-
-        //public void Add(string id, Type type)
-        //{
-        //    Action action = (Symbols.ContainsKey(id), Symbols[id].Type, type) switch
-        //    {
-        //        (true, FunctionType first, FunctionType second) => () => Symbols[id] = (new MethodGroupType(first, second), null),
-        //        (true, MethodGroupType group, FunctionType added) => () => group.Methods.Add(added),
-        //        (true, _, _) => throw new CheckerException("Already defined"),
-        //        _ => () => Symbols.Add(id, (type, null))
-        //    };
-        //    action();
-        //}
