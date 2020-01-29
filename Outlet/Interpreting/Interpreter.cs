@@ -10,12 +10,14 @@ namespace Outlet.Interpreting {
 
 		#region Helpers
 
-		public Stack<Scope> Scopes = new Stack<Scope>();
-        public Stack<StackFrame> CallStack = new Stack<StackFrame>();
+		public readonly Stack<Scope> Scopes = new Stack<Scope>();
+        public readonly Stack<StackFrame> CallStack = new Stack<StackFrame>();
+        public StackFrame CurrentStackFrame => CallStack.Peek();
 
         public Interpreter()
         {
             Scopes.Push(Scope.Global);
+            CallStack.Push(StackFrame.Global);
         }
 
         public Operand Interpret(IASTNode program) {
@@ -29,7 +31,7 @@ namespace Outlet.Interpreting {
             }
 		}
 
-		public Scope CurScope() => Scopes.Peek();
+		public Scope CurScope => Scopes.Peek();
         //public Operand GetLocalVariable(Variable v) => CallStack.ElementAt(v.resolveLevel).LocalVariables.ElementAt(v.id);
 
 		public Scope EnterScope() {
@@ -55,18 +57,18 @@ namespace Outlet.Interpreting {
             foreach (var (id, classConstraint) in c.GenericParameters)
             {
                 Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
-                CurScope().Add(id, Primitive.MetaType, new TypeObject(constraint));
+                CurScope.Add(id, Primitive.MetaType, new TypeObject(constraint));
             }
 
             var staticFields = new Dictionary<string, Field>();
             foreach (Declaration d in c.StaticDecls) d.Accept(this);
             foreach (var constructor in c.Constructors) constructor.Accept(this);
-            foreach (var (id, value) in CurScope().List()) staticFields.Add(id, new Field { Value = value });
+            foreach (var (id, value) in CurScope.List()) staticFields.Add(id, new Field { Value = value });
 
 			// Hidden function for initializing instance variables/methods
 			void Init(Instance i) {
 				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
-                foreach(var (id, value) in CurScope().List()) i.SetMember(id, value);
+                foreach(var (id, value) in CurScope.List()) i.SetMember(id, value);
 				if(super is UserDefinedClass udc) udc.Init(i);
 			}
             // Create class
@@ -74,13 +76,13 @@ namespace Outlet.Interpreting {
 			// leave the static scope
 			ExitScope();
 			// Define the class
-			CurScope().Add(c.Name, Primitive.MetaType, new TypeObject(newclass));
+			CurScope.Add(c.Name, Primitive.MetaType, new TypeObject(newclass));
 			return null;
 		}
 
 		public Operand Visit(ConstructorDeclaration c) {
 			// Captures the static scope of the class in which the constructor is declared
-			Scope staticscope = CurScope();
+			Scope staticscope = CurScope;
 			Operand UnderlyingConstructor(params Operand[] args) {
 				// Enter the instance scope
 				Scope instancescope = new Scope(staticscope);
@@ -111,33 +113,36 @@ namespace Outlet.Interpreting {
 			// Define the constructor as "" in the static scope (this is a special case
 			// as it cannot be stored in the instance scope despite its being resolved 
 			// at the instance level)
-			var func = new UserDefinedFunction(c.Decl.ID, c.Type, UnderlyingConstructor);
+			var func = new UserDefinedFunction(c.Decl.Identifier, c.Type, UnderlyingConstructor);
 			staticscope.Add("", func.RuntimeType, func);
 			return null;
 		}
 
 		public Operand Visit(FunctionDeclaration f) {
-			Scope closure = CurScope();
+			Scope closure = CurScope;
 			Operand HiddenFunc(params Operand[] args) {
 				Scope exec = new Scope(closure);
 				Scopes.Push(exec);
 				Operand returnval = null;
 				for(int i = 0; i < args.Length; i++) {
 					exec.Add(f.Type.Args[i].id, f.Type.Args[i].type, args[i]);
+                    CurrentStackFrame.Initialize(f.Args[i], args[i]);
 				}
 				returnval = f.Body.Accept(this);
 				ExitScope();
 				return returnval;
 			}
-			var func = new UserDefinedFunction(f.Decl.ID, f.Type, HiddenFunc);
-			CurScope().Add(f.Decl.ID, func.RuntimeType, func);
+			var func = new UserDefinedFunction(f.Decl.Identifier, f.Type, HiddenFunc);
+			CurScope.Add(f.Decl.Identifier, func.RuntimeType, func);
+            CurrentStackFrame.Initialize(f.Decl, func);
 			return null;
 		}
 
 		public Operand Visit(VariableDeclaration v) {
 			TypeObject type = (TypeObject) v.Decl.Accept(this);
 			Operand initial = v.Initializer?.Accept(this) ?? type.Encapsulated.Default();
-			CurScope().Add(v.Decl.ID, type.Encapsulated, initial);
+			CurScope.Add(v.Decl.Identifier, type.Encapsulated, initial);
+            CurrentStackFrame.Initialize(v.Decl, initial);
 			return initial;
 		}
 
@@ -181,7 +186,8 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Assign a) {
 			Operand val = a.Right.Accept(this);
 			if(a.Left is Variable v) {
-				CurScope().Assign(v.resolveLevel, v.Name, val);
+				CurScope.Assign(v.resolveLevel, v.Name, val);
+                CurrentStackFrame.Assign(v, val);
 				return val;
 			} else if(a.Left is Deref d && d.Left.Accept(this) is IDereferenceable dereferenced) {
                 dereferenced.SetMember(d.Identifier, val);
@@ -260,7 +266,7 @@ namespace Outlet.Interpreting {
                 throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
             }
             //if (Scope.Global.Has(v.Name)) 
-                return CurScope().Get(v.resolveLevel, v.Name);
+            return CurrentStackFrame.Get(v);//CurScope.Get(v.resolveLevel, v.Name);
             //else return GetLocalVariable(v);
 		}
 
@@ -294,7 +300,7 @@ namespace Outlet.Interpreting {
 			foreach(Operand o in c.Values()) {
 				EnterScope();
 				Type looptype = (f.LoopVar.Accept(this) as TypeObject).Encapsulated;
-				CurScope().Add(f.LoopVar.ID, looptype, o);
+				CurScope.Add(f.LoopVar.Identifier, looptype, o);
 				Operand res = f.Body.Accept(this);
 				ExitScope();
 				if(f.Body is Statement s && !(s is Expression) && res != null) {
@@ -334,7 +340,7 @@ namespace Outlet.Interpreting {
             {
                 foreach(var (id, val) in rc.GetMembers())
                 {
-                    CurScope().Add(id, val.GetOutletType(), val);
+                    CurScope.Add(id, val.GetOutletType(), val);
                 }
                 return null;
             } 

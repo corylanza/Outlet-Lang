@@ -17,11 +17,6 @@ namespace Outlet.Interpreting
 		private Scope() 
         {
 			Parent = null;
-            //foreach(string s in ForeignFunctions.NativeFunctions.Keys) 
-            //         {
-            //	Function f = ForeignFunctions.NativeFunctions[s];
-            //	Add(s, f.GetOutletType(), f);
-            //}
             foreach (string s in ForeignFunctions.NativeTypes.Keys)
             {
                 Type t = ForeignFunctions.NativeTypes[s];

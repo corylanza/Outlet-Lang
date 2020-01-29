@@ -20,6 +20,7 @@ namespace Outlet.AST {
             List<Declaration> instance, List<Declaration> statics) 
         {
 			Name = name;
+            Decl = new Declarator(new Variable(Name), Name);
 			SuperClass = superclass;
 			InstanceDecls = instance;
 			StaticDecls = statics;

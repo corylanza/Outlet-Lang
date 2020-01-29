@@ -8,6 +8,7 @@ namespace Outlet.AST {
     public abstract class Declaration : IASTNode {
 
 		public string Name;
+        public Declarator Decl { get; protected set; }
 
 		public abstract T Accept<T>(IVisitor<T> visitor);
 

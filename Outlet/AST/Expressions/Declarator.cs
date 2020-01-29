@@ -5,20 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Declarator : Expression {
+	public class Declarator : Expression, IDeclarable
+    {
 
 		public readonly Expression Type;
-		public readonly string ID;
+		public string Identifier { get; private set; }
+        public int LocalId { get; set; }
 
-		public Declarator(Expression type, string id) {
+		public Declarator(Expression type, string id) 
+        {
 			Type = type;
-			ID = id;
+			Identifier = id;
+            LocalId = -1;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => Type.ToString() + " " + ID;
+		public override string ToString() => Type.ToString() + " " + Identifier;
 	}
 }

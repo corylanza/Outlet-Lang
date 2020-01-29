@@ -5,13 +5,12 @@ using Outlet.Types;
 namespace Outlet.AST {
 	public class FunctionDeclaration : Declaration {
 
-		public readonly Declarator Decl;
 		public readonly List<Declarator> Args;
 		public readonly Statement Body;
 		public FunctionType Type;   // set in the checking phase
 
 		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) {
-			Name = decl.ID;
+			Name = decl.Identifier;
 			Decl = decl;
 			Args = argnames;
 			Body = body;
@@ -22,7 +21,7 @@ namespace Outlet.AST {
 		}
 
 		public override string ToString() {
-			string s = "func " + Decl.ID + "(";
+			string s = "func " + Decl.Identifier + "(";
 			return s + ")";
 		}
 	}
