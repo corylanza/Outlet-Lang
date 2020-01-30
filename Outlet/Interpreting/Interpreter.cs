@@ -34,6 +34,13 @@ namespace Outlet.Interpreting {
 		public Scope CurScope => Scopes.Peek();
         //public Operand GetLocalVariable(Variable v) => CallStack.ElementAt(v.resolveLevel).LocalVariables.ElementAt(v.id);
 
+        public StackFrame EnterStackFrame(string call)
+        {
+            var newStackFrame = new StackFrame(CurrentStackFrame, call);
+            CallStack.Push(newStackFrame);
+            return newStackFrame;
+        }
+
 		public Scope EnterScope() {
 			if(Scopes.Count == 0) Scopes.Push(new Scope(null));
 			else Scopes.Push(new Scope(Scopes.Peek()));
@@ -51,7 +58,7 @@ namespace Outlet.Interpreting {
 			Class super = c.SuperClass != null ? (c.SuperClass.Accept(this) as TypeObject).Encapsulated as Class : Primitive.Object;
 
             // Enter new scope and declare all statics there
-            Scope closure = EnterScope();
+            EnterScope();
 
             // if there are any generic parameters define their value as their class constraint
             foreach (var (id, classConstraint) in c.GenericParameters)
@@ -76,7 +83,8 @@ namespace Outlet.Interpreting {
 			// leave the static scope
 			ExitScope();
 			// Define the class
-			CurScope.Add(c.Name, Primitive.MetaType, new TypeObject(newclass));
+			//CurScope.Add(c.Name, Primitive.MetaType, new TypeObject(newclass));
+            CurrentStackFrame.Initialize(c.Decl, new TypeObject(newclass));
 			return null;
 		}
 
@@ -119,21 +127,19 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(FunctionDeclaration f) {
-			Scope closure = CurScope;
+            StackFrame closure = CurrentStackFrame;
 			Operand HiddenFunc(params Operand[] args) {
-				Scope exec = new Scope(closure);
-				Scopes.Push(exec);
+                StackFrame stackFrame = new StackFrame(closure, f.Name);
+                CallStack.Push(stackFrame);
 				Operand returnval = null;
 				for(int i = 0; i < args.Length; i++) {
-					exec.Add(f.Type.Args[i].id, f.Type.Args[i].type, args[i]);
-                    CurrentStackFrame.Initialize(f.Args[i], args[i]);
+                    stackFrame.Initialize(f.Args[i], args[i]);
 				}
 				returnval = f.Body.Accept(this);
-				ExitScope();
+                CallStack.Pop();
 				return returnval;
 			}
 			var func = new UserDefinedFunction(f.Decl.Identifier, f.Type, HiddenFunc);
-			CurScope.Add(f.Decl.Identifier, func.RuntimeType, func);
             CurrentStackFrame.Initialize(f.Decl, func);
 			return null;
 		}
@@ -141,7 +147,6 @@ namespace Outlet.Interpreting {
 		public Operand Visit(VariableDeclaration v) {
 			TypeObject type = (TypeObject) v.Decl.Accept(this);
 			Operand initial = v.Initializer?.Accept(this) ?? type.Encapsulated.Default();
-			CurScope.Add(v.Decl.Identifier, type.Encapsulated, initial);
             CurrentStackFrame.Initialize(v.Decl, initial);
 			return initial;
 		}
@@ -186,7 +191,6 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Assign a) {
 			Operand val = a.Right.Accept(this);
 			if(a.Left is Variable v) {
-				CurScope.Assign(v.resolveLevel, v.Name, val);
                 CurrentStackFrame.Assign(v, val);
 				return val;
 			} else if(a.Left is Deref d && d.Left.Accept(this) is IDereferenceable dereferenced) {
@@ -203,9 +207,7 @@ namespace Outlet.Interpreting {
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
             if (caller is ICallable f)
             {
-                CallStack.Push(new StackFrame("called " + caller.ToString()));
                 var returned = f.Call(args);
-                CallStack.Pop();
                 return returned;
             }
             else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
@@ -265,9 +267,7 @@ namespace Outlet.Interpreting {
             {
                 throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
             }
-            //if (Scope.Global.Has(v.Name)) 
-            return CurrentStackFrame.Get(v);//CurScope.Get(v.resolveLevel, v.Name);
-            //else return GetLocalVariable(v);
+            return CurrentStackFrame.Get(v);
 		}
 
 		#endregion
@@ -275,7 +275,6 @@ namespace Outlet.Interpreting {
 		# region Statements
 
 		public Operand Visit(Block b) {
-			EnterScope();
 			foreach(ClassDeclaration cd in b.Classes) {
 				cd.Accept(this);
 			}
@@ -287,22 +286,18 @@ namespace Outlet.Interpreting {
 				if(line is ClassDeclaration) continue;
 				var ret = line.Accept(this);
 				if(line is Statement s && !(s is Expression) && ret != null) {
-					ExitScope();
 					return ret;
 				}
 			}
-			ExitScope();
 			return null;
 		}
 
 		public Operand Visit(ForLoop f) {
 			Operands.Array c = (Operands.Array) f.Collection.Accept(this);
 			foreach(Operand o in c.Values()) {
-				EnterScope();
 				Type looptype = (f.LoopVar.Accept(this) as TypeObject).Encapsulated;
-				CurScope.Add(f.LoopVar.Identifier, looptype, o);
+                CurrentStackFrame.Initialize(f.LoopVar, o);
 				Operand res = f.Body.Accept(this);
-				ExitScope();
 				if(f.Body is Statement s && !(s is Expression) && res != null) {
 					return res;
 				}

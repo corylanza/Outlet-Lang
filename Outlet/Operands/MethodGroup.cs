@@ -38,7 +38,7 @@ namespace Outlet.Operands
 
         private MethodGroupType GetMethodGroupType()
         {
-            return new MethodGroupType(Methods.Select(method => method.RuntimeType).ToArray());
+            return new MethodGroupType(Methods.Select(method => (method.RuntimeType, 0)).ToArray());
         }
 
         public override bool Equals(Operand other) => ReferenceEquals(this, other);

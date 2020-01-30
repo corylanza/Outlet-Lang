@@ -199,7 +199,7 @@ namespace Outlet.FFI
                 NativeClass c = ToOutletClass(className, staticMembers, instanceMembers);
                 TypeObject runtime = new TypeObject(c);
                 Scope.Global.Add(className, Primitive.MetaType, runtime);
-
+                StackFrame.Global.LocalVariables.Add(StackFrame.Global.LocalVariables.Count, runtime);
                 Conversions.OutletType[type] = c;
             };
         }

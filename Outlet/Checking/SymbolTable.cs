@@ -13,10 +13,12 @@ namespace Outlet.Checking
 
         private readonly Dictionary<string, (ITyped type, int id)> Symbols = new Dictionary<string, (ITyped, int)>();
         public readonly SymbolTable Parent;
+        private readonly bool newStackFrame;
 
         private SymbolTable()
         {
             Parent = null;
+            newStackFrame = true;
             int index = 0;
             foreach (string s in ForeignFunctions.NativeTypes.Keys)
             {
@@ -25,9 +27,10 @@ namespace Outlet.Checking
             }
         }
 
-        public SymbolTable(SymbolTable parent)
+        public SymbolTable(SymbolTable parent, bool enterStackFrame)
         {
             Parent = parent;
+            newStackFrame = enterStackFrame;
         }
 
         public int Define(ITyped t, string s)
@@ -36,12 +39,12 @@ namespace Outlet.Checking
             {
                 if (Symbols[s].type is FunctionType existingFunc && t is FunctionType newFunc)
                 {
-                    Symbols[s] = (new MethodGroupType(existingFunc, newFunc), Symbols[s].id);
+                    Symbols[s] = (new MethodGroupType((existingFunc, 0), (newFunc, 0)), Symbols[s].id);
                     return Symbols[s].id;
                 }
                 else if (Symbols[s].type is MethodGroupType existing && t is FunctionType added)
                 {
-                    existing.Methods.Add(added);
+                    existing.Methods.Add((added, 0));
                     return Symbols[s].id;
                 }
                 else Checker.Error("variable " + s + " already defined in this scope");
@@ -54,16 +57,17 @@ namespace Outlet.Checking
         {
             if (Symbols.ContainsKey(decl.Identifier))
             {
-                int existingId = Symbols[decl.Identifier].id;
-                if (Symbols[decl.Identifier].type is FunctionType existingFunc && type is FunctionType newFunc)
+                (ITyped existing, int existingId) = Symbols[decl.Identifier];
+                int newId = getNextId();
+                if (existing is FunctionType existingFunc && type is FunctionType newFunc)
                 {
-                    Symbols[decl.Identifier] = (new MethodGroupType(existingFunc, newFunc), existingId);
-                    decl.LocalId = existingId;
+                    Symbols[decl.Identifier] = (new MethodGroupType((existingFunc, existingId), (newFunc, newId)), existingId);
+                    decl.LocalId = newId;
                 }
-                else if (Symbols[decl.Identifier].type is MethodGroupType existing && type is FunctionType added)
+                else if (existing is MethodGroupType existingMethodGroup && type is FunctionType added)
                 {
-                    existing.Methods.Add(added);
-                    decl.LocalId = existingId;
+                    existingMethodGroup.Methods.Add((added, newId));
+                    decl.LocalId = newId;
                 }
                 else Checker.Error("variable " + decl.Identifier + " already defined in this scope");
             }
@@ -81,7 +85,7 @@ namespace Outlet.Checking
             {
                 (ITyped type, int level, int id) = Parent.ResolveAndBind(variable);
                 // if not found in parent scope pass along not found (-1), otherwise add 1 level
-                return (type, level == -1 ? -1 : level + 1, id);
+                return (type, level == -1 ? -1 : newStackFrame ? level + 1 : level, id);
             }
             return (null, -1, -1);
         }

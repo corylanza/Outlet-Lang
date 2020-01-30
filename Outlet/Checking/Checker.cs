@@ -55,7 +55,7 @@ namespace Outlet.Checking
         {
             if (enterStackFrame) StackFrameVariableCount.Push(0);
             if (Scopes.Count == 0) Scopes.Push(SymbolTable.Global);
-            else Scopes.Push(new SymbolTable(Scopes.Peek()));
+            else Scopes.Push(new SymbolTable(Scopes.Peek(), enterStackFrame));
             return Scopes.Peek();
         }
 
@@ -113,14 +113,14 @@ namespace Outlet.Checking
                 foreach (Declaration d in c.StaticDecls) d.Accept(this);
                 foreach (var constructor in c.Constructors) constructor.Accept(this);
                 
-                foreach ((string id, ITyped type) in Scopes.Peek().List())
+                foreach ((string id, ITyped type) in CurrentScope.List())
                 {
                     if (type is Type declType) statics.Add(id, declType);
                     else Error("not supported");
                 }
                 EnterScope();
                 foreach (Declaration d in c.InstanceDecls) d.Accept(this);
-                foreach ((string id, ITyped type) in Scopes.Peek().List())
+                foreach ((string id, ITyped type) in CurrentScope.List())
                 {
                     if (type is Type declType) instances.Add(id, declType);
                     else Error("not supported");
@@ -286,7 +286,7 @@ namespace Outlet.Checking
             }
             if (calltype is MethodGroupType mgt)
             {
-                FunctionType bestMatch = mgt.FindBestMatch(argtypes);
+                (FunctionType bestMatch, int id) = mgt.FindBestMatch(argtypes);
                 if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
                 return bestMatch.ReturnType;
             }
