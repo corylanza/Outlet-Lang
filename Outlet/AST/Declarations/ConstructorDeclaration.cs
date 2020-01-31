@@ -9,12 +9,12 @@ using Decl = Outlet.AST.Declarator;
 namespace Outlet.AST {
 	public class ConstructorDeclaration : FunctionDeclaration {
 
-		public ConstructorDeclaration(Decl decl, List<Decl> argnames, Statement body) : base(decl, argnames, body) {
+		public ConstructorDeclaration(Decl decl, List<Decl> argnames, Statement body) 
+            : base(decl, argnames, body) 
+        {
 
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 	}
 }

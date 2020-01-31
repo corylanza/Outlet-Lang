@@ -48,19 +48,9 @@ namespace Outlet.Interpreting
 
 		public void Add(string id, ITyped t, Operand v) 
         {
-            if(Variables.ContainsKey(id))
-            {
-                if (Variables[id].Value is Function existingFunc && v is Function newFunc)
-                {
-                    var newGroup = new MethodGroup(existingFunc, newFunc);
-                    Variables[id] = (newGroup.GetOutletType(), newGroup);
-                }
-                else if (Variables[id].Value is MethodGroup existing && v is Function toAdd)
-                {
-                    existing.AddMethod(toAdd);
-                }
-                else throw new OutletException("Variable already exists and cannot be added again, THIS SHOULD NOT PRINT");
-            } else Variables[id] = (t, v);
+            if(Variables.ContainsKey(id)) 
+                throw new OutletException("Variable already exists and cannot be added again, THIS SHOULD NOT PRINT");
+            else Variables[id] = (t, v);
 		}
 
 		public void Assign(int level, string id, Operand v) 

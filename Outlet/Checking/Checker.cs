@@ -284,9 +284,10 @@ namespace Outlet.Checking
                 return argsMatch ? functype.ReturnType :
                     Error(c.Caller + " expects " + "(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
             }
-            if (calltype is MethodGroupType mgt)
+            if (calltype is MethodGroupType mgt && c.Caller is Variable v)
             {
                 (FunctionType bestMatch, int id) = mgt.FindBestMatch(argtypes);
+                v.LocalId = id;
                 if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
                 return bestMatch.ReturnType;
             }
