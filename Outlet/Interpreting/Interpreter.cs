@@ -10,20 +10,19 @@ namespace Outlet.Interpreting {
 
 		#region Helpers
 
-		public readonly Stack<Scope> Scopes = new Stack<Scope>();
         public readonly Stack<StackFrame> CallStack = new Stack<StackFrame>();
         public StackFrame CurrentStackFrame => CallStack.Peek();
 
         public Interpreter()
         {
-            Scopes.Push(Scope.Global);
             CallStack.Push(StackFrame.Global);
         }
 
         public Operand Interpret(IASTNode program) {
-			while(Scopes.Count != 1) Scopes.Pop();
+            while(CallStack.Count > 1) CallStack.Pop();
             try
             {
+                if (CallStack.Count == 0) CallStack.Push(StackFrame.Global); 
                 return program.Accept(this);
             } catch (RuntimeException r)
             {
@@ -31,23 +30,12 @@ namespace Outlet.Interpreting {
             }
 		}
 
-		public Scope CurScope => Scopes.Peek();
-        //public Operand GetLocalVariable(Variable v) => CallStack.ElementAt(v.resolveLevel).LocalVariables.ElementAt(v.id);
-
-        public StackFrame EnterStackFrame(string call)
+        public StackFrame EnterStackFrame(int localCount, string call)
         {
-            var newStackFrame = new StackFrame(CurrentStackFrame, call);
+            var newStackFrame = new StackFrame(CurrentStackFrame, localCount, call);
             CallStack.Push(newStackFrame);
             return newStackFrame;
         }
-
-		public Scope EnterScope() {
-			if(Scopes.Count == 0) Scopes.Push(new Scope(null));
-			else Scopes.Push(new Scope(Scopes.Peek()));
-			return Scopes.Peek();
-		}
-
-		public void ExitScope() => Scopes.Pop();
 
 		#endregion
 
@@ -56,98 +44,122 @@ namespace Outlet.Interpreting {
 		public Operand Visit(ClassDeclaration c) {
 			// Find super class, if none it will always be object
 			Class super = c.SuperClass != null ? (c.SuperClass.Accept(this) as TypeObject).Encapsulated as Class : Primitive.Object;
+            // Hidden function for initializing instance variables/methods
+            void Init(Instance i)
+            {
+                foreach (Declaration d in c.InstanceDecls)
+                {
+                    i.SetMember(d.Decl, d.Accept(this));
+                }
+                if (super is UserDefinedClass udc) udc.Init(i);
+                // TODO for native classes
+            }
 
-            // Enter new scope and declare all statics there
-            EnterScope();
+            var staticFields = new Field[c.StaticDecls.Count + c.Constructors.Count];
+
+            // Define the class
+            UserDefinedClass newClass = new UserDefinedClass(c.Name, super, staticFields, Init);
+            var newType = new TypeObject(newClass);
+            CurrentStackFrame.Assign(c.Decl, newType);
 
             // if there are any generic parameters define their value as their class constraint
             foreach (var (id, classConstraint) in c.GenericParameters)
             {
-                Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
-                CurScope.Add(id, Primitive.MetaType, new TypeObject(constraint));
+                //Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
+                // TODO reimplement
+                //CurrentStackFrame.Initialize(id, new TypeObject(constraint));
             }
 
-            var staticFields = new Dictionary<string, Field>();
-            foreach (Declaration d in c.StaticDecls) d.Accept(this);
-            foreach (var constructor in c.Constructors) constructor.Accept(this);
-            foreach (var (id, value) in CurScope.List()) staticFields.Add(id, new Field { Value = value });
-
-			// Hidden function for initializing instance variables/methods
-			void Init(Instance i) {
-				foreach(Declaration d in c.InstanceDecls) d.Accept(this);
-                foreach(var (id, value) in CurScope.List()) i.SetMember(id, value);
-				if(super is UserDefinedClass udc) udc.Init(i);
-			}
-            // Create class
-            UserDefinedClass newclass = new UserDefinedClass(c.Name, super, staticFields, Init);
-			// leave the static scope
-			ExitScope();
-			// Define the class
-			//CurScope.Add(c.Name, Primitive.MetaType, new TypeObject(newclass));
-            CurrentStackFrame.Initialize(c.Decl, new TypeObject(newclass));
-			return null;
+            int fieldNum = 0;
+            CallStack.Push(new StackFrame(CurrentStackFrame, staticFields.Length, $"{c.Name} static scope"));
+            foreach (Declaration d in c.StaticDecls)
+            {
+                staticFields[fieldNum++] = new Field(d.Name, d.Accept(this));
+            }
+            foreach(ConstructorDeclaration constructor in c.Constructors)
+            {
+                staticFields[fieldNum++] = new Field("", constructor.Accept(this));
+            }
+            CallStack.Pop();
+			return newType;
 		}
 
 		public Operand Visit(ConstructorDeclaration c) {
 			// Captures the static scope of the class in which the constructor is declared
-			Scope staticscope = CurScope;
+            StackFrame staticscope = CurrentStackFrame;
 			Operand UnderlyingConstructor(params Operand[] args) {
-				// Enter the instance scope
-				Scope instancescope = new Scope(staticscope);
-				Scopes.Push(instancescope);
+                // Enter the instance scope
+                // TODO this should not always be 0, maybe pass classdeclaration to this visitor
+                int instanceCount = 0;
+                // add one to instance count for "this" which is not a member but lives in instance scope
+                StackFrame instancescope = new StackFrame(staticscope, instanceCount + 1, "class scope");
+                CallStack.Push(instancescope);
 
                 // Call the constructors hidden init function to initialize instance variables/methods
-                UserDefinedClass type = (staticscope.Get(1, c.Decl.Type.ToString()) as TypeObject).Encapsulated as UserDefinedClass;
+                UserDefinedClass type = (staticscope.Get(c.Decl.Type as Variable) as TypeObject).Encapsulated as UserDefinedClass;
 
                 // Create the new instance, initialize all fields, and define this
-                Instance inst = new UserDefinedInstance(type);
+                Instance inst = new UserDefinedInstance(type, instanceCount);
                 type.Init(inst);
-                instancescope.Add("this", type, inst);
+                // this must be stored at the instance scope
+                instancescope.LocalVariables[Class.This] = inst;
 
 				// Enter the scope of the constructor
-				Scope constructorscope = new Scope(instancescope);
-				Scopes.Push(constructorscope);
+                StackFrame constructorscope = new StackFrame(instancescope, c.LocalCount, "constructor scope");
+                CallStack.Push(constructorscope);
 				// Add all parameters to constructor scope 
 				for(int i = 0; i < args.Length; i++) {
-					constructorscope.Add(c.Type.Args[i].id, c.Type.Args[i].type, args[i]);
+                    constructorscope.Assign(c.Args[i], args[i]);
 				}
 				// Evaluate the body of the constructor
 				c.Body.Accept(this);
 				// Go back to the static scope
-				ExitScope();
-				ExitScope();
+                CallStack.Pop();
+                CallStack.Pop();
 				return inst;
 			}
-			// Define the constructor as "" in the static scope (this is a special case
-			// as it cannot be stored in the instance scope despite its being resolved 
-			// at the instance level)
-			var func = new UserDefinedFunction(c.Decl.Identifier, c.Type, UnderlyingConstructor);
-			staticscope.Add("", func.RuntimeType, func);
-			return null;
+            // Define the constructor as "" in the static scope (this is a special case
+            // as it cannot be stored in the instance scope despite its being resolved 
+            // at the instance level)
+
+			var func = new UserDefinedFunction(c.Decl.Identifier, null, UnderlyingConstructor);
+			staticscope.Assign(c.Decl, func);
+            var funcType = c.Type;/*new FunctionType(c.Args.Select(arg =>
+                (arg.Accept(this) is TypeObject to ? to.Encapsulated as ITyped :
+                    throw new OutletException("expected type SHOULD NOT PRINT"), arg.Identifier)).ToArray(),
+                c.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated :
+                    throw new OutletException("expected type SHOULD NOT PRINT"));*/
+            func.RuntimeType = funcType;
+            return func;
 		}
 
 		public Operand Visit(FunctionDeclaration f) {
             StackFrame closure = CurrentStackFrame;
 			Operand HiddenFunc(params Operand[] args) {
-                StackFrame stackFrame = new StackFrame(closure, f.Name);
+                StackFrame stackFrame = new StackFrame(closure, f.LocalCount, f.Name);
                 CallStack.Push(stackFrame);
 				Operand returnval = null;
 				for(int i = 0; i < args.Length; i++) {
-                    stackFrame.Initialize(f.Args[i], args[i]);
+                    stackFrame.Assign(f.Args[i], args[i]);
 				}
 				returnval = f.Body.Accept(this);
                 CallStack.Pop();
 				return returnval;
 			}
-			var func = new UserDefinedFunction(f.Decl.Identifier, f.Type, HiddenFunc);
-            CurrentStackFrame.Initialize(f.Decl, func);
-			return null;
+            var funcType = new FunctionType(f.Args.Select(arg =>
+                (arg.Accept(this) is TypeObject to ? to.Encapsulated as ITyped : 
+                    throw new OutletException("expected type SHOULD NOT PRINT"), arg.Identifier)).ToArray(),
+                f.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated : 
+                    throw new OutletException("expected type SHOULD NOT PRINT"));
+            var func = new UserDefinedFunction(f.Decl.Identifier, funcType, HiddenFunc);
+            CurrentStackFrame.Assign(f.Decl, func);
+			return func;
 		}
 
 		public Operand Visit(VariableDeclaration v) {
 			TypeObject type = (TypeObject) v.Decl.Accept(this);
 			Operand initial = v.Initializer?.Accept(this) ?? type.Encapsulated.Default();
-            CurrentStackFrame.Initialize(v.Decl, initial);
+            CurrentStackFrame.Assign(v.Decl, initial);
 			return initial;
 		}
 
@@ -194,7 +206,7 @@ namespace Outlet.Interpreting {
                 CurrentStackFrame.Assign(v, val);
 				return val;
 			} else if(a.Left is Deref d && d.Left.Accept(this) is IDereferenceable dereferenced) {
-                dereferenced.SetMember(d.Identifier, val);
+                dereferenced.SetMember(d.Referenced, val);
                 return val;
 			}
 			throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
@@ -217,7 +229,7 @@ namespace Outlet.Interpreting {
 			Operand left = d.Left.Accept(this);
 			if(left is Array a && d.ArrayLength) return Constant.Int(a.Values().Length);
             if (left is OTuple t && int.TryParse(d.Identifier, out int idx)) return t.Values()[idx];
-            if (left is IDereferenceable dereferenceable) return dereferenceable.GetMember(d.Identifier);
+            if (left is IDereferenceable dereferenceable) return dereferenceable.GetMember(d.Referenced);
 			if(left is Constant<object> n && n.Value is null) throw new RuntimeException("null pointer exception");
 			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
 		}
@@ -263,7 +275,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Unary u) => u.Oper.Perform(u.Expr.Accept(this));
 
 		public Operand Visit(Variable v) {
-            if (v.resolveLevel == -1)
+            if (v.ResolveLevel == -1)
             {
                 throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
             }
@@ -296,7 +308,7 @@ namespace Outlet.Interpreting {
 			Operands.Array c = (Operands.Array) f.Collection.Accept(this);
 			foreach(Operand o in c.Values()) {
 				Type looptype = (f.LoopVar.Accept(this) as TypeObject).Encapsulated;
-                CurrentStackFrame.Initialize(f.LoopVar, o);
+                CurrentStackFrame.Assign(f.LoopVar, o);
 				Operand res = f.Body.Accept(this);
 				if(f.Body is Statement s && !(s is Expression) && res != null) {
 					return res;
@@ -335,7 +347,7 @@ namespace Outlet.Interpreting {
             {
                 foreach(var (id, val) in rc.GetMembers())
                 {
-                    CurScope.Add(id, val.GetOutletType(), val);
+                    // TODO fix CurScope.Add(id, val.GetOutletType(), val);
                 }
                 return null;
             } 

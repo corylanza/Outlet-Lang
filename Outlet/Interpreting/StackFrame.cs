@@ -1,11 +1,12 @@
 ﻿using Outlet.Operands;
+using Outlet.Types;
 using System.Collections.Generic;
 
 namespace Outlet.Interpreting
 {
     public class StackFrame
     {
-        public Dictionary<int, Operand> LocalVariables = new Dictionary<int, Operand>();
+        public Operand[] LocalVariables { get; private set; }
         private readonly StackFrame Parent;
         public string Call { get; private set; }
 
@@ -15,32 +16,40 @@ namespace Outlet.Interpreting
         {
             Call = "Global scope";
             int index = 0;
+            LocalVariables = new Operand[ForeignFunctions.NativeTypes.Count];
             foreach(var type in ForeignFunctions.NativeTypes.Values)
             {
-                LocalVariables.Add(index++, new TypeObject(type));
+                LocalVariables[index++] = new TypeObject(type);
             }
         }
 
-        public StackFrame(StackFrame parent, string call)
+        public StackFrame(StackFrame parent, int localCount, string call)
         {
             Parent = parent;
+            LocalVariables = new Operand[localCount];
             Call = call;
         }
 
-        public Operand Get(IVariable variable, int level = 0)
+        public Operand Get(IBindable variable, int level = 0)
         {
-            if (variable is Outlet.AST.Variable v && v.resolveLevel > level) return Parent.Get(variable, level + 1);
+            if (variable is AST.Variable v && v.ResolveLevel > level) return Parent.Get(variable, level + 1);
             return LocalVariables[variable.LocalId];
         }
 
-        public void Initialize(IDeclarable declaration, Operand value)
+        public void Assign(IBindable variable, Operand value)
         {
-            LocalVariables[declaration.LocalId] = value;
+            if (this == Global) 
+            {
+                Operand[] newGlobals = new Operand[LocalVariables.Length + 1];
+                System.Array.Copy(LocalVariables, newGlobals, LocalVariables.Length);
+                LocalVariables = newGlobals;
+            }
+            LocalVariables[variable.LocalId] = value;
         }
 
-        public void Assign(IVariable variable, Operand value)
+        public IEnumerable<(Operand, Type)> ListVariables()
         {
-            LocalVariables[variable.LocalId] = value;
+            foreach (var op in LocalVariables) yield return (op, op.GetOutletType());
         }
     }
 }

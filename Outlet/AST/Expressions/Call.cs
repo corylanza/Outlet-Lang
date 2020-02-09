@@ -3,13 +3,18 @@
 namespace Outlet.AST {
 	public class Call : Expression {
 
-		public readonly Expression Caller;
+		public Expression Caller { get; private set; }
 		public readonly Expression[] Args;
 
 		public Call(Expression caller, params Expression[] args) {
 			Caller = caller;
 			Args = args;
 		}
+
+        public void MakeConstructorCall()
+        {
+            Caller = new Deref(Caller, new Variable(""));
+        }
 
 		public override T Accept<T>(IVisitor<T> visitor) {
 			return visitor.Visit(this);

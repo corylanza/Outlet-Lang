@@ -21,8 +21,8 @@ namespace Outlet.Operands {
 
     }
 
-	public delegate Operand Getter(string s);
-	public delegate void Setter(string s, Operand val);
+	public delegate Operand Getter(IBindable s);
+	public delegate void Setter(IBindable s, Operand val);
     public delegate IEnumerable<(string, Operand)> Lister();
 
 	public interface ICallable {
@@ -30,8 +30,8 @@ namespace Outlet.Operands {
 	}
 
 	public interface IDereferenceable {
-		Operand GetMember(string field);
-        void SetMember(string field, Operand value);
+		Operand GetMember(IBindable field);
+        void SetMember(IBindable field, Operand value);
         IEnumerable<(string id, Operand val)> GetMembers();
 	}
 

@@ -2,6 +2,7 @@
 using Outlet.Operands;
 using Outlet.Types;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Type = Outlet.Types.Type;
 
@@ -53,7 +54,7 @@ namespace Outlet.Checking
             return Symbols.Count;
         }
 
-        public void Define(ITyped type, IDeclarable decl, Func<int> getNextId)
+        public void Define(ITyped type, IBindable decl, Func<int> getNextId)
         {
             if (Symbols.ContainsKey(decl.Identifier))
             {
@@ -62,19 +63,23 @@ namespace Outlet.Checking
                 if (existing is FunctionType existingFunc && type is FunctionType newFunc)
                 {
                     Symbols[decl.Identifier] = (new MethodGroupType((existingFunc, existingId), (newFunc, newId)), existingId);
-                    decl.LocalId = newId;
+                    decl.Bind(newId, 0);
                 }
                 else if (existing is MethodGroupType existingMethodGroup && type is FunctionType added)
                 {
                     existingMethodGroup.Methods.Add((added, newId));
-                    decl.LocalId = newId;
+                    decl.Bind(newId, 0);
                 }
                 else Checker.Error("variable " + decl.Identifier + " already defined in this scope");
             }
-            else Symbols[decl.Identifier] = (type, decl.LocalId = getNextId());
+            else
+            {
+                decl.Bind(getNextId(), 0);
+                Symbols[decl.Identifier] = (type, decl.LocalId);
+            }
         }
 
-        public (ITyped, int, int) ResolveAndBind(IVariable variable)
+        public (ITyped type, int level, int localId) Resolve(IBindable variable)
         {
             if (Symbols.ContainsKey(variable.Identifier))
             {
@@ -83,27 +88,23 @@ namespace Outlet.Checking
             }
             if (Parent != null)
             {
-                (ITyped type, int level, int id) = Parent.ResolveAndBind(variable);
+                (ITyped type, int level, int id) = Parent.Resolve(variable);
                 // if not found in parent scope pass along not found (-1), otherwise add 1 level
                 return (type, level == -1 ? -1 : newStackFrame ? level + 1 : level, id);
             }
             return (null, -1, -1);
         }
 
-        public IEnumerable<(string ID, ITyped Type)> List()
-        {
-            foreach (string id in Symbols.Keys)
-            {
-                var type = Symbols[id].type;
-                yield return (id, type);
-            }
-        }
+        public IEnumerable<(string Id, ITyped Type)> List() => Symbols.Select(x => (x.Key, x.Value.type));
+        
+        public bool Has(string s) => Symbols.ContainsKey(s);
 
-        public ITyped GetType(int level, string s)
+        public ITyped GetType(IBindable variable, int level = 0)
         {
-            if (level == 0 && !Symbols.ContainsKey(s)) throw new CheckerException("failed to get type");
-            if (level == 0) return Symbols[s].type;
-            else return Parent.GetType(level - 1, s);
+            var id = variable.Identifier;
+            if (variable.ResolveLevel == 0 && Symbols.ContainsKey(id)) return Symbols[id].type;
+            else if (Parent != null) return Parent.GetType(variable, newStackFrame ? level + 1 : level);
+            else return Checker.Error($"failed to get type of {id}");
         }
 
         public ITyped this[string id] {

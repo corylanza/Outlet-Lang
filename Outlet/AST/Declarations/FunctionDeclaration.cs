@@ -7,7 +7,9 @@ namespace Outlet.AST {
 
 		public readonly List<Declarator> Args;
 		public readonly Statement Body;
-		public FunctionType Type;   // set in the checking phase
+        public FunctionType Type;
+
+        public int LocalCount = -1;
 
 		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) {
 			Name = decl.Identifier;

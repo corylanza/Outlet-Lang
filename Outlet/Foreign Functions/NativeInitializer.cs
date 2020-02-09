@@ -28,34 +28,37 @@ namespace Outlet.FFI
 
         public static Operand ToOutletInstance(NativeClass nc, object o)
         {
-
-            Operand Get(string id) => nc.InstanceMembers[id] switch
+            static Operand ToMember(string id, MemberInfo member, object o) => member switch
             {
                 MethodInfo method => Convert(id, method),
                 FieldInfo field => ToOutletOperand(o.GetType().GetField(field.Name).GetValue(o)),
                 _ => throw new NotSupportedException()
             };
 
-            void Set(string id, Operand val)
+            Operand Get(IBindable id) {
+                var member = nc.InstanceMembers[id.LocalId];
+                return ToMember(member.id, member.member, o);
+            }
+
+            void Set(IBindable id, Operand val)
             {
-                if(nc.InstanceMembers[id] is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(o, ToCSharpOperand(val));
+                if(nc.InstanceMembers[id.LocalId].member is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(o, ToCSharpOperand(val));
             }
 
             IEnumerable<(string id, Operand val)> List()
             {
-                foreach (var name in nc.InstanceMembers.Keys)
+                foreach ((string id, MemberInfo member) in nc.InstanceMembers)
                 {
-                    yield return (name, Get(name));
+                    yield return (id, ToMember(id, member, o));
                 }
             }
 
             return new NativeInstance(nc, Get, Set, List);
         }
 
-        public static NativeClass ToOutletClass(string name, Dictionary<string, MemberInfo> staticMembers, Dictionary<string, MemberInfo> instanceMembers)
+        public static NativeClass ToOutletClass(string name, (string id, MemberInfo member)[] staticMembers, (string, MemberInfo)[] instanceMembers)
         {
-
-            Operand Get(string id) => staticMembers[id] switch
+            static Operand ToMember(string id, MemberInfo member) => member switch
             {
                 MethodInfo method => Convert(id, method),
                 FieldInfo field => ToOutletOperand(field.DeclaringType.GetField(field.Name).GetValue(null)),
@@ -63,15 +66,20 @@ namespace Outlet.FFI
                 _ => throw new NotSupportedException()
             };
 
-            void Set(string id, Operand val)
+            Operand Get(IBindable id) {
+                var member = staticMembers[id.LocalId];
+                return ToMember(member.id, member.member);
+            };
+
+            void Set(IBindable id, Operand val)
             {
-                if(staticMembers[id] is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(null, ToCSharpOperand(val));
+                if(staticMembers[id.LocalId].member is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(null, ToCSharpOperand(val));
             }
             IEnumerable<(string id, Operand val)> List()
             {
-                foreach(var name in staticMembers.Keys)
+                foreach((string id, MemberInfo member) in staticMembers)
                 {
-                    yield return (name, Get(name));
+                    yield return (id, ToMember(id, member));
                 }
             }
 
@@ -144,10 +152,14 @@ namespace Outlet.FFI
 
                 string className = !string.IsNullOrEmpty(fc.Name) ? fc.Name : type.Name;
 
-                var staticMembers = new Dictionary<string, MemberInfo>();
-                var staticTypes = new Dictionary<string, Types.Type>();
-                var instanceMembers = new Dictionary<string, MemberInfo>();
-                var instanceTypes = new Dictionary<string, Types.Type>();
+                var fields = GetFields(type);
+                var methods = GetMethods(type);
+                var constructors = GetConstructors(type);
+
+                var staticMembers = new List<(string id, MemberInfo member)>();
+                var staticTypes = new SymbolTable(null, false);
+                var instanceMembers = new List<(string id, MemberInfo member)>();
+                var instanceTypes = new SymbolTable(null, false);
 
                 // Checktime
                 // Add Create and define ProtoClass first, allowing members to reference the type they are declared in
@@ -156,50 +168,48 @@ namespace Outlet.FFI
                 Conversions.OutletType.Add(type, proto);
                 SymbolTable.Global.Define(CheckTime, className);
 
-                foreach (FieldInfo field in GetFields(type))
+                foreach (FieldInfo field in fields)
                 {
                     ForeignField ff = ((ForeignField)field.GetCustomAttribute(typeof(ForeignField)));
                     string ffName = ff.Name ?? field.Name;
                     if (field.IsStatic)
                     {
-                        staticMembers[ffName] = field;
-                        staticTypes[ffName] = Convert(field.FieldType);
+                        staticMembers.Add((ffName, field));
+                        staticTypes.Define(Convert(field.FieldType), ffName);
                     }
                     else
                     {
-                        instanceMembers[ffName] = field;
-                        instanceTypes[ffName] = Convert(field.FieldType);
+                        instanceMembers.Add((ffName, field));
+                        instanceTypes.Define(Convert(field.FieldType), ffName);
                     }
                 }
 
-                foreach (MethodInfo method in GetMethods(type))
+                foreach (MethodInfo method in methods)
                 {
                     ForeignFunction fm = ((ForeignFunction)method.GetCustomAttribute(typeof(ForeignFunction)));
                     string fmName = fm.Name ?? method.Name;
                     if (method.IsStatic)
                     {
-                        staticMembers[fmName] = method;
-                        staticTypes[fmName] = ToOutletMethodType(method);
+                        staticMembers.Add((fmName, method));
+                        staticTypes.Define(ToOutletMethodType(method), fmName);
                     }
                     else
                     {
-                        instanceMembers[fmName] = method;
-                        instanceTypes[fmName] = ToOutletMethodType(method);
+                        instanceMembers.Add((fmName, method));
+                        instanceTypes.Define(ToOutletMethodType(method), fmName);
                     }
                 }
 
-                foreach (ConstructorInfo constructor in GetConstructors(type))
+                foreach (ConstructorInfo constructor in constructors)
                 {
-                    staticMembers[""] = constructor;
-                    staticTypes[""] = ToOutletConstructorType(constructor);
+                    staticMembers.Add(("", constructor));
+                    staticTypes.Define(ToOutletConstructorType(constructor), "");
                 }
 
 
                 // Runtime
-                NativeClass c = ToOutletClass(className, staticMembers, instanceMembers);
-                TypeObject runtime = new TypeObject(c);
-                Scope.Global.Add(className, Primitive.MetaType, runtime);
-                StackFrame.Global.LocalVariables.Add(StackFrame.Global.LocalVariables.Count, runtime);
+                NativeClass c = ToOutletClass(className, staticMembers.ToArray(), instanceMembers.ToArray());
+                ForeignFunctions.NativeTypes.Add(className, c);
                 Conversions.OutletType[type] = c;
             };
         }

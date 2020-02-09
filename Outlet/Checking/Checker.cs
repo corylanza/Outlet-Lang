@@ -33,7 +33,7 @@ namespace Outlet.Checking
             return temp;
         }
 
-        private void Define(ITyped type, IDeclarable decl) => CurrentScope.Define(type, decl, GetNextVariable);
+        private void Define(ITyped type, IBindable decl) => CurrentScope.Define(type, decl, GetNextVariable);
 
         public void Check(IASTNode program)
         {
@@ -56,6 +56,14 @@ namespace Outlet.Checking
             if (enterStackFrame) StackFrameVariableCount.Push(0);
             if (Scopes.Count == 0) Scopes.Push(SymbolTable.Global);
             else Scopes.Push(new SymbolTable(Scopes.Peek(), enterStackFrame));
+            return Scopes.Peek();
+        }
+
+        public SymbolTable EnterScope(SymbolTable symbols, bool enterStackFrame = false)
+        {
+            if (enterStackFrame) StackFrameVariableCount.Push(0);
+            if (Scopes.Count == 0) Scopes.Push(SymbolTable.Global);
+            else Scopes.Push(symbols);
             return Scopes.Peek();
         }
 
@@ -87,23 +95,19 @@ namespace Outlet.Checking
         {
             if (!DoImpl.Peek())
             {
-                var statics = new Dictionary<string, Type>();
-                var instances = new Dictionary<string, Type>();
+                SymbolTable statics = new SymbolTable(CurrentScope, enterStackFrame: true);
+                SymbolTable instances = new SymbolTable(statics, enterStackFrame: true);
                 Class parent = Primitive.Object;
                 if (c.SuperClass != null)
                 {
-                    if (!(c.SuperClass.Accept(this) is TypeObject)) Error("cannot extend anything other than a class");
-                    else
+                    if (c.SuperClass.Accept(this) is TypeObject to && to.Encapsulated is Class super)
                     {
-                        if (CurrentScope.GetType(c.SuperClass.resolveLevel, c.SuperClass.Name) is TypeObject meta &&
-                            meta.Encapsulated is Class pt) parent = pt;
-                        else Error("cannot extend anything other than a class");
-                    }
+                        parent = super;
+                    } else Error("cannot extend anything other than a class");
                 }
 
                 Define(new TypeObject(new ProtoClass(c.Name, parent, statics, instances)), c.Decl);
-                EnterScope();
-
+                EnterScope(statics, enterStackFrame: true);
                 //foreach (var (id, classConstraint) in c.GenericParameters)
                 //{
                 //    Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
@@ -113,38 +117,34 @@ namespace Outlet.Checking
                 foreach (Declaration d in c.StaticDecls) d.Accept(this);
                 foreach (var constructor in c.Constructors) constructor.Accept(this);
                 
-                foreach ((string id, ITyped type) in CurrentScope.List())
-                {
-                    if (type is Type declType) statics.Add(id, declType);
-                    else Error("not supported");
-                }
-                EnterScope();
+                EnterScope(instances, enterStackFrame: true);
                 foreach (Declaration d in c.InstanceDecls) d.Accept(this);
-                foreach ((string id, ITyped type) in CurrentScope.List())
-                {
-                    if (type is Type declType) instances.Add(id, declType);
-                    else Error("not supported");
-                }
+                //foreach ((string id, ITyped type) in CurrentScope.List())
+                //{
+                //    if (type is Type declType) instances.Define(declType, id);
+                //    else Error("not supported");
+                //}
                 ExitScope();
                 ExitScope();
             }
             else
             {
-                ProtoClass parent = null;
-                if (c.SuperClass != null)
+                Class parent = null;
+                if (c.SuperClass != null) parent = CurrentScope.GetType(c.SuperClass) as Class;
+                EnterScope(enterStackFrame: true);
+                foreach (Declaration d in c.StaticDecls)
                 {
-                    if (CurrentScope.GetType(c.SuperClass.resolveLevel, c.SuperClass.Name) is TypeObject meta &&
-                        meta.Encapsulated is ProtoClass pt) parent = pt;
-                    else Error("unexpected parent type");
+                    var staticType = d.Accept(this);
+                        if (d is FunctionDeclaration fd) CurrentScope.Define(staticType, fd.Name);
                 }
-                EnterScope();
-                foreach (Declaration d in c.StaticDecls) d.Accept(this);
-                foreach (Declaration d in c.StaticDecls) if (d is FunctionDeclaration fd) CurrentScope.Define(fd.Type, fd.Name);
-                EnterScope();
-                CurrentScope.Define((CurrentScope.GetType(2, c.Name) as TypeObject).Encapsulated, "this");
-                foreach (Declaration d in c.InstanceDecls) d.Accept(this);
-                foreach (Declaration d in c.InstanceDecls) if (d is FunctionDeclaration fd) CurrentScope.Define(fd.Type, fd.Name);
-                if (parent != null) foreach (KeyValuePair<string, Type> d in parent.InstanceMembers) CurrentScope.Define(d.Value, d.Key);
+                EnterScope(enterStackFrame: true);
+                CurrentScope.Define((CurrentScope.GetType(c.Decl) as TypeObject).Encapsulated, "this");
+                foreach (Declaration d in c.InstanceDecls)
+                {
+                    var instanceType = d.Accept(this);
+                    if (d is FunctionDeclaration fd) CurrentScope.Define(instanceType, fd.Name);
+                }
+                //if (parent != null) foreach ((string id, Type type) in parent.InstanceMembers) CurrentScope.Define(type, id);
                 foreach (var constructor in c.Constructors) constructor.Accept(this);
                 ExitScope();
                 ExitScope();
@@ -152,11 +152,7 @@ namespace Outlet.Checking
             return null;
         }
 
-        public ITyped Visit(ConstructorDeclaration c)
-        {
-            Visit(c as FunctionDeclaration);
-            return null;
-        }
+        public ITyped Visit(ConstructorDeclaration c) => Visit(c as FunctionDeclaration);
 
         public ITyped Visit(FunctionDeclaration f)
         {
@@ -172,17 +168,17 @@ namespace Outlet.Checking
                 ExitScope();
                 ITyped returnType = f.Decl.Accept(this);
                 FunctionType ft = new FunctionType(args, returnType as Type);
-                f.Type = ft;
                 // define the header using the function type from above
                 Define(ft, f.Decl);
+                f.Type = ft;
+                return ft;
             }
             else
             {
-                FunctionType ft = f.Type;
+                FunctionType ft = f.Type;// TODO restore CurrentScope.GetType(0, f.Name, f.Decl) as FunctionType;
                 // enter the function scope and define the args;
                 EnterScope(enterStackFrame: true);
                 ft.Args.Zip(f.Args).ToList().ForEach(arg => Define(arg.First.type, arg.Second));
-                //System.Array.ForEach(ft.Args, arg => CurrentScope.Define(arg.type, arg.id));
                 // check the body now that its header and args have been defined
                 ITyped body = f.Body.Accept(this);
                 if (f is ConstructorDeclaration)
@@ -194,11 +190,10 @@ namespace Outlet.Checking
                     if (ft.ReturnType != Primitive.Void) return Error("function " + f.Decl.Identifier + "not all code paths return a value");
                 }
                 else Cast(body, ft.ReturnType, f.Decl.Identifier + "function definition invalid, expected {1}, returned {0}");
-
+                f.LocalCount = StackFrameVariableCount.Peek();
                 ExitScope(exitStackFrame: true);
-
+                return ft;
             }
-            return null;
         }
 
         public ITyped Visit(VariableDeclaration v)
@@ -273,8 +268,13 @@ namespace Outlet.Checking
         {
             ITyped calltype = c.Caller.Accept(this);
             if (calltype == ErrorType) return ErrorType;
-            if (calltype is TypeObject t && t.Encapsulated is ProtoClass containsConstructor) 
-                calltype = containsConstructor.GetStaticMemberType("");
+            if (calltype is TypeObject t && t.Encapsulated is ProtoClass proto)
+            {
+                // Rather than have to store the overload id within the call it is easier to turn a constructor call into
+                // a dereference to static field "" where the constructor lives
+                c.MakeConstructorCall();
+                return Visit(c);
+            }
 
             ITyped[] argtypes = c.Args.Select(x => x.Accept(this)).ToArray();
             if (calltype is FunctionType functype)
@@ -284,10 +284,11 @@ namespace Outlet.Checking
                 return argsMatch ? functype.ReturnType :
                     Error(c.Caller + " expects " + "(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
             }
-            if (calltype is MethodGroupType mgt && c.Caller is Variable v)
+            if (calltype is MethodGroupType mgt)
             {
                 (FunctionType bestMatch, int id) = mgt.FindBestMatch(argtypes);
-                v.LocalId = id;
+                if(c.Caller is Variable v) v.Bind(id, v.LocalId);
+                if(c.Caller is Deref d && d.Referenced is Variable dv) dv.Bind(id, dv.LocalId);
                 if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
                 return bestMatch.ReturnType;
             }
@@ -319,10 +320,11 @@ namespace Outlet.Checking
                         tt.ToString() + " which has only " + tt.Types.Length + " elements");
                 return tt.Types[result];
             }
+            // TODO better error handling referenced can be null
             if (inst is ProtoClass instances) 
-                return instances.GetInstanceMemberType(d.Identifier);
+                return instances.GetInstanceMemberType(d.Referenced);
             if (inst is TypeObject t && t.Encapsulated is ProtoClass statics) 
-                return statics.GetStaticMemberType(d.Identifier);
+                return statics.GetStaticMemberType(d.Referenced);
 
             return Error("cannot dereference type: " + inst.ToString());
         }
@@ -391,10 +393,9 @@ namespace Outlet.Checking
 
         public ITyped Visit(Variable v)
         {
-            (ITyped type, int level, int id) = CurrentScope.ResolveAndBind(v);
-            v.resolveLevel = level;
-            v.LocalId = id;
-            if (level == -1) return Error("variable " + v.Name + " could not be resolved");
+            (ITyped type, int level, int id) = CurrentScope.Resolve(v);
+            if (level == -1) return Error("variable " + v.Identifier + " could not be resolved");
+            v.Bind(id, level);
             return type;
         }
 

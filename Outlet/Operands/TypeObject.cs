@@ -6,7 +6,7 @@ using Type = Outlet.Types.Type;
 
 namespace Outlet.Operands
 {
-    public class TypeObject : Operand, ITyped, ICallable, IDereferenceable
+    public class TypeObject : Operand, ITyped, IDereferenceable
     {
         public readonly Type Encapsulated;
 
@@ -16,15 +16,9 @@ namespace Outlet.Operands
         }
 
         #region Run time
-        public Operand GetMember(string field) => (Encapsulated as IDereferenceable).GetMember(field);
-        public void SetMember(string field, Operand value) => (Encapsulated as IDereferenceable).SetMember(field, value);
+        public Operand GetMember(IBindable field) => (Encapsulated as IDereferenceable).GetMember(field);
+        public void SetMember(IBindable field, Operand value) => (Encapsulated as IDereferenceable).SetMember(field, value);
         public IEnumerable<(string id, Operand val)> GetMembers() => (Encapsulated as IDereferenceable).GetMembers();
-
-        public Operand Call(params Operand[] args)
-        {
-            if (Encapsulated is IDereferenceable rc && rc.GetMember("") is ICallable callable) return callable.Call(args);
-            throw new RuntimeException("Attempted to call something other than a function at runtime");
-        }
 
         #endregion
 

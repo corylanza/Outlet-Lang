@@ -2,7 +2,6 @@
 using Outlet.Operands;
 using Outlet.Checking;
 using System.Collections.Generic;
-using Decls = System.Collections.Generic.Dictionary<string, Outlet.Types.Type>;
 using System.Linq;
 
 namespace Outlet.Types {
@@ -11,6 +10,7 @@ namespace Outlet.Types {
 
 		public readonly string Name;
 		public readonly Class Parent;
+        public const int This = 0;
 
 		public Class(string name, Class parent) {
 			Name = name;
@@ -37,49 +37,62 @@ namespace Outlet.Types {
     public class UserDefinedClass : Class, IDereferenceable {
 
 		public readonly Action<Instance> Init;
-        private readonly Dictionary<string, Field> Members;
+        private readonly Field[] StaticMembers;
 
-        public UserDefinedClass(string name, Class parent, Dictionary<string, Field> members, Action<Instance> init) : base(name, parent)
+        public UserDefinedClass(string name, Class parent, Field[] staticMembers, Action<Instance> init) : base(name, parent)
         {
-            Members = members;
+            StaticMembers = staticMembers;
             Init = init;
         }
 
-		public Operand GetMember(string id) => Members[id].Value;
-		public void SetMember(string id, Operand value) => Members[id] = new Field { Value = value };
-
-        public IEnumerable<(string id, Operand val)> GetMembers() => Members.Select(member => (member.Key, member.Value.Value));
+		public Operand GetMember(IBindable id) => StaticMembers[id.LocalId].Value;
+		public void SetMember(IBindable id, Operand value) => StaticMembers[id.LocalId] = new Field(id.Identifier, value);
+        public IEnumerable<(string id, Operand val)> GetMembers() => StaticMembers.Select(field => (field.Name, field.Value));
     }
 
 	public class ProtoClass : Class {
 
-        public readonly Decls InstanceMembers;
-        public readonly Decls StaticMembers;
+        public readonly SymbolTable InstanceMembers;
+        public readonly SymbolTable StaticMembers;
 
-        public ProtoClass(string name, Class parent, Decls statics, Decls instances) : base(name, parent) {
+        public ProtoClass(string name, Class parent, SymbolTable statics, SymbolTable instances) : base(name, parent) {
             InstanceMembers = instances;
             StaticMembers = statics;
 		}
 
-        public Type GetStaticMemberType(string s)
+        public Type GetStaticMemberType(IBindable variable)
         {
-            if (StaticMembers.ContainsKey(s)) return StaticMembers[s];
-            if (s == "") return Checker.Error("type " + this + " is not instantiable");
-            return Checker.Error(this + " does not contain static field: " + s);
-        }
-        public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.Select(member => (member.Key, member.Value));
-
-        public Type GetInstanceMemberType(string s)
-        {
-            Class cur = this;
-            while (cur != null)
+            (ITyped type, int resolveLevel, int id) = StaticMembers.Resolve(variable);
+            if (resolveLevel != 0)
             {
-                if (cur is ProtoClass pc && pc.InstanceMembers.ContainsKey(s)) return pc.InstanceMembers[s];
-                cur = cur.Parent;
+                if(variable.Identifier == "") return Checker.Error("type " + this + " is not instantiable");
+                return Checker.Error(this + " does not contain static field: " + variable.Identifier);
             }
-            return Checker.Error(this + " does not contain instance field: " + s);
+            variable.Bind(id, resolveLevel);
+            return type as Type;
         }
-        public IEnumerable<(string id, Type type)> GetIntanceMemberTypes() => InstanceMembers.Select(member => (member.Key, member.Value));
+        public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.List().Select(member => (member.Id, member.Type as Type));
+
+        public Type GetInstanceMemberType(IBindable variable)
+        {
+            (ITyped type, int resolveLevel, int id) = InstanceMembers.Resolve(variable);
+            if (resolveLevel != 0) return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
+            variable.Bind(id, resolveLevel);
+            return type as Type;
+            //Class cur = this;
+            //while (cur != null)
+            //{
+            //    if (cur is ProtoClass pc && pc.InstanceMembers.Has(variable.Identifier))
+            //    {
+            //        (ITyped type, int resolveLevel, int id) = pc.InstanceMembers.Resolve(variable);
+            //        if(resolveLevel == 0) return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
+            //        return type as Type;
+            //    }
+            //    cur = cur.Parent;
+            //}
+            //return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
+        }
+        public IEnumerable<(string id, Type type)> GetIntanceMemberTypes() => InstanceMembers.List().Select(member => (member.Id, member.Type as Type));
     }
 
     public class GenericClass : Class

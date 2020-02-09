@@ -11,15 +11,15 @@ namespace Outlet.Operands {
 		}
 
 		public override bool Equals(Operand b) => ReferenceEquals(this, b);
-        public abstract Operand GetMember(string field);
-        public abstract void SetMember(string field, Operand value);
+        public abstract Operand GetMember(IBindable field);
+        public abstract void SetMember(IBindable field, Operand value);
         public abstract IEnumerable<(string id, Operand val)> GetMembers();
 
         public override string ToString() {
 			string s = RuntimeType.Name + " {\n";
             foreach (var (id, val) in GetMembers())
             {
-                if(id != "this") s += "    \"" + id + "\": " + val.ToString() + "\n";
+                if(id != "this") s += "    \"" + id + "\": " + val?.ToString() + "\n";
             }
             return s + "}";
 		}
@@ -27,12 +27,15 @@ namespace Outlet.Operands {
 
     public class UserDefinedInstance : Instance
     {
-        private readonly Dictionary<string, Field> Members = new Dictionary<string, Field>();
+        private readonly Field[] InstanceMembers;
 
-        public UserDefinedInstance(Class type) : base(type) { }
+        public UserDefinedInstance(Class type, int instanceVarCount) : base(type) 
+        {
+            InstanceMembers = new Field[instanceVarCount];
+        }
 
-        public override Operand GetMember(string field) => Members[field].Value;
-        public override void SetMember(string field, Operand value) => Members[field] = new Field() { Value = value };
-        public override IEnumerable<(string id, Operand val)> GetMembers() => Members.Select(member => (member.Key, member.Value.Value));
+        public override Operand GetMember(IBindable field) => InstanceMembers[field.LocalId].Value;
+        public override void SetMember(IBindable field, Operand value) => InstanceMembers[field.LocalId] = new Field() { Value = value };
+        public override IEnumerable<(string id, Operand val)> GetMembers() => InstanceMembers.Select(member => (member?.Name, member?.Value));
     }
 }

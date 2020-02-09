@@ -21,8 +21,8 @@ namespace Outlet.FFI.Natives
 
         public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-        public override Operand GetMember(string field) => GetInstanceVar(field);
-        public override void SetMember(string field, Operand value) => SetInstanceVar(field, value);
+        public override Operand GetMember(IBindable field) => GetInstanceVar(field);
+        public override void SetMember(IBindable field, Operand value) => SetInstanceVar(field, value);
         public override IEnumerable<(string id, Operand val)> GetMembers() => GetInstanceVars();
 
         public override string ToString()

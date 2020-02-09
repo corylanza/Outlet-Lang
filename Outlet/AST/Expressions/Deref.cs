@@ -8,12 +8,17 @@ namespace Outlet.AST {
 	public class Deref : Expression {
 
 		public readonly Expression Left;
+        public readonly Variable Referenced;
 		public readonly string Identifier;
 		public bool ArrayLength = false;
 
 		public Deref(Expression left, Expression right) {
 			Left = left;
-			if (right is Variable id) Identifier = id.Name;
+            if (right is Variable id)
+            {
+                Identifier = id.Identifier;
+                Referenced = id;
+            }
             else if (right is Literal<int> tupleIdx) Identifier = tupleIdx.Value.ToString();
             else throw new OutletException("expected identifier following dereferencing " + left.ToString());
 		}

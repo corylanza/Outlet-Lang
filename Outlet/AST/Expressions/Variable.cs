@@ -5,20 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Variable : Expression, IVariable {
+	public class Variable : Expression, IBindable {
 
-		public readonly string Name;
-        public int resolveLevel = -1;
-        public int LocalId { get; set; }
-        public string Identifier => Name;
+		public string Identifier { get; private set; }
+        public int ResolveLevel { get; private set; }
+        public int LocalId { get; private set; }
 
 
 		public Variable(string name) {
-			Name = name;
-            LocalId = 1;
+			Identifier = name;
+            ResolveLevel = -1;
+            LocalId = -1;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
-		public override string ToString() => Name;
+        public void Bind(int id, int level) => (LocalId, ResolveLevel) = (id, level);
+
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+		public override string ToString() => Identifier;
 	}
 }
