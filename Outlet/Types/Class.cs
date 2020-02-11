@@ -77,6 +77,7 @@ namespace Outlet.Types {
 
         public Type GetInstanceMemberType(IBindable variable)
         {
+            if (variable.Identifier == "this") return Checker.Error("may not access property \"this\"");
             (ITyped type, int resolveLevel, int id) = InstanceMembers.Resolve(variable);
             if (resolveLevel != 0) return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
             variable.Bind(id, resolveLevel);

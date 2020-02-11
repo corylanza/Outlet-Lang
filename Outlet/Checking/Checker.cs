@@ -114,11 +114,11 @@ namespace Outlet.Checking
                 //    CurrentScope.Define(new TypeObject(constraint), id);
                 //}
 
-                foreach (Declaration d in c.StaticDecls) d.Accept(this);
+                foreach (Declaration d in c.StaticDecls) if(d is FunctionDeclaration) d.Accept(this);
                 foreach (var constructor in c.Constructors) constructor.Accept(this);
                 
                 EnterScope(instances, enterStackFrame: true);
-                foreach (Declaration d in c.InstanceDecls) d.Accept(this);
+                foreach (Declaration d in c.InstanceDecls) if(d is FunctionDeclaration) d.Accept(this);
 
                 ExitScope(exitStackFrame: true);
                 ExitScope(exitStackFrame: true);

@@ -59,6 +59,10 @@ namespace Outlet.Interpreting {
                 CallStack.Push(instancescope);
 
                 UserDefinedInstance instance = new UserDefinedInstance(type, c.InstanceDecls.Count);
+
+                // Assign the value of "this"
+                instancescope.LocalVariables[Class.This] = instance;
+
                 foreach (Declaration d in c.InstanceDecls)
                 {
                     instance.SetMember(d.Decl, d.Accept(this));
@@ -67,9 +71,6 @@ namespace Outlet.Interpreting {
                 //if (super is UserDefinedClass udc) udc.Init();
                 // TODO for native classes
 
-
-                // Assign the value of "this"
-                instancescope.LocalVariables[Class.This] = instance;
                 // Do NOT exit instance scope frame, the constructor method lives on top of it
                 return (instance, instancescope);
             }
