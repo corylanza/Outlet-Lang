@@ -34,26 +34,6 @@ namespace Outlet.Checking
             newStackFrame = enterStackFrame;
         }
 
-        public int Define(ITyped t, string s)
-        {
-            if (Symbols.ContainsKey(s))
-            {
-                if (Symbols[s].type is FunctionType existingFunc && t is FunctionType newFunc)
-                {
-                    Symbols[s] = (new MethodGroupType((existingFunc, 0), (newFunc, 0)), Symbols[s].id);
-                    return Symbols[s].id;
-                }
-                else if (Symbols[s].type is MethodGroupType existing && t is FunctionType added)
-                {
-                    existing.Methods.Add((added, 0));
-                    return Symbols[s].id;
-                }
-                else Checker.Error("variable " + s + " already defined in this scope");
-            }
-            else Symbols[s] = (t, Symbols.Count);
-            return Symbols.Count;
-        }
-
         public void Define(ITyped type, IBindable decl, Func<int> getNextId)
         {
             if (Symbols.ContainsKey(decl.Identifier))

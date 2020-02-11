@@ -119,35 +119,26 @@ namespace Outlet.Checking
                 
                 EnterScope(instances, enterStackFrame: true);
                 foreach (Declaration d in c.InstanceDecls) d.Accept(this);
-                //foreach ((string id, ITyped type) in CurrentScope.List())
-                //{
-                //    if (type is Type declType) instances.Define(declType, id);
-                //    else Error("not supported");
-                //}
-                ExitScope();
-                ExitScope();
+
+                ExitScope(exitStackFrame: true);
+                ExitScope(exitStackFrame: true);
             }
             else
             {
                 Class parent = null;
                 if (c.SuperClass != null) parent = CurrentScope.GetType(c.SuperClass) as Class;
-                EnterScope(enterStackFrame: true);
-                foreach (Declaration d in c.StaticDecls)
-                {
-                    var staticType = d.Accept(this);
-                        if (d is FunctionDeclaration fd) CurrentScope.Define(staticType, fd.Name);
-                }
-                EnterScope(enterStackFrame: true);
-                CurrentScope.Define((CurrentScope.GetType(c.Decl) as TypeObject).Encapsulated, "this");
-                foreach (Declaration d in c.InstanceDecls)
-                {
-                    var instanceType = d.Accept(this);
-                    if (d is FunctionDeclaration fd) CurrentScope.Define(instanceType, fd.Name);
-                }
+                var proto = (CurrentScope.GetType(c.Decl) as TypeObject).Encapsulated as ProtoClass;
+                EnterScope(proto.StaticMembers, enterStackFrame: true);
+                foreach (Declaration d in c.StaticDecls) d.Accept(this);
+
+                EnterScope(proto.InstanceMembers, enterStackFrame: true);
+                Define((CurrentScope.GetType(c.Decl) as TypeObject).Encapsulated, "this".ToVariable());
+                foreach (Declaration d in c.InstanceDecls) d.Accept(this);
+
                 //if (parent != null) foreach ((string id, Type type) in parent.InstanceMembers) CurrentScope.Define(type, id);
                 foreach (var constructor in c.Constructors) constructor.Accept(this);
-                ExitScope();
-                ExitScope();
+                ExitScope(exitStackFrame: true);
+                ExitScope(exitStackFrame: true);
             }
             return null;
         }
@@ -159,13 +150,13 @@ namespace Outlet.Checking
             if (!DoImpl.Peek())
             {
                 // Check decl and args first, needed to make function type
-                EnterScope();
+                //EnterScope();
                 (ITyped type, string id)[] args = f.Args.Select(arg =>
                 {
                     ITyped curArg = arg.Accept(this);
                     return (curArg, arg.Identifier);
                 }).ToArray();
-                ExitScope();
+                //ExitScope();
                 ITyped returnType = f.Decl.Accept(this);
                 FunctionType ft = new FunctionType(args, returnType as Type);
                 // define the header using the function type from above
@@ -189,7 +180,7 @@ namespace Outlet.Checking
                 {
                     if (ft.ReturnType != Primitive.Void) return Error("function " + f.Decl.Identifier + "not all code paths return a value");
                 }
-                else Cast(body, ft.ReturnType, f.Decl.Identifier + "function definition invalid, expected {1}, returned {0}");
+                else Cast(body, ft.ReturnType, f.Decl.Identifier + " function definition invalid, expected {1}, returned {0}");
                 f.LocalCount = StackFrameVariableCount.Peek();
                 ExitScope(exitStackFrame: true);
                 return ft;
@@ -488,7 +479,8 @@ namespace Outlet.Checking
             if (used is TypeObject t && t.Encapsulated is ProtoClass staticClass)
                 foreach (var (id, type) in staticClass.GetStaticMemberTypes())
                 {
-                    CurrentScope.Define(type, id);
+                    // TODO restore functionality
+                    //CurrentScope.Define(type, id);
                 }
             {
                 return null;

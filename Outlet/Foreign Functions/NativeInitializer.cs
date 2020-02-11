@@ -166,7 +166,12 @@ namespace Outlet.FFI
                 ProtoClass proto = new ProtoClass(className, Primitive.Object, staticTypes, instanceTypes);
                 TypeObject CheckTime = new TypeObject(proto);
                 Conversions.OutletType.Add(type, proto);
-                SymbolTable.Global.Define(CheckTime, className);
+                SymbolTable.Global.Define(CheckTime, className.ToVariable(), () => SymbolTable.Global.List().Count());
+
+                int staticCount = 0;
+                int getNextStatic() => staticCount++;
+                int instanceCount = 0;
+                int getNextInstance() => instanceCount++;
 
                 foreach (FieldInfo field in fields)
                 {
@@ -175,12 +180,12 @@ namespace Outlet.FFI
                     if (field.IsStatic)
                     {
                         staticMembers.Add((ffName, field));
-                        staticTypes.Define(Convert(field.FieldType), ffName);
+                        staticTypes.Define(Convert(field.FieldType), ffName.ToVariable(), getNextStatic);
                     }
                     else
                     {
                         instanceMembers.Add((ffName, field));
-                        instanceTypes.Define(Convert(field.FieldType), ffName);
+                        instanceTypes.Define(Convert(field.FieldType), ffName.ToVariable(), getNextInstance);
                     }
                 }
 
@@ -191,19 +196,19 @@ namespace Outlet.FFI
                     if (method.IsStatic)
                     {
                         staticMembers.Add((fmName, method));
-                        staticTypes.Define(ToOutletMethodType(method), fmName);
+                        staticTypes.Define(ToOutletMethodType(method), fmName.ToVariable(), getNextStatic);
                     }
                     else
                     {
                         instanceMembers.Add((fmName, method));
-                        instanceTypes.Define(ToOutletMethodType(method), fmName);
+                        instanceTypes.Define(ToOutletMethodType(method), fmName.ToVariable(), getNextInstance);
                     }
                 }
 
                 foreach (ConstructorInfo constructor in constructors)
                 {
                     staticMembers.Add(("", constructor));
-                    staticTypes.Define(ToOutletConstructorType(constructor), "");
+                    staticTypes.Define(ToOutletConstructorType(constructor), "".ToVariable(), getNextStatic);
                 }
 
 

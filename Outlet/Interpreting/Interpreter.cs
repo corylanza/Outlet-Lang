@@ -44,18 +44,36 @@ namespace Outlet.Interpreting {
 		public Operand Visit(ClassDeclaration c) {
 			// Find super class, if none it will always be object
 			Class super = c.SuperClass != null ? (c.SuperClass.Accept(this) as TypeObject).Encapsulated as Class : Primitive.Object;
-            // Hidden function for initializing instance variables/methods
-            void Init(Instance i)
-            {
-                foreach (Declaration d in c.InstanceDecls)
-                {
-                    i.SetMember(d.Decl, d.Accept(this));
-                }
-                if (super is UserDefinedClass udc) udc.Init(i);
-                // TODO for native classes
-            }
+
+            StackFrame closure = CurrentStackFrame;
 
             var staticFields = new Field[c.StaticDecls.Count + c.Constructors.Count];
+            StackFrame staticScope = new StackFrame(closure, staticFields.Length, $"{c.Name} static scope");
+
+            // Hidden function for initializing instance variables/methods and defining this
+            (Instance, StackFrame) Init(UserDefinedClass type)
+            {
+                // Enter the instance scope
+                // add one to instance count for "this" which is not a member but lives in instance scope
+                StackFrame instancescope = new StackFrame(staticScope, c.InstanceDecls.Count + 1, "class scope");
+                CallStack.Push(instancescope);
+
+                UserDefinedInstance instance = new UserDefinedInstance(type, c.InstanceDecls.Count);
+                foreach (Declaration d in c.InstanceDecls)
+                {
+                    instance.SetMember(d.Decl, d.Accept(this));
+                }
+                // TODO for super classes
+                //if (super is UserDefinedClass udc) udc.Init();
+                // TODO for native classes
+
+
+                // Assign the value of "this"
+                instancescope.LocalVariables[Class.This] = instance;
+                // Do NOT exit instance scope frame, the constructor method lives on top of it
+                return (instance, instancescope);
+            }
+
 
             // Define the class
             UserDefinedClass newClass = new UserDefinedClass(c.Name, super, staticFields, Init);
@@ -71,7 +89,7 @@ namespace Outlet.Interpreting {
             }
 
             int fieldNum = 0;
-            CallStack.Push(new StackFrame(CurrentStackFrame, staticFields.Length, $"{c.Name} static scope"));
+            CallStack.Push(staticScope);
             foreach (Declaration d in c.StaticDecls)
             {
                 staticFields[fieldNum++] = new Field(d.Name, d.Accept(this));
@@ -88,23 +106,12 @@ namespace Outlet.Interpreting {
 			// Captures the static scope of the class in which the constructor is declared
             StackFrame staticscope = CurrentStackFrame;
 			Operand UnderlyingConstructor(params Operand[] args) {
-                // Enter the instance scope
-                // TODO this should not always be 0, maybe pass classdeclaration to this visitor
-                int instanceCount = 0;
-                // add one to instance count for "this" which is not a member but lives in instance scope
-                StackFrame instancescope = new StackFrame(staticscope, instanceCount + 1, "class scope");
-                CallStack.Push(instancescope);
-
-                // Call the constructors hidden init function to initialize instance variables/methods
                 UserDefinedClass type = (staticscope.Get(c.Decl.Type as Variable) as TypeObject).Encapsulated as UserDefinedClass;
 
-                // Create the new instance, initialize all fields, and define this
-                Instance inst = new UserDefinedInstance(type, instanceCount);
-                type.Init(inst);
-                // this must be stored at the instance scope
-                instancescope.LocalVariables[Class.This] = inst;
+                // Call the constructors hidden init function to initialize instance variables/methods
+                (Instance inst, StackFrame instancescope) = type.Initialize();
 
-				// Enter the scope of the constructor
+                // Enter the scope of the constructor
                 StackFrame constructorscope = new StackFrame(instancescope, c.LocalCount, "constructor scope");
                 CallStack.Push(constructorscope);
 				// Add all parameters to constructor scope 

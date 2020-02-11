@@ -32,11 +32,11 @@ namespace Outlet.Interpreting
 
         public Operand Get(IBindable variable, int level = 0)
         {
-            if (variable is AST.Variable v && v.ResolveLevel > level) return Parent.Get(variable, level + 1);
+            if (variable.ResolveLevel > level) return Parent.Get(variable, level + 1);
             return LocalVariables[variable.LocalId];
         }
 
-        public void Assign(IBindable variable, Operand value)
+        public void Assign(IBindable variable, Operand value, int level = 0)
         {
             if (this == Global) 
             {
@@ -44,7 +44,8 @@ namespace Outlet.Interpreting
                 System.Array.Copy(LocalVariables, newGlobals, LocalVariables.Length);
                 LocalVariables = newGlobals;
             }
-            LocalVariables[variable.LocalId] = value;
+            if (variable.ResolveLevel > level) Parent.Assign(variable, value, level + 1);
+            else LocalVariables[variable.LocalId] = value;
         }
 
         public IEnumerable<(Operand, Type)> ListVariables()

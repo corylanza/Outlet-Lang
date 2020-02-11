@@ -106,5 +106,7 @@ namespace Outlet {
             }
             return true;
         }
+
+        public static Variable ToVariable(this string s) => new Variable(s);
 	}
 }

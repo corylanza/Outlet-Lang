@@ -36,14 +36,16 @@ namespace Outlet.Types {
 
     public class UserDefinedClass : Class, IDereferenceable {
 
-		public readonly Action<Instance> Init;
+		private readonly Func<UserDefinedClass, (Instance, Interpreting.StackFrame)> Init;
         private readonly Field[] StaticMembers;
 
-        public UserDefinedClass(string name, Class parent, Field[] staticMembers, Action<Instance> init) : base(name, parent)
+        public UserDefinedClass(string name, Class parent, Field[] staticMembers, Func<UserDefinedClass, (Instance, Interpreting.StackFrame)> init) : base(name, parent)
         {
             StaticMembers = staticMembers;
             Init = init;
         }
+
+        public (Instance, Interpreting.StackFrame) Initialize() => Init(this);
 
 		public Operand GetMember(IBindable id) => StaticMembers[id.LocalId].Value;
 		public void SetMember(IBindable id, Operand value) => StaticMembers[id.LocalId] = new Field(id.Identifier, value);
