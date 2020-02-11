@@ -47,7 +47,7 @@ namespace Outlet {
 				Console.ForegroundColor = ConsoleColor.White;
 				Console.WriteLine("<enter an expression>");
 				string input = "";
-				while (input.Length == 0 || input.Count((c) => c == '{') != input.Count((c) => c == '}')) { 
+				while (input.Length == 0 || input.Count((c) => c == '{') > input.Count((c) => c == '}')) { 
 					input += Console.ReadLine();
 				}
                 byte[] bytes = Encoding.ASCII.GetBytes(input);
