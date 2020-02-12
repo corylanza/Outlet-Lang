@@ -58,10 +58,10 @@ namespace Outlet.Interpreting {
                 StackFrame instancescope = new StackFrame(staticScope, c.InstanceDecls.Count + 1, "class scope");
                 CallStack.Push(instancescope);
 
-                UserDefinedInstance instance = new UserDefinedInstance(type, c.InstanceDecls.Count);
+                UserDefinedInstance instance = new UserDefinedInstance(type, instancescope, c.InstanceDecls.Count);
 
                 // Assign the value of "this"
-                instancescope.LocalVariables[Class.This] = instance;
+                instancescope.LocalVariables[Class.This] = ("this", instance);
 
                 foreach (Declaration d in c.InstanceDecls)
                 {
@@ -77,7 +77,7 @@ namespace Outlet.Interpreting {
 
 
             // Define the class
-            UserDefinedClass newClass = new UserDefinedClass(c.Name, super, staticFields, Init);
+            UserDefinedClass newClass = new UserDefinedClass(c.Name, super, staticScope, staticFields, Init);
             var newType = new TypeObject(newClass);
             CurrentStackFrame.Assign(c.Decl, newType);
 

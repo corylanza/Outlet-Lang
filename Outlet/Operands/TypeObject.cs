@@ -40,7 +40,7 @@ namespace Outlet.Operands
                 s+= c.Name + "{\n";
                 foreach (var (name, value) in d.GetMembers())
                 {
-                    s += "    \"" + name + "\": " + value.ToString() + " \n";
+                    s += "    \"" + name + "\": " + value?.ToString() + " \n";
                 }
                 return s + "}";
             }

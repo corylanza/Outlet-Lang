@@ -37,19 +37,21 @@ namespace Outlet.Types {
     public class UserDefinedClass : Class, IDereferenceable {
 
 		private readonly Func<UserDefinedClass, (Instance, Interpreting.StackFrame)> Init;
+        private readonly Interpreting.StackFrame StaticStackFrame;
         private readonly Field[] StaticMembers;
 
-        public UserDefinedClass(string name, Class parent, Field[] staticMembers, Func<UserDefinedClass, (Instance, Interpreting.StackFrame)> init) : base(name, parent)
+        public UserDefinedClass(string name, Class parent, Interpreting.StackFrame stackFrame,Field[] staticMembers, Func<UserDefinedClass, (Instance, Interpreting.StackFrame)> init) : base(name, parent)
         {
             StaticMembers = staticMembers;
+            StaticStackFrame = stackFrame;
             Init = init;
         }
 
         public (Instance, Interpreting.StackFrame) Initialize() => Init(this);
 
-		public Operand GetMember(IBindable id) => StaticMembers[id.LocalId].Value;
-		public void SetMember(IBindable id, Operand value) => StaticMembers[id.LocalId] = new Field(id.Identifier, value);
-        public IEnumerable<(string id, Operand val)> GetMembers() => StaticMembers.Select(field => (field.Name, field.Value));
+        public Operand GetMember(IBindable field) => StaticStackFrame.Get(field); //StaticMembers[id.LocalId].Value;
+        public void SetMember(IBindable field, Operand value) => StaticStackFrame.Assign(field, value); // StaticMembers[id.LocalId] = new Field(id.Identifier, value);
+        public IEnumerable<(string id, Operand val)> GetMembers() => StaticStackFrame.ListVariables();//StaticMembers.Select(field => (field.Name, field.Value));
     }
 
 	public class ProtoClass : Class {

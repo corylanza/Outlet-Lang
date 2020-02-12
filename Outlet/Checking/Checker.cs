@@ -61,7 +61,7 @@ namespace Outlet.Checking
 
         public SymbolTable EnterScope(SymbolTable symbols, bool enterStackFrame = false)
         {
-            if (enterStackFrame) StackFrameVariableCount.Push(0);
+            if (enterStackFrame) StackFrameVariableCount.Push(symbols.List().Sum<(string id, ITyped type)>(symbol => symbol.type is MethodGroupType mgt ? mgt.Methods.Count : 1));
             if (Scopes.Count == 0) Scopes.Push(SymbolTable.Global);
             else Scopes.Push(symbols);
             return Scopes.Peek();
