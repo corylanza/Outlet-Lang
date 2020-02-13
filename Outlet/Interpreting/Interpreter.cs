@@ -51,7 +51,7 @@ namespace Outlet.Interpreting {
             StackFrame staticScope = new StackFrame(closure, staticFields.Length, $"{c.Name} static scope");
 
             // Hidden function for initializing instance variables/methods and defining this
-            (Instance, StackFrame) Init(UserDefinedClass type)
+            (Instance, IStackFrame<Operand>) Init(UserDefinedClass type)
             {
                 // Enter the instance scope
                 // add one to instance count for "this" which is not a member but lives in instance scope
@@ -110,10 +110,10 @@ namespace Outlet.Interpreting {
                 UserDefinedClass type = (staticscope.Get(c.Decl.Type as Variable) as TypeObject).Encapsulated as UserDefinedClass;
 
                 // Call the constructors hidden init function to initialize instance variables/methods
-                (Instance inst, StackFrame instancescope) = type.Initialize();
+                (Instance inst, IStackFrame<Operand> instancescope) = type.Initialize();
 
                 // Enter the scope of the constructor
-                StackFrame constructorscope = new StackFrame(instancescope, c.LocalCount, "constructor scope");
+                StackFrame constructorscope = new StackFrame(instancescope as StackFrame, c.LocalCount, "constructor scope");
                 CallStack.Push(constructorscope);
 				// Add all parameters to constructor scope 
 				for(int i = 0; i < args.Length; i++) {

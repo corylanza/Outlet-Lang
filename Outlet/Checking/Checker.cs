@@ -13,27 +13,17 @@ namespace Outlet.Checking
         #region Helpers
 
         public readonly Stack<bool> DoImpl = new Stack<bool>();
-        public readonly Stack<SymbolTable> Scopes = new Stack<SymbolTable>();
-        public SymbolTable CurrentScope => Scopes.Peek();
+        public readonly Stack<CheckStackFrame> StackFrames = new Stack<CheckStackFrame>();
+        public CheckStackFrame CurrentStackFrame => StackFrames.Peek();
         private static readonly Type ErrorType = new ProtoClass("error", null, null, null);
         public static int ErrorCount = 0;
 
-        private readonly Stack<int> StackFrameVariableCount = new Stack<int>();
-
         public Checker()
         {
-            Scopes.Push(SymbolTable.Global);
-            StackFrameVariableCount.Push(SymbolTable.Global.List().Count());
+            StackFrames.Push(CheckStackFrame.Global);
         }
 
-        private int GetNextVariable()
-        {
-            int temp = StackFrameVariableCount.Pop();
-            StackFrameVariableCount.Push(temp + 1);
-            return temp;
-        }
-
-        private void Define(ITyped type, IBindable decl) => CurrentScope.Define(type, decl, GetNextVariable);
+        private void Define(ITyped type, IBindable decl) => CurrentStackFrame.Assign(decl, type);
 
         public void Check(IASTNode program)
         {
@@ -51,27 +41,22 @@ namespace Outlet.Checking
             if (ErrorCount > 0) throw new CheckerException(ErrorCount + " Checking errors encountered");
         }
 
-        public SymbolTable EnterScope(bool enterStackFrame = false)
-        {
-            if (enterStackFrame) StackFrameVariableCount.Push(0);
-            if (Scopes.Count == 0) Scopes.Push(SymbolTable.Global);
-            else Scopes.Push(new SymbolTable(Scopes.Peek(), enterStackFrame));
-            return Scopes.Peek();
+        public void EnterScope() => CurrentStackFrame.EnterScope();
+        public void ExitScope() => CurrentStackFrame.ExitScope();
+
+        public CheckStackFrame EnterStackFrame(CheckStackFrame toPush = null) {
+            if(toPush is null)
+            {
+                var newFrame = new CheckStackFrame(CurrentStackFrame);
+                StackFrames.Push(newFrame);
+                return newFrame;
+            }
+            StackFrames.Push(toPush);
+            return toPush;
+
         }
 
-        public SymbolTable EnterScope(SymbolTable symbols, bool enterStackFrame = false)
-        {
-            if (enterStackFrame) StackFrameVariableCount.Push(symbols.List().Sum<(string id, ITyped type)>(symbol => symbol.type is MethodGroupType mgt ? mgt.Methods.Count : 1));
-            if (Scopes.Count == 0) Scopes.Push(SymbolTable.Global);
-            else Scopes.Push(symbols);
-            return Scopes.Peek();
-        }
-
-        public void ExitScope(bool exitStackFrame = false)
-        {
-            if (exitStackFrame) StackFrameVariableCount.Pop();
-            Scopes.Pop();
-        }
+        public void ExitStackFrame() => StackFrames.Pop();
 
         public static Type Error(string message)
         {
@@ -95,8 +80,8 @@ namespace Outlet.Checking
         {
             if (!DoImpl.Peek())
             {
-                SymbolTable statics = new SymbolTable(CurrentScope, enterStackFrame: true);
-                SymbolTable instances = new SymbolTable(statics, enterStackFrame: true);
+                CheckStackFrame statics = new CheckStackFrame(CurrentStackFrame);
+                CheckStackFrame instances = new CheckStackFrame(statics);
                 Class parent = Primitive.Object;
                 if (c.SuperClass != null)
                 {
@@ -106,8 +91,9 @@ namespace Outlet.Checking
                     } else Error("cannot extend anything other than a class");
                 }
 
-                Define(new TypeObject(new ProtoClass(c.Name, parent, statics, instances)), c.Decl);
-                EnterScope(statics, enterStackFrame: true);
+                ProtoClass proto = new ProtoClass(c.Name, parent, statics, instances);
+                Define(new TypeObject(proto), c.Decl);
+                EnterStackFrame(statics);
                 //foreach (var (id, classConstraint) in c.GenericParameters)
                 //{
                 //    Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
@@ -117,28 +103,28 @@ namespace Outlet.Checking
                 foreach (Declaration d in c.StaticDecls) if(d is FunctionDeclaration) d.Accept(this);
                 foreach (var constructor in c.Constructors) constructor.Accept(this);
                 
-                EnterScope(instances, enterStackFrame: true);
+                EnterStackFrame(instances);
+                Define(proto, "this".ToVariable());
                 foreach (Declaration d in c.InstanceDecls) if(d is FunctionDeclaration) d.Accept(this);
 
-                ExitScope(exitStackFrame: true);
-                ExitScope(exitStackFrame: true);
+                ExitStackFrame();
+                ExitStackFrame();
             }
             else
             {
                 Class parent = null;
-                if (c.SuperClass != null) parent = CurrentScope.GetType(c.SuperClass) as Class;
-                var proto = (CurrentScope.GetType(c.Decl) as TypeObject).Encapsulated as ProtoClass;
-                EnterScope(proto.StaticMembers, enterStackFrame: true);
+                if (c.SuperClass != null) parent = CurrentStackFrame.Get(c.SuperClass) as Class;
+                var proto = (CurrentStackFrame.Get(c.Decl) as TypeObject).Encapsulated as ProtoClass;
+                EnterStackFrame(proto.StaticMembers);
                 foreach (Declaration d in c.StaticDecls) d.Accept(this);
 
-                EnterScope(proto.InstanceMembers, enterStackFrame: true);
-                Define((CurrentScope.GetType(c.Decl) as TypeObject).Encapsulated, "this".ToVariable());
+                EnterStackFrame(proto.InstanceMembers);
                 foreach (Declaration d in c.InstanceDecls) d.Accept(this);
 
                 //if (parent != null) foreach ((string id, Type type) in parent.InstanceMembers) CurrentScope.Define(type, id);
                 foreach (var constructor in c.Constructors) constructor.Accept(this);
-                ExitScope(exitStackFrame: true);
-                ExitScope(exitStackFrame: true);
+                ExitStackFrame();
+                ExitStackFrame();
             }
             return null;
         }
@@ -150,7 +136,6 @@ namespace Outlet.Checking
             if (!DoImpl.Peek())
             {
                 // Check decl and args first, needed to make function type
-                //EnterScope();
                 (ITyped type, string id)[] args = f.Args.Select(arg =>
                 {
                     ITyped curArg = arg.Accept(this);
@@ -168,7 +153,7 @@ namespace Outlet.Checking
             {
                 FunctionType ft = f.Type;// TODO restore CurrentScope.GetType(0, f.Name, f.Decl) as FunctionType;
                 // enter the function scope and define the args;
-                EnterScope(enterStackFrame: true);
+                EnterStackFrame();
                 ft.Args.Zip(f.Args).ToList().ForEach(arg => Define(arg.First.type, arg.Second));
                 // check the body now that its header and args have been defined
                 ITyped body = f.Body.Accept(this);
@@ -181,8 +166,8 @@ namespace Outlet.Checking
                     if (ft.ReturnType != Primitive.Void) return Error("function " + f.Decl.Identifier + "not all code paths return a value");
                 }
                 else Cast(body, ft.ReturnType, f.Decl.Identifier + " function definition invalid, expected {1}, returned {0}");
-                f.LocalCount = StackFrameVariableCount.Peek();
-                ExitScope(exitStackFrame: true);
+                f.LocalCount = CurrentStackFrame.Count;
+                ExitStackFrame();
                 return ft;
             }
         }
@@ -360,6 +345,7 @@ namespace Outlet.Checking
             ITyped cond = t.Condition.Accept(this);
             ITyped iftrue = t.IfTrue.Accept(this);
             ITyped iffalse = t.IfFalse.Accept(this);
+            if (iftrue == ErrorType || iffalse == ErrorType) return ErrorType;
             Cast(cond, Primitive.Bool, "Ternary condition requires a boolean, found a {0}");
             return Type.CommonAncestor(iftrue, iffalse);
         }
@@ -384,7 +370,7 @@ namespace Outlet.Checking
 
         public ITyped Visit(Variable v)
         {
-            (ITyped type, int level, int id) = CurrentScope.Resolve(v);
+            (ITyped type, int level, int id) = CurrentStackFrame.Resolve(v);
             if (level == -1) return Error("variable " + v.Identifier + " could not be resolved");
             v.Bind(id, level);
             return type;

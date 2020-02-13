@@ -36,30 +36,31 @@ namespace Outlet.Types {
 
     public class UserDefinedClass : Class, IDereferenceable {
 
-		private readonly Func<UserDefinedClass, (Instance, Interpreting.StackFrame)> Init;
-        private readonly Interpreting.StackFrame StaticStackFrame;
+		private readonly Func<UserDefinedClass, (Instance, IStackFrame<Operand>)> Init;
+        private readonly IStackFrame<Operand> StaticStackFrame;
         private readonly Field[] StaticMembers;
 
-        public UserDefinedClass(string name, Class parent, Interpreting.StackFrame stackFrame,Field[] staticMembers, Func<UserDefinedClass, (Instance, Interpreting.StackFrame)> init) : base(name, parent)
+        public UserDefinedClass(string name, Class parent, IStackFrame<Operand> stackFrame, 
+            Field[] staticMembers, Func<UserDefinedClass, (Instance, IStackFrame<Operand>)> init) : base(name, parent)
         {
             StaticMembers = staticMembers;
             StaticStackFrame = stackFrame;
             Init = init;
         }
 
-        public (Instance, Interpreting.StackFrame) Initialize() => Init(this);
+        public (Instance, IStackFrame<Operand>) Initialize() => Init(this);
 
         public Operand GetMember(IBindable field) => StaticStackFrame.Get(field); //StaticMembers[id.LocalId].Value;
         public void SetMember(IBindable field, Operand value) => StaticStackFrame.Assign(field, value); // StaticMembers[id.LocalId] = new Field(id.Identifier, value);
-        public IEnumerable<(string id, Operand val)> GetMembers() => StaticStackFrame.ListVariables();//StaticMembers.Select(field => (field.Name, field.Value));
+        public IEnumerable<(string id, Operand val)> GetMembers() => StaticStackFrame.List();//StaticMembers.Select(field => (field.Name, field.Value));
     }
 
 	public class ProtoClass : Class {
 
-        public readonly SymbolTable InstanceMembers;
-        public readonly SymbolTable StaticMembers;
+        public readonly CheckStackFrame InstanceMembers;
+        public readonly CheckStackFrame StaticMembers;
 
-        public ProtoClass(string name, Class parent, SymbolTable statics, SymbolTable instances) : base(name, parent) {
+        public ProtoClass(string name, Class parent, CheckStackFrame statics, CheckStackFrame instances) : base(name, parent) {
             InstanceMembers = instances;
             StaticMembers = statics;
 		}
@@ -75,7 +76,7 @@ namespace Outlet.Types {
             variable.Bind(id, resolveLevel);
             return type as Type;
         }
-        public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.List().Select(member => (member.Id, member.Type as Type));
+        public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.List().Select(member => (member.Id, member.Value as Type));
 
         public Type GetInstanceMemberType(IBindable variable)
         {
@@ -97,7 +98,7 @@ namespace Outlet.Types {
             //}
             //return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
         }
-        public IEnumerable<(string id, Type type)> GetIntanceMemberTypes() => InstanceMembers.List().Select(member => (member.Id, member.Type as Type));
+        public IEnumerable<(string id, Type type)> GetIntanceMemberTypes() => InstanceMembers.List().Select(member => (member.Id, member.Value as Type));
     }
 
     public class GenericClass : Class

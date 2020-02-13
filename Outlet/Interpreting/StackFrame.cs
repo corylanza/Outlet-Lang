@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Outlet.Interpreting
 {
-    public class StackFrame
+    public class StackFrame : IStackFrame<Operand>
     {
         public (string Id, Operand Value)[] LocalVariables { get; private set; }
         private readonly StackFrame Parent;
@@ -30,13 +30,17 @@ namespace Outlet.Interpreting
             Call = call;
         }
 
-        public Operand Get(IBindable variable, int level = 0)
+        public Operand Get(IBindable variable) => Get(variable, 0);
+
+        private Operand Get(IBindable variable, int level)
         {
             if (variable.ResolveLevel > level) return Parent.Get(variable, level + 1);
             return LocalVariables[variable.LocalId].Value;
         }
 
-        public void Assign(IBindable variable, Operand value, int level = 0)
+        public void Assign(IBindable variable, Operand value) => Assign(variable, value, 0);
+
+        private void Assign(IBindable variable, Operand value, int level)
         {
             if (this == Global) 
             {
@@ -48,6 +52,6 @@ namespace Outlet.Interpreting
             else LocalVariables[variable.LocalId] = (variable.Identifier, value);
         }
 
-        public IEnumerable<(string id, Operand)> ListVariables() => LocalVariables;
+        public IEnumerable<(string Id, Operand Value)> List() => LocalVariables;
     }
 }

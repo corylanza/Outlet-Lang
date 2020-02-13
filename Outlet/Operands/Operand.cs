@@ -34,9 +34,4 @@ namespace Outlet.Operands {
         void SetMember(IBindable field, Operand value);
         IEnumerable<(string id, Operand val)> GetMembers();
 	}
-
-    /*
-	public interface ICollection {
-		Operand[] Values();
-	}*/
 }

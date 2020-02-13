@@ -28,9 +28,9 @@ namespace Outlet.Operands {
     public class UserDefinedInstance : Instance
     {
         private readonly Field[] InstanceMembers;
-        private readonly Interpreting.StackFrame InstanceStackFrame; 
+        private readonly IStackFrame<Operand> InstanceStackFrame; 
 
-        public UserDefinedInstance(Class type, Interpreting.StackFrame stackFrame, int instanceVarCount) : base(type) 
+        public UserDefinedInstance(Class type, IStackFrame<Operand> stackFrame, int instanceVarCount) : base(type) 
         {
             InstanceStackFrame = stackFrame;
             InstanceMembers = new Field[instanceVarCount];
@@ -40,6 +40,6 @@ namespace Outlet.Operands {
         public override Operand GetMember(IBindable field) => InstanceStackFrame.Get(field); //InstanceMembers[field.LocalId].Value;
         // TODO this is inconsistent, should not need to subtract 1 from local id
         public override void SetMember(IBindable field, Operand value) => InstanceStackFrame.Assign(field, value);//InstanceMembers[field.LocalId - 1] = new Field(field.Identifier, value);
-        public override IEnumerable<(string id, Operand val)> GetMembers() => InstanceStackFrame.ListVariables();//InstanceMembers.Select(member => (member?.Name, member?.Value));
+        public override IEnumerable<(string id, Operand val)> GetMembers() => InstanceStackFrame.List();//InstanceMembers.Select(member => (member?.Name, member?.Value));
     }
 }
