@@ -7,7 +7,7 @@ namespace Outlet.Operands {
         public readonly string Name;
         public Function(string name, FunctionType type) => (Name, RuntimeType) = (name, type);
 
-        public abstract Operand Call(params Operand[] args);
+        public abstract Operand Call(Operand caller, params Operand[] args);
 
         public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
@@ -33,6 +33,6 @@ namespace Outlet.Operands {
 			Hidden = act;
 		}
 
-		public override Operand Call(params Operand[] args) => Hidden(args);
+		public override Operand Call(Operand caller, params Operand[] args) => Hidden(args);
 	}
 }

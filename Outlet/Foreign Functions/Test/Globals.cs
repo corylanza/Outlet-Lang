@@ -22,7 +22,7 @@ namespace Outlet.FFI
     public class MathO
     {
         [ForeignField(Name = "pi")]
-        public const float PI = (float) Math.PI;
+        public const float PI = (float)Math.PI;
 
         [ForeignField(Name = "number")]
         public static int Number = 5;
@@ -31,7 +31,7 @@ namespace Outlet.FFI
         public static void Change() => Number++;
 
         [ForeignFunction(Name = "sin")]
-        public static float MathSin(float input) => (float) Math.Sin(input);
+        public static float MathSin(float input) => (float)Math.Sin(input);
 
         [ForeignFunction(Name = "max")]
         public static int Max(int a, int b) => a > b ? a : b;
@@ -48,6 +48,27 @@ namespace Outlet.FFI
         {
             Program.RunFile(Directory.GetCurrentDirectory() + @"\Outlet\Test\" + name + ".txt");
         }
+    }
+
+    [ForeignClass(Name = "dict", IsStatic = false)]
+    public class ODictionary 
+    {
+        private readonly Dictionary<string, object> dictionary = new Dictionary<string, object>();
+
+        [ForeignConstructor]
+        public ODictionary()
+        {
+
+        }
+
+        [ForeignFunction(Name = "get")]
+        public object Get(string s) => dictionary[s];
+
+        [ForeignFunction(Name = "set")]
+        public void Set(string s, object value) => dictionary[s] = value;
+
+        [ForeignFunction(Name = "keys")]
+        public IEnumerable<string> Keys() => dictionary.Keys;
     }
 
     //[ForeignClass(Name = "File", IsStatic = false)]

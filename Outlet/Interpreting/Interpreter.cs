@@ -227,8 +227,13 @@ namespace Outlet.Interpreting {
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
             if (caller is ICallable f)
             {
-                var returned = f.Call(args);
-                return returned;
+                if(c.Caller is Deref d && d.Left.Accept(this) is Instance i)
+                {
+                    return f.Call(i, args);
+                } else
+                {
+                    return f.Call(null, args);
+                }
             }
             else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
 		}

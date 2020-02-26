@@ -53,7 +53,7 @@ namespace Outlet.FFI
                 }
             }
 
-            return new NativeInstance(nc, Get, Set, List);
+            return new NativeInstance(nc, o, Get, Set, List);
         }
 
         public static NativeClass ToOutletClass(string name, (string id, MemberInfo member)[] staticMembers, (string, MemberInfo)[] instanceMembers)

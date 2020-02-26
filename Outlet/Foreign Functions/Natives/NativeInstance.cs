@@ -11,12 +11,14 @@ namespace Outlet.FFI.Natives
         private readonly Getter GetInstanceVar;
         private readonly Setter SetInstanceVar;
         private readonly Lister GetInstanceVars;
+        public readonly object Underlying;
 
-        public NativeInstance(Class type, Getter get, Setter set, Lister list) : base(type)
+        public NativeInstance(Class type, object o, Getter get, Setter set, Lister list) : base(type)
         {
             GetInstanceVar = get;
             SetInstanceVar = set;
             GetInstanceVars = list;
+            Underlying = o;
         }
 
         public override bool Equals(Operand b) => ReferenceEquals(this, b);

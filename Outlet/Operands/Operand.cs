@@ -26,7 +26,7 @@ namespace Outlet.Operands {
     public delegate IEnumerable<(string, Operand)> Lister();
 
 	public interface ICallable {
-		Operand Call(params Operand[] args);
+		Operand Call(Operand caller, params Operand[] args);
 	}
 
 	public interface IDereferenceable {
