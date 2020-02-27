@@ -15,7 +15,7 @@ namespace Outlet.FFI.Natives
         }
 
         public override Operand Call(Operand caller, params Operand[] args) =>
-            NativeInitializer.ToOutletOperand(Underlying.Invoke((caller as NativeInstance).Underlying, args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
+            NativeInitializer.ToOutletOperand(Underlying.Invoke((caller as NativeInstance)?.Underlying, args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }
 
     public class NativeConstructor : Function

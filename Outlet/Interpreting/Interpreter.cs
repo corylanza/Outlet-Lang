@@ -227,6 +227,7 @@ namespace Outlet.Interpreting {
 			var args = c.Args.Select(arg => arg.Accept(this)).ToArray();
             if (caller is ICallable f)
             {
+                // TODO don't call left.accept
                 if(c.Caller is Deref d && d.Left.Accept(this) is Instance i)
                 {
                     return f.Call(i, args);

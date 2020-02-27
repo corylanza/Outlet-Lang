@@ -1,9 +1,9 @@
 ﻿using Outlet.Checking;
 using Outlet.FFI.Natives;
-using Outlet.Interpreting;
 using Outlet.Operands;
 using Outlet.Types;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,10 +12,16 @@ namespace Outlet.FFI
 {
     public static class NativeInitializer
     {
+
         public static Operand ToOutletOperand(object o)
         {
+            if (!(o is string) && o is IEnumerable collection)
+            {
+                return new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element)).ToArray());
+            }
             Types.Type type = o is null ? null : Conversions.OutletType.GetValueOrDefault(o.GetType());
-            return type switch {
+            return type switch
+            {
                 Primitive p when p == Primitive.String => Constant.String((string)o),
                 Primitive p when p == Primitive.Int => Constant.Int((int)o),
                 Primitive p when p == Primitive.Bool => Constant.Bool((bool)o),
@@ -35,14 +41,15 @@ namespace Outlet.FFI
                 _ => throw new NotSupportedException()
             };
 
-            Operand Get(IBindable id) {
+            Operand Get(IBindable id)
+            {
                 var member = nc.InstanceMembers[id.LocalId];
                 return ToMember(member.id, member.member, o);
             }
 
             void Set(IBindable id, Operand val)
             {
-                if(nc.InstanceMembers[id.LocalId].member is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(o, ToCSharpOperand(val));
+                if (nc.InstanceMembers[id.LocalId].member is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(o, ToCSharpOperand(val));
             }
 
             IEnumerable<(string id, Operand val)> List()
@@ -66,18 +73,19 @@ namespace Outlet.FFI
                 _ => throw new NotSupportedException()
             };
 
-            Operand Get(IBindable id) {
+            Operand Get(IBindable id)
+            {
                 var member = staticMembers[id.LocalId];
                 return ToMember(member.id, member.member);
             };
 
             void Set(IBindable id, Operand val)
             {
-                if(staticMembers[id.LocalId].member is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(null, ToCSharpOperand(val));
+                if (staticMembers[id.LocalId].member is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(null, ToCSharpOperand(val));
             }
             IEnumerable<(string id, Operand val)> List()
             {
-                foreach((string id, MemberInfo member) in staticMembers)
+                foreach ((string id, MemberInfo member) in staticMembers)
                 {
                     yield return (id, ToMember(id, member));
                 }
@@ -100,7 +108,8 @@ namespace Outlet.FFI
         public static Types.Type Convert(System.Type input)
         {
             if (input.IsArray) return new ArrayType(Convert(input.GetElementType()));
-            if(Conversions.OutletType.ContainsKey(input))
+            if (input.IsGenericType && input.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return new ArrayType(Convert(input.GetGenericArguments()[0]));
+            if (Conversions.OutletType.ContainsKey(input))
                 return Conversions.OutletType[input];
             return Primitive.Object;
         }
@@ -128,11 +137,11 @@ namespace Outlet.FFI
 
         #region Reflection
 
-        private static IEnumerable<System.Type> GetForeignClasses() => 
+        private static IEnumerable<System.Type> GetForeignClasses() =>
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
                 .Where(x => x.IsClass && x.GetCustomAttributes(typeof(ForeignClass)).FirstOrDefault() != null);
 
-        private static IEnumerable<MethodInfo> GetMethods(System.Type type) => 
+        private static IEnumerable<MethodInfo> GetMethods(System.Type type) =>
             type.GetMethods().Where(x => x.GetCustomAttributes(typeof(ForeignFunction), false).FirstOrDefault() != null);
 
         private static IEnumerable<FieldInfo> GetFields(System.Type type) =>
@@ -146,7 +155,7 @@ namespace Outlet.FFI
         public static void Register()
         {
             var classes = GetForeignClasses();
-            foreach(var type in classes)
+            foreach (var type in classes)
             {
                 ForeignClass fc = (ForeignClass)type.GetCustomAttribute(typeof(ForeignClass));
 
