@@ -146,12 +146,12 @@ namespace Outlet.Checking
                 FunctionType ft = new FunctionType(args, returnType as Type);
                 // define the header using the function type from above
                 Define(ft, f.Decl);
-                f.Type = ft;
                 return ft;
             }
             else
             {
-                FunctionType ft = f.Type;// TODO restore CurrentScope.GetType(0, f.Name, f.Decl) as FunctionType;
+                (ITyped type, _, _) = CurrentStackFrame.Resolve(f.Decl);
+                FunctionType ft = (FunctionType) type;
                 // enter the function scope and define the args;
                 EnterStackFrame();
                 ft.Args.Zip(f.Args).ToList().ForEach(arg => Define(arg.First.type, arg.Second));

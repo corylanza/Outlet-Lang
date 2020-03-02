@@ -7,7 +7,6 @@ namespace Outlet.AST {
 
 		public readonly List<Declarator> Args;
 		public readonly Statement Body;
-        public FunctionType Type;
 
         public int LocalCount = -1;
 

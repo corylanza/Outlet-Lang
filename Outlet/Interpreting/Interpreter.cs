@@ -132,11 +132,11 @@ namespace Outlet.Interpreting {
 
 			var func = new UserDefinedFunction(c.Decl.Identifier, null, UnderlyingConstructor);
 			staticscope.Assign(c.Decl, func);
-            var funcType = c.Type;/*new FunctionType(c.Args.Select(arg =>
+            var funcType = new FunctionType(c.Args.Select(arg =>
                 (arg.Accept(this) is TypeObject to ? to.Encapsulated as ITyped :
                     throw new OutletException("expected type SHOULD NOT PRINT"), arg.Identifier)).ToArray(),
                 c.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated :
-                    throw new OutletException("expected type SHOULD NOT PRINT"));*/
+                    throw new OutletException("expected type SHOULD NOT PRINT"));
             func.RuntimeType = funcType;
             return func;
 		}
