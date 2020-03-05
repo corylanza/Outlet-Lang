@@ -13,13 +13,14 @@ namespace Outlet.Types
             Methods = functions.ToList();
         }
 
-        public (FunctionType type, int id) FindBestMatch(params ITyped[] inputs)
+        public (FunctionType? type, int id) FindBestMatch(params ITyped[] inputs)
         {
-            (FunctionType best, int bestLevel, int bestId) = (default, -1, -1);
+            (FunctionType? best, int bestLevel, int bestId) = (default, -1, -1);
             foreach ((FunctionType overload, int id) in Methods)
             {
                 bool valid = overload.Valid(out int level, inputs);
                 if (!valid) continue;
+                // TODO this logic may allow -1 to be set again
                 if (bestLevel == -1 || level < bestLevel)
                 {
                     (best, bestLevel, bestId) = (overload, level, id);

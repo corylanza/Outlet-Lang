@@ -8,9 +8,10 @@ namespace Outlet.AST {
 	public class IfStatement : Statement {
 
 		public readonly Expression Condition;
-		public readonly Statement Iftrue, Iffalse;
+        public readonly Statement Iftrue;
+        public readonly Statement? Iffalse;
 
-		public IfStatement(Expression condition, Statement iftrue, Statement ifelse) {
+		public IfStatement(Expression condition, Statement iftrue, Statement? ifelse) {
 			Condition = condition;
 			Iftrue = iftrue;
 			Iffalse = ifelse;

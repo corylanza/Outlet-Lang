@@ -15,7 +15,25 @@ namespace Outlet.Checking
         public readonly Stack<bool> DoImpl = new Stack<bool>();
         public readonly Stack<CheckStackFrame> StackFrames = new Stack<CheckStackFrame>();
         public CheckStackFrame CurrentStackFrame => StackFrames.Peek();
-        private static readonly Type ErrorType = new ProtoClass("error", null, null, null);
+        public class Error : Type
+        {
+            public readonly string Message;
+
+            public Error(string message)
+            {
+                ErrorCount++;
+                if (message != "") Program.ThrowException(message);
+                Message = message;
+            }
+
+            public override bool Is(ITyped t, out int level) {
+                level = -1;
+                return false;
+            }
+
+            public override string ToString() => "error";
+        }
+        //private static readonly Type ErrorType = new ProtoClass("error", null, null, null);
         public static int ErrorCount = 0;
 
         public Checker()
@@ -44,8 +62,8 @@ namespace Outlet.Checking
         public void EnterScope() => CurrentStackFrame.EnterScope();
         public void ExitScope() => CurrentStackFrame.ExitScope();
 
-        public CheckStackFrame EnterStackFrame(CheckStackFrame toPush = null) {
-            if(toPush is null)
+        public CheckStackFrame EnterStackFrame(CheckStackFrame? toPush = null) {
+            if (toPush is null)
             {
                 var newFrame = new CheckStackFrame(CurrentStackFrame);
                 StackFrames.Push(newFrame);
@@ -58,17 +76,18 @@ namespace Outlet.Checking
 
         public void ExitStackFrame() => StackFrames.Pop();
 
-        public static Type Error(string message)
-        {
-            ErrorCount++;
-            if (message != "") Program.ThrowException(message);
-            return ErrorType;
-        }
+        //public static Type Error(string message)
+        //{
+        //    ErrorCount++;
+        //    if (message != "") Program.ThrowException(message);
+        //    return ErrorType;
+        //}
 
         public ITyped Cast(ITyped from, ITyped to, string message = "cannot convert type {0} to type {1}")
         {
-            if (from == ErrorType || to == ErrorType) return ErrorType;
-            if (!from.Is(to)) return Error(string.Format(message, from, to));
+            if (from is Error) return from;
+            if (to is Error) return to;
+            if (!from.Is(to)) return new Error(string.Format(message, from, to));
             return to;
         }
 
@@ -88,7 +107,7 @@ namespace Outlet.Checking
                     if (c.SuperClass.Accept(this) is TypeObject to && to.Encapsulated is Class super)
                     {
                         parent = super;
-                    } else Error("cannot extend anything other than a class");
+                    } else new Error("cannot extend anything other than a class");
                 }
 
                 ProtoClass proto = new ProtoClass(c.Name, parent, statics, instances);
@@ -100,21 +119,21 @@ namespace Outlet.Checking
                 //    CurrentScope.Define(new TypeObject(constraint), id);
                 //}
 
-                foreach (Declaration d in c.StaticDecls) if(d is FunctionDeclaration) d.Accept(this);
+                foreach (Declaration d in c.StaticDecls) if (d is FunctionDeclaration) d.Accept(this);
                 foreach (var constructor in c.Constructors) constructor.Accept(this);
-                
+
                 EnterStackFrame(instances);
                 Define(proto, "this".ToVariable());
-                foreach (Declaration d in c.InstanceDecls) if(d is FunctionDeclaration) d.Accept(this);
+                foreach (Declaration d in c.InstanceDecls) if (d is FunctionDeclaration) d.Accept(this);
 
                 ExitStackFrame();
                 ExitStackFrame();
             }
             else
             {
-                Class parent = null;
+                Class? parent;
                 if (c.SuperClass != null) parent = CurrentStackFrame.Get(c.SuperClass) as Class;
-                var proto = (CurrentStackFrame.Get(c.Decl) as TypeObject).Encapsulated as ProtoClass;
+                var proto = CurrentStackFrame.Get(c.Decl) is TypeObject t && t.Encapsulated is ProtoClass p ? p : throw new CheckerException("Expected protoclass");
                 EnterStackFrame(proto.StaticMembers);
                 foreach (Declaration d in c.StaticDecls) d.Accept(this);
 
@@ -126,7 +145,7 @@ namespace Outlet.Checking
                 ExitStackFrame();
                 ExitStackFrame();
             }
-            return null;
+            return Primitive.Void;
         }
 
         public ITyped Visit(ConstructorDeclaration c) => Visit(c as FunctionDeclaration);
@@ -141,9 +160,8 @@ namespace Outlet.Checking
                     ITyped curArg = arg.Accept(this);
                     return (curArg, arg.Identifier);
                 }).ToArray();
-                //ExitScope();
-                ITyped returnType = f.Decl.Accept(this);
-                FunctionType ft = new FunctionType(args, returnType as Type);
+                Type returnType = f.Decl.Accept(this) is Type t ? t : throw new CheckerException("Expected Type");
+                FunctionType ft = new FunctionType(args, returnType);
                 // define the header using the function type from above
                 Define(ft, f.Decl);
                 return ft;
@@ -151,7 +169,7 @@ namespace Outlet.Checking
             else
             {
                 (ITyped type, _, _) = CurrentStackFrame.Resolve(f.Decl);
-                FunctionType ft = (FunctionType) type;
+                FunctionType ft = (FunctionType)type;
                 // enter the function scope and define the args;
                 EnterStackFrame();
                 ft.Args.Zip(f.Args).ToList().ForEach(arg => Define(arg.First.type, arg.Second));
@@ -159,11 +177,11 @@ namespace Outlet.Checking
                 ITyped body = f.Body.Accept(this);
                 if (f is ConstructorDeclaration)
                 {
-                    if (body != null) return Error("constructor cannot return value");
+                    if (body != null) return new Error("constructor cannot return value");
                 }
                 else if (body == null || body == Primitive.Void)
                 {
-                    if (ft.ReturnType != Primitive.Void) return Error("function " + f.Decl.Identifier + "not all code paths return a value");
+                    if (ft.ReturnType != Primitive.Void) return new Error("function " + f.Decl.Identifier + "not all code paths return a value");
                 }
                 else Cast(body, ft.ReturnType, f.Decl.Identifier + " function definition invalid, expected {1}, returned {0}");
                 f.LocalCount = CurrentStackFrame.Count;
@@ -175,11 +193,11 @@ namespace Outlet.Checking
         public ITyped Visit(VariableDeclaration v)
         {
             ITyped decl = v.Decl.Accept(this);
-            ITyped init = v.Initializer?.Accept(this);
+            ITyped? init = v.Initializer?.Accept(this);
             if (init != null) Cast(init, decl);
             if (init is TypeObject meta) Define(meta, v.Decl);
             else Define(decl, v.Decl);
-            return null;
+            return Primitive.Void;
         }
 
         #endregion
@@ -189,21 +207,21 @@ namespace Outlet.Checking
         public ITyped Visit(Access a)
         {
             ITyped elem = a.Collection.Accept(this);
-            ITyped idxType = a.Index.Length > 0 ? a.Index[0].Accept(this) : null;
+            ITyped? idxType = a.Index.Length > 0 ? a.Index[0].Accept(this) : null;
             if (elem is TypeObject meta && meta.Encapsulated is Class c)
             {
                 if (idxType is TypeObject)
-                    return Error("Generics not supported yet");
+                    return new Error("Generics not supported yet");
                 // array types are defined with empty braces []
-                if(idxType == null)
+                if (idxType == null)
                     return new TypeObject(new ArrayType(meta.Encapsulated));
             }
             if (a.Index.Length != 1)
-                return Error("array access requires exactly 1 index");
+                return new Error("array access requires exactly 1 index");
             if (idxType != Primitive.Int)
-                return Error("only ints can be used to index into an array, found: " + idxType.ToString());
+                return new Error("only ints can be used to index into an array, found: " + idxType?.ToString());
             if (elem is ArrayType at) return at.ElementType;
-            return Error("type " + elem.ToString() + " is not accessable by array access operator []");
+            return new Error("type " + elem.ToString() + " is not accessable by array access operator []");
         }
 
         public ITyped Visit(As a)
@@ -211,39 +229,38 @@ namespace Outlet.Checking
             a.Left.Accept(this);
             ITyped r = a.Right.Accept(this);
             if (r is TypeObject castedTo) return castedTo.Encapsulated;
-            return Error("the right side of an is expression must be a type, found: " + r.ToString());
+            return new Error("the right side of an is expression must be a type, found: " + r.ToString());
 
         }
 
-        public ITyped Visit(Assign a)
+        public ITyped Visit(Assign a) => a.Left switch
         {
-            if (a.Left is Variable || a.Left is Deref)
+            Deref d when d.ArrayLength => new Error("cannot assign to an array length"),
+            Expression left when left is Variable || left is Deref =>
+                (a.Left.Accept(this), a.Right.Accept(this)) switch
+                {
+                    (Error e, _) => e,
+                    (_, Error e) => e,
+                    (ITyped l, ITyped r) => Cast(r, l)
+                },
+            _ => new Error("illegal assignment, can only assign to variables and fields")
+        };
+
+        public ITyped Visit(Binary b) => (b.Left.Accept(this), b.Right.Accept(this)) switch
+        {
+            (Error e, _) => e,
+            (_, Error e) => e,
+            (ITyped left, ITyped right) => b.Overloads.FindBestMatch(left, right) switch
             {
-                ITyped l = a.Left.Accept(this);
-                ITyped r = a.Right.Accept(this);
-                if (l == ErrorType || r == ErrorType) return ErrorType;
-                if (a.Left is Deref d && d.ArrayLength) return Error("cannot assign to an array length");
-                Cast(r, l);
-                return l;
+                null => new Error("binary operator not defined for " + left.ToString() + " " + b.Op + " " + right.ToString()),
+                BinOp op => (b.Oper = op).GetResultType()
             }
-            return Error("illegal assignment, can only assign to variables and fields");
-        }
-
-        public ITyped Visit(Binary b)
-        {
-            ITyped left = b.Left.Accept(this);
-            ITyped right = b.Right.Accept(this);
-            if (left == ErrorType || right == ErrorType) return ErrorType;
-            var op = b.Overloads.FindBestMatch(left, right);
-            if (op == null) return Error("binary operator not defined for " + left.ToString() + " " + b.Op + " " + right.ToString());
-            b.Oper = op;
-            return op.GetResultType();
-        }
+        };
 
         public ITyped Visit(Call c)
         {
             ITyped calltype = c.Caller.Accept(this);
-            if (calltype == ErrorType) return ErrorType;
+            if (calltype is Error) return calltype;
             if (calltype is TypeObject t && t.Encapsulated is ProtoClass proto)
             {
                 // Rather than have to store the overload id within the call it is easier to turn a constructor call into
@@ -256,34 +273,34 @@ namespace Outlet.Checking
             if (calltype is FunctionType functype)
             {
                 var funcargs = functype.Args.ToArray();
-                bool argsMatch = funcargs.SameLengthAndAll(argtypes, (arg, argType) => Cast(argType, arg.type, "Could not cast {0} to {1}") != ErrorType);
+                bool argsMatch = funcargs.SameLengthAndAll(argtypes, (arg, argType) => !(Cast(argType, arg.type, "Could not cast {0} to {1}") is Error));
                 return argsMatch ? functype.ReturnType :
-                    Error(c.Caller + " expects " + "(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
+                    new Error(c.Caller + " expects " + "(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
             }
             if (calltype is MethodGroupType mgt)
             {
-                (FunctionType bestMatch, int id) = mgt.FindBestMatch(argtypes);
+                (FunctionType? bestMatch, int id) = mgt.FindBestMatch(argtypes);
                 if(c.Caller is Variable v) v.Bind(id, v.LocalId);
                 if(c.Caller is Deref d && d.Referenced is Variable dv) dv.Bind(id, dv.LocalId);
-                if (bestMatch is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
+                if (bestMatch is null) return new Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
                 return bestMatch.ReturnType;
             }
-            return Error("type " + calltype + " is not callable");
+            return new Error("type " + calltype + " is not callable");
         }
 
         public ITyped Visit(Declarator d)
         {
             ITyped decl = d.Type.Accept(this);
             if (decl is TypeObject meta) return meta.Encapsulated;
-            if (decl == Primitive.MetaType) return Error("Declared type must be a check time constant");
-            return Error("declaration requires valid type, found: " + decl.ToString());
+            if (decl == Primitive.MetaType) return new Error("Declared type must be a check time constant");
+            return new Error("declaration requires valid type, found: " + decl.ToString());
         }
 
 
         public ITyped Visit(Deref d)
         {
             ITyped inst = d.Left.Accept(this);
-            if (inst == ErrorType) return ErrorType;
+            if (inst is Error) return inst;
             if (inst is ArrayType && d.Identifier == "length")
             {
                 d.ArrayLength = true;
@@ -292,7 +309,7 @@ namespace Outlet.Checking
             if (inst is TupleType tt && int.TryParse(d.Identifier, out int result))
             {
                 if (result >= tt.Types.Length)
-                    return Error("cannot access element " + result + " of tuple type " +
+                    return new Error("cannot access element " + result + " of tuple type " +
                         tt.ToString() + " which has only " + tt.Types.Length + " elements");
                 return tt.Types[result];
             }
@@ -302,7 +319,7 @@ namespace Outlet.Checking
             if (inst is TypeObject t && t.Encapsulated is ProtoClass statics) 
                 return statics.GetStaticMemberType(d.Referenced);
 
-            return Error("cannot dereference type: " + inst.ToString());
+            return new Error("cannot dereference type: " + inst.ToString());
         }
 
         public ITyped Visit(Is i)
@@ -310,7 +327,7 @@ namespace Outlet.Checking
             i.Left.Accept(this);
             ITyped r = i.Right.Accept(this);
             if (r is TypeObject || r == Primitive.MetaType) return Primitive.Bool;
-            return Error("the right side of an is expression must be a type, found: " + r.ToString());
+            return new Error("the right side of an is expression must be a type, found: " + r.ToString());
         }
 
         public ITyped Visit(Lambda l)
@@ -319,9 +336,9 @@ namespace Outlet.Checking
             ITyped res = l.Right.Accept(this);
             if (args is TypeObject a && res is TypeObject r)
             {
-                return Error("NOT IMPLEMENTED");//new MetaType(new FunctionType());
+                return new Error("NOT IMPLEMENTED");//new MetaType(new FunctionType());
             }
-            return Error("Lambdas currently only work for types");
+            return new Error("Lambdas currently only work for types");
         }
 
         public ITyped Visit(ListLiteral l)
@@ -345,7 +362,8 @@ namespace Outlet.Checking
             ITyped cond = t.Condition.Accept(this);
             ITyped iftrue = t.IfTrue.Accept(this);
             ITyped iffalse = t.IfFalse.Accept(this);
-            if (iftrue == ErrorType || iffalse == ErrorType) return ErrorType;
+            if (iftrue is Error) return iftrue;
+            if (iffalse is Error) return iffalse;
             Cast(cond, Primitive.Bool, "Ternary condition requires a boolean, found a {0}");
             return Type.CommonAncestor(iftrue, iffalse);
         }
@@ -361,9 +379,9 @@ namespace Outlet.Checking
         public ITyped Visit(Unary u)
         {
             ITyped input = u.Expr.Accept(this);
-            if (input == ErrorType) return ErrorType;
+            if (input is Error) return input;
             var op = u.Overloads.FindBestMatch(input);
-            if (op == null) return Error("unary operator " + u.Op + " is not defined for type " + input.ToString());
+            if (op == null) return new Error("unary operator " + u.Op + " is not defined for type " + input.ToString());
             u.Oper = op;
             return op.GetResultType();
         }
@@ -371,7 +389,7 @@ namespace Outlet.Checking
         public ITyped Visit(Variable v)
         {
             (ITyped type, int level, int id) = CurrentStackFrame.Resolve(v);
-            if (level == -1) return Error("variable " + v.Identifier + " could not be resolved");
+            if (level == -1) return new Error("variable " + v.Identifier + " could not be resolved");
             v.Bind(id, level);
             return type;
         }
@@ -396,11 +414,11 @@ namespace Outlet.Checking
             }
             DoImpl.Pop();
             DoImpl.Push(true);
-            ITyped ret = null;
+            ITyped? ret = null;
             foreach (IASTNode d in b.Lines)
             {
                 ITyped temp = d.Accept(this);
-                if (ret != null) return Error("unreachable code detected");
+                if (ret != null) return new Error("unreachable code detected");
                 if (d is Statement && !(d is Expression) && temp != null)
                 {
                     ret = temp;
@@ -408,7 +426,7 @@ namespace Outlet.Checking
             }
             DoImpl.Pop();
             ExitScope();
-            return ret;
+            return ret is null ? Primitive.Void : ret;
         }
 
         public ITyped Visit(ForLoop f)
@@ -423,9 +441,9 @@ namespace Outlet.Checking
                 ITyped body = f.Body.Accept(this);
                 ExitScope();
                 if (f.Body is Statement && !(f.Body is Expression) && body != null) return body;
-                return null;
+                return Primitive.Void;
             }
-            return Error("only array types are iterable, found:" + collection.ToString());
+            return new Error("only array types are iterable, found:" + collection.ToString());
         }
 
         public ITyped Visit(IfStatement i)
@@ -433,7 +451,7 @@ namespace Outlet.Checking
             ITyped cond = i.Condition.Accept(this);
             Cast(cond, Primitive.Bool, "if statement condition requires a boolean, found a {0}");
             ITyped iftrue = i.Iftrue.Accept(this);
-            ITyped iffalse = i.Iffalse?.Accept(this);
+            ITyped? iffalse = i.Iffalse?.Accept(this);
             if (i.Iftrue is Statement && !(i.Iftrue is Expression) && iftrue != null)
             {
                 if (i.Iffalse is Statement && !(i.Iffalse is Expression) && iffalse != null)
@@ -442,7 +460,7 @@ namespace Outlet.Checking
                     return iftrue;
                 }
             }
-            return null;
+            return Primitive.Void;
         }
 
         public ITyped Visit(ReturnStatement r)
@@ -456,7 +474,7 @@ namespace Outlet.Checking
             Cast(cond, Primitive.Bool, "while loop condition requires a boolean, found a {0}");
             ITyped body = w.Body.Accept(this);
             if (w.Body is Statement && !(w.Body is Expression) && body != null) return body;
-            return null;
+            return Primitive.Void;
         }
 
         public ITyped Visit(UsingStatement u)
@@ -469,7 +487,7 @@ namespace Outlet.Checking
                     //CurrentScope.Define(type, id);
                 }
             {
-                return null;
+                return Primitive.Void;
             }
             throw new CheckerException("Only classes can be used, found " + used);
         }

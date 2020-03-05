@@ -13,7 +13,7 @@ namespace Outlet.Checking
     {
         public static CheckStackFrame Global = new CheckStackFrame();
 
-        private readonly CheckStackFrame Parent;
+        private readonly CheckStackFrame? Parent;
         private readonly Stack<SymbolTable> Scopes = new Stack<SymbolTable>();
         public int Count { get; private set; }
 
@@ -29,7 +29,7 @@ namespace Outlet.Checking
             }
         }
 
-        public CheckStackFrame(CheckStackFrame parent)
+        public CheckStackFrame(CheckStackFrame? parent)
         {
             Count = 0;
             Parent = parent;
@@ -54,7 +54,7 @@ namespace Outlet.Checking
                     existingMethodGroup.Methods.Add((added, newId));
                     decl.Bind(newId, 0);
                 }
-                else Checker.Error("variable " + decl.Identifier + " already defined in this scope");
+                else new Checker.Error("variable " + decl.Identifier + " already defined in this scope");
             }
             else
             {
@@ -94,17 +94,17 @@ namespace Outlet.Checking
         private ITyped GetType(IBindable variable, int level = 0)
         {
             string id = variable.Identifier;
-            if (variable.ResolveLevel < 0) return Checker.Error($"variable {id} has not been resolved");
+            if (variable.ResolveLevel < 0) return new Checker.Error($"variable {id} has not been resolved");
             if(level == variable.ResolveLevel)
             {
                 foreach(var scope in Scopes)
                 {
                     if (scope.ContainsKey(id)) return scope[id].Type;
                 }
-                return Checker.Error($"could not get type of {id}");
+                return new Checker.Error($"could not get type of {id}");
             }
             if (level < variable.ResolveLevel && Parent != null) return Parent.GetType(variable, level + 1);
-            return Checker.Error($"variable {id} is defined at a stack frame that could not be found");
+            return new Checker.Error($"variable {id} is defined at a stack frame that could not be found");
         }
 
         //public ITyped this[string id] {

@@ -43,7 +43,7 @@ namespace Outlet.Parsing {
 			}
 			#endregion
 			VariableDeclaration VarDeclaration(Declarator decl) {
-				Expression initializer = null;
+				Expression? initializer = null;
 				if(Match(Operator.Equal)) initializer = NextExpression(tokens);
 				if(tokens.Count != 0)
 					Consume(Delimeter.SemiC, "expected ; after declaring a variable");
@@ -62,7 +62,7 @@ namespace Outlet.Parsing {
                 List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				List<ConstructorDeclaration> constructors = new List<ConstructorDeclaration>();
-				Variable superclass = null;
+				Variable? superclass = null;
                 Identifier name = ConsumeType<Identifier>("Expected class identifier");
                 if (Match(Delimeter.LeftBrace))
                 {
@@ -152,7 +152,7 @@ namespace Outlet.Parsing {
                 Expression condition = NextExpression(tokens);
                 Consume(Delimeter.RightParen, "Expected ) after if condition");
                 Statement iftrue = NextStatement(tokens);
-                Statement ifelse = Match(Keyword.Else) ? NextStatement(tokens) : null;
+                Statement? ifelse = Match(Keyword.Else) ? NextStatement(tokens) : null;
                 return new IfStatement(condition, iftrue, ifelse);
             }
             Statement WhileLoop() {

@@ -19,7 +19,7 @@ namespace Outlet.FFI
             {
                 return new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element)).ToArray());
             }
-            Types.Type type = o is null ? null : Conversions.OutletType.GetValueOrDefault(o.GetType());
+            Types.Type? type = o is null ? null : Conversions.OutletType.GetValueOrDefault(o.GetType());
             return type switch
             {
                 Primitive p when p == Primitive.String => Constant.String((string)o),

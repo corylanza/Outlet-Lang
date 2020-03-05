@@ -9,7 +9,7 @@ namespace Outlet.AST {
 
 		public string Op;
 		public Expression Expr;
-		public UnOp Oper;
+		public UnOp? Oper;
 		public Overload<UnOp> Overloads;
 
 		public Unary(string op, Expression input, Overload<UnOp> overloads) {

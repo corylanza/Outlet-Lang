@@ -19,7 +19,7 @@ namespace Outlet.Types {
             Initialize = def;
 		}
 
-        private Primitive(string name, Class parent) : base(name, parent) { Initialize = base.Default; }
+        private Primitive(string name, Class? parent) : base(name, parent) { Initialize = base.Default; }
 
         public override Operand Default() => Initialize();
 

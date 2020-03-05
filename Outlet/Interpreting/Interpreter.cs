@@ -43,7 +43,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(ClassDeclaration c) {
 			// Find super class, if none it will always be object
-			Class super = c.SuperClass != null ? (c.SuperClass.Accept(this) as TypeObject).Encapsulated as Class : Primitive.Object;
+			Class? super = c.SuperClass?.Accept(this) is TypeObject t && t.Encapsulated is Class sc ? sc: Primitive.Object;
 
             StackFrame closure = CurrentStackFrame;
 
@@ -107,7 +107,8 @@ namespace Outlet.Interpreting {
 			// Captures the static scope of the class in which the constructor is declared
             StackFrame staticscope = CurrentStackFrame;
 			Operand UnderlyingConstructor(params Operand[] args) {
-                UserDefinedClass type = (staticscope.Get(c.Decl.Type as Variable) as TypeObject).Encapsulated as UserDefinedClass;
+                UserDefinedClass type = c.Decl.Type is Variable v && staticscope.Get(v) is TypeObject t
+                    && t.Encapsulated is UserDefinedClass udc ? udc : throw new System.Exception("Expected udc");
 
                 // Call the constructors hidden init function to initialize instance variables/methods
                 (Instance inst, IStackFrame<Operand> instancescope) = type.Initialize();
@@ -146,11 +147,10 @@ namespace Outlet.Interpreting {
 			Operand HiddenFunc(params Operand[] args) {
                 StackFrame stackFrame = new StackFrame(closure, f.LocalCount, f.Name);
                 CallStack.Push(stackFrame);
-				Operand returnval = null;
 				for(int i = 0; i < args.Length; i++) {
                     stackFrame.Assign(f.Args[i], args[i]);
 				}
-				returnval = f.Body.Accept(this);
+                Operand returnval = f.Body.Accept(this);
                 CallStack.Pop();
 				return returnval;
 			}

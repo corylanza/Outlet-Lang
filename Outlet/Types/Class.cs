@@ -9,10 +9,10 @@ namespace Outlet.Types {
 	public abstract class Class : Type {
 
 		public readonly string Name;
-		public readonly Class Parent;
+		public readonly Class? Parent;
         public const int This = 0;
 
-		public Class(string name, Class parent) {
+		public Class(string name, Class? parent) {
 			Name = name;
 			Parent = parent;
 		}
@@ -60,7 +60,7 @@ namespace Outlet.Types {
         public readonly CheckStackFrame InstanceMembers;
         public readonly CheckStackFrame StaticMembers;
 
-        public ProtoClass(string name, Class parent, CheckStackFrame statics, CheckStackFrame instances) : base(name, parent) {
+        public ProtoClass(string name, Class? parent, CheckStackFrame statics, CheckStackFrame instances) : base(name, parent) {
             InstanceMembers = instances;
             StaticMembers = statics;
 		}
@@ -70,8 +70,8 @@ namespace Outlet.Types {
             (ITyped type, int resolveLevel, int id) = StaticMembers.Resolve(variable);
             if (resolveLevel != 0)
             {
-                if(variable.Identifier == "") return Checker.Error("type " + this + " is not instantiable");
-                return Checker.Error(this + " does not contain static field: " + variable.Identifier);
+                if(variable.Identifier == "") return new Checker.Error("type " + this + " is not instantiable");
+                return new Checker.Error(this + " does not contain static field: " + variable.Identifier);
             }
             variable.Bind(id, resolveLevel);
             return type as Type;
@@ -80,9 +80,9 @@ namespace Outlet.Types {
 
         public Type GetInstanceMemberType(IBindable variable)
         {
-            if (variable.Identifier == "this") return Checker.Error("may not access property \"this\"");
+            if (variable.Identifier == "this") return new Checker.Error("may not access property \"this\"");
             (ITyped type, int resolveLevel, int id) = InstanceMembers.Resolve(variable);
-            if (resolveLevel != 0) return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
+            if (resolveLevel != 0) return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
             variable.Bind(id, resolveLevel);
             return type as Type;
             //Class cur = this;

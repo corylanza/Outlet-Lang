@@ -9,7 +9,7 @@ namespace Outlet.AST {
 
 		public readonly string Op;
         public readonly Expression Left, Right;
-		public BinOp Oper;
+		public BinOp? Oper;
 		public Overload<BinOp> Overloads;
 
         public Binary(string op, Expression left, Expression right, Overload<BinOp> overloads) {
