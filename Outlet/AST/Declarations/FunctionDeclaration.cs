@@ -10,9 +10,7 @@ namespace Outlet.AST {
 
         public int LocalCount = -1;
 
-		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) {
-			Name = decl.Identifier;
-			Decl = decl;
+		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) : base(decl) {
 			Args = argnames;
 			Body = body;
 		}

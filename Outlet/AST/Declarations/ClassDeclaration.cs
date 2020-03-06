@@ -10,17 +10,15 @@ namespace Outlet.AST {
 		public readonly Variable? SuperClass;
 		public readonly List<Declaration> InstanceDecls;
 		public readonly List<Declaration> StaticDecls;
-        public readonly List<(string id, Variable classConstraint)> GenericParameters;
+        public readonly List<(string id, Variable? classConstraint)> GenericParameters;
         public readonly List<ConstructorDeclaration> Constructors;
 
 		public ClassDeclaration
             (string name, Variable? superclass,
-            List<(string id, Variable classConstraint)> genericParams, 
+            List<(string id, Variable? classConstraint)> genericParams, 
             List<ConstructorDeclaration> constructors, 
-            List<Declaration> instance, List<Declaration> statics) 
+            List<Declaration> instance, List<Declaration> statics) : base(new Declarator(new Variable(name), name))
         {
-			Name = name;
-            Decl = new Declarator(new Variable(Name), Name);
 			SuperClass = superclass;
 			InstanceDecls = instance;
 			StaticDecls = statics;

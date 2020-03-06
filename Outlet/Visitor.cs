@@ -20,7 +20,8 @@ namespace Outlet {
 		T Visit(Call c);
 		T Visit<E>(Literal<E> c);
 		T Visit(Declarator d);
-		T Visit(Deref d);
+		T Visit(TupleAccess d);
+		T Visit(MemberAccess d);
 		T Visit(Is i);
 		T Visit(Lambda l);
 		T Visit(ListLiteral l);

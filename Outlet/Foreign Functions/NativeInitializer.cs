@@ -13,31 +13,25 @@ namespace Outlet.FFI
     public static class NativeInitializer
     {
 
-        public static Operand ToOutletOperand(object o)
+        public static Operand ToOutletOperand(object? o) => o switch
         {
-            if (!(o is string) && o is IEnumerable collection)
-            {
-                return new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element)).ToArray());
-            }
-            Types.Type? type = o is null ? null : Conversions.OutletType.GetValueOrDefault(o.GetType());
-            return type switch
-            {
-                Primitive p when p == Primitive.String => Constant.String((string)o),
-                Primitive p when p == Primitive.Int => Constant.Int((int)o),
-                Primitive p when p == Primitive.Bool => Constant.Bool((bool)o),
-                Primitive p when p == Primitive.Float => Constant.Float((float)o),
-                NativeClass nc => ToOutletInstance(nc, o),
-                null => Constant.Null(),
-                _ => throw new Exception("Cannot map type")
-            };
-        }
+            string s => Constant.String(s),
+            float f => Constant.Float(f),
+            bool b => Constant.Bool(b),
+            int i => Constant.Int(i),
+            null => Constant.Null(),
+            IEnumerable collection =>
+                new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element)).ToArray()),
+            _ when Conversions.OutletType.ContainsKey(o.GetType()) => ToOutletInstance((Conversions.OutletType[o.GetType()] as NativeClass)!, o),
+            _ => throw new Exception("Cannot map type")
+        };
 
         public static Operand ToOutletInstance(NativeClass nc, object o)
         {
             static Operand ToMember(string id, MemberInfo member, object o) => member switch
             {
                 MethodInfo method => Convert(id, method),
-                FieldInfo field => ToOutletOperand(o.GetType().GetField(field.Name).GetValue(o)),
+                FieldInfo field => ToOutletOperand(o.GetType()!.GetField(field.Name)!.GetValue(o)),
                 _ => throw new NotSupportedException()
             };
 
@@ -49,7 +43,7 @@ namespace Outlet.FFI
 
             void Set(IBindable id, Operand val)
             {
-                if (nc.InstanceMembers[id.LocalId].member is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(o, ToCSharpOperand(val));
+                if (nc.InstanceMembers[id.LocalId].member is FieldInfo field) field.DeclaringType!.GetField(field.Name)!.SetValue(o, ToCSharpOperand(val));
             }
 
             IEnumerable<(string id, Operand val)> List()
@@ -68,7 +62,7 @@ namespace Outlet.FFI
             static Operand ToMember(string id, MemberInfo member) => member switch
             {
                 MethodInfo method => Convert(id, method),
-                FieldInfo field => ToOutletOperand(field.DeclaringType.GetField(field.Name).GetValue(null)),
+                FieldInfo field => ToOutletOperand(field.DeclaringType!.GetField(field.Name)!.GetValue(null)),
                 ConstructorInfo constructor => Convert(constructor),
                 _ => throw new NotSupportedException()
             };
@@ -81,7 +75,7 @@ namespace Outlet.FFI
 
             void Set(IBindable id, Operand val)
             {
-                if (staticMembers[id.LocalId].member is FieldInfo field) field.DeclaringType.GetField(field.Name).SetValue(null, ToCSharpOperand(val));
+                if (staticMembers[id.LocalId].member is FieldInfo field) field.DeclaringType!.GetField(field.Name)!.SetValue(null, ToCSharpOperand(val));
             }
             IEnumerable<(string id, Operand val)> List()
             {
@@ -107,7 +101,7 @@ namespace Outlet.FFI
 
         public static Types.Type Convert(System.Type input)
         {
-            if (input.IsArray) return new ArrayType(Convert(input.GetElementType()));
+            if (input.IsArray) return new ArrayType(Convert(input.GetElementType() ?? typeof(object)));
             if (input.IsGenericType && input.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return new ArrayType(Convert(input.GetGenericArguments()[0]));
             if (Conversions.OutletType.ContainsKey(input))
                 return Conversions.OutletType[input];
@@ -116,7 +110,7 @@ namespace Outlet.FFI
 
         public static FunctionType ToOutletMethodType(MethodInfo method) =>
             new FunctionType(method.GetParameters()
-                .Select(param => (Convert(param.ParameterType) as ITyped, param.Name))
+                .Select(param => ((Convert(param.ParameterType) as ITyped)!, param.Name!))
                 .ToArray(), Convert(method.ReturnType));
 
         public static NativeFunction Convert(string name, MethodInfo method) =>
@@ -124,8 +118,8 @@ namespace Outlet.FFI
 
         public static FunctionType ToOutletConstructorType(ConstructorInfo constructor) =>
             new FunctionType(constructor.GetParameters()
-                .Select(param => (Convert(param.ParameterType) as ITyped, param.Name))
-                .ToArray(), Convert(constructor.DeclaringType));
+                .Select(param => ((Convert(param.ParameterType) as ITyped)!, param.Name!))
+                .ToArray(), Convert(constructor.DeclaringType!));
 
         public static NativeConstructor Convert(ConstructorInfo constructor) =>
             new NativeConstructor("", ToOutletConstructorType(constructor), constructor);
@@ -157,8 +151,8 @@ namespace Outlet.FFI
             var classes = GetForeignClasses();
             foreach (var type in classes)
             {
-                ForeignClass fc = (ForeignClass)type.GetCustomAttribute(typeof(ForeignClass));
-
+                ForeignClass fc = type.GetCustomAttribute(typeof(ForeignClass))
+                        is ForeignClass rc ? rc : throw new Exception("unexpected error");
                 string className = !string.IsNullOrEmpty(fc.Name) ? fc.Name : type.Name;
 
                 var fields = GetFields(type);
@@ -179,7 +173,8 @@ namespace Outlet.FFI
 
                 foreach (FieldInfo field in fields)
                 {
-                    ForeignField ff = ((ForeignField)field.GetCustomAttribute(typeof(ForeignField)));
+                    ForeignField ff = field.GetCustomAttribute(typeof(ForeignField))
+                        is ForeignField rf ? rf : throw new Exception("unexpected error");
                     string ffName = ff.Name ?? field.Name;
                     if (field.IsStatic)
                     {
@@ -195,7 +190,8 @@ namespace Outlet.FFI
 
                 foreach (MethodInfo method in methods)
                 {
-                    ForeignFunction fm = ((ForeignFunction)method.GetCustomAttribute(typeof(ForeignFunction)));
+                    ForeignFunction fm = method.GetCustomAttribute(typeof(ForeignFunction))
+                        is ForeignFunction rm ? rm : throw new Exception("unexpected error");
                     string fmName = fm.Name ?? method.Name;
                     if (method.IsStatic)
                     {

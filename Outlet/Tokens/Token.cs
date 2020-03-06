@@ -64,8 +64,8 @@ namespace Outlet.Tokens {
 			{"isnt", Operator.Isnt },
 			{"?", Operator.Question },
 			{".", Operator.Dot },
-			{"..", Operator.ExcRange},
-			{"...", Operator.IncRange},
+			//{"..", Operator.ExcRange},
+			//{"...", Operator.IncRange},
 			// Delimeters
 			{"(", Delimeter.LeftParen },
 			{")", Delimeter.RightParen },

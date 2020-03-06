@@ -13,7 +13,7 @@ namespace Outlet.AST {
 
         public void MakeConstructorCall()
         {
-            Caller = new Deref(Caller, new Variable(""));
+            Caller = new MemberAccess(Caller, new Variable(""));
         }
 
 		public override T Accept<T>(IVisitor<T> visitor) {

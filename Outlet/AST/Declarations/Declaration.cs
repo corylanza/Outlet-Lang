@@ -7,8 +7,13 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
     public abstract class Declaration : IASTNode {
 
-		public string Name;
-        public Declarator Decl { get; protected set; }
+		public string Name => Decl.Identifier;
+        public Declarator Decl { get; private set; }
+
+        protected Declaration(Declarator decl)
+        {
+            Decl = decl;
+        }
 
 		public abstract T Accept<T>(IVisitor<T> visitor);
 

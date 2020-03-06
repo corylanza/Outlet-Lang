@@ -213,8 +213,8 @@ namespace Outlet.Interpreting {
 			if(a.Left is Variable v) {
                 CurrentStackFrame.Assign(v, val);
 				return val;
-			} else if(a.Left is Deref d && d.Left.Accept(this) is IDereferenceable dereferenced) {
-                dereferenced.SetMember(d.Referenced, val);
+			} else if(a.Left is MemberAccess m && m.Left.Accept(this) is IDereferenceable dereferenced) {
+                dereferenced.SetMember(m.Member, val);
                 return val;
 			}
 			throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
@@ -228,7 +228,7 @@ namespace Outlet.Interpreting {
             if (caller is ICallable f)
             {
                 // TODO don't call left.accept
-                if(c.Caller is Deref d && d.Left.Accept(this) is Instance i)
+                if(c.Caller is MemberAccess m && m.Left.Accept(this) is Instance i)
                 {
                     return f.Call(i, args);
                 } else
@@ -239,11 +239,17 @@ namespace Outlet.Interpreting {
             else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
 		}
 
-		public Operand Visit(Deref d) {
-			Operand left = d.Left.Accept(this);
-			if(left is Array a && d.ArrayLength) return Constant.Int(a.Values().Length);
-            if (left is OTuple t && int.TryParse(d.Identifier, out int idx)) return t.Values()[idx];
-            if (left is IDereferenceable dereferenceable) return dereferenceable.GetMember(d.Referenced);
+        public Operand Visit(TupleAccess t)
+        {
+            Operand left = t.Left.Accept(this);
+            if (left is OTuple tup) return tup.Values()[t.Member];
+            throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
+        }
+
+		public Operand Visit(MemberAccess m) {
+			Operand left = m.Left.Accept(this);
+			if(left is Array a && m.ArrayLength) return Constant.Int(a.Values().Length);
+            if (left is IDereferenceable dereferenceable) return dereferenceable.GetMember(m.Member);
 			if(left is Constant<object> n && n.Value is null) throw new RuntimeException("null pointer exception");
 			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
 		}

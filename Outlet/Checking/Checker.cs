@@ -230,13 +230,12 @@ namespace Outlet.Checking
             ITyped r = a.Right.Accept(this);
             if (r is TypeObject castedTo) return castedTo.Encapsulated;
             return new Error("the right side of an is expression must be a type, found: " + r.ToString());
-
         }
 
         public ITyped Visit(Assign a) => a.Left switch
         {
-            Deref d when d.ArrayLength => new Error("cannot assign to an array length"),
-            Expression left when left is Variable || left is Deref =>
+            MemberAccess d when d.ArrayLength => new Error("cannot assign to an array length"),
+            Expression left when left is Variable || left is MemberAccess =>
                 (a.Left.Accept(this), a.Right.Accept(this)) switch
                 {
                     (Error e, _) => e,
@@ -250,11 +249,12 @@ namespace Outlet.Checking
         {
             (Error e, _) => e,
             (_, Error e) => e,
-            (ITyped left, ITyped right) => b.Overloads.FindBestMatch(left, right) switch
-            {
-                null => new Error("binary operator not defined for " + left.ToString() + " " + b.Op + " " + right.ToString()),
-                BinOp op => (b.Oper = op).GetResultType()
-            }
+            (ITyped left, ITyped right) => 
+                b.Overloads.FindBestMatch(left, right) switch
+                {
+                    null => new Error("binary operator not defined for " + left.ToString() + " " + b.Op + " " + right.ToString()),
+                    BinOp op => (b.Oper = op).GetResultType()
+                }
         };
 
         public ITyped Visit(Call c)
@@ -281,43 +281,43 @@ namespace Outlet.Checking
             {
                 (FunctionType? bestMatch, int id) = mgt.FindBestMatch(argtypes);
                 if(c.Caller is Variable v) v.Bind(id, v.LocalId);
-                if(c.Caller is Deref d && d.Referenced is Variable dv) dv.Bind(id, dv.LocalId);
+                if(c.Caller is MemberAccess ma) ma.Member.Bind(id, ma.Member.LocalId);
                 if (bestMatch is null) return new Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
                 return bestMatch.ReturnType;
             }
             return new Error("type " + calltype + " is not callable");
         }
 
-        public ITyped Visit(Declarator d)
+        public ITyped Visit(Declarator d) => d.Type.Accept(this) switch
         {
-            ITyped decl = d.Type.Accept(this);
-            if (decl is TypeObject meta) return meta.Encapsulated;
-            if (decl == Primitive.MetaType) return new Error("Declared type must be a check time constant");
-            return new Error("declaration requires valid type, found: " + decl.ToString());
-        }
+            TypeObject meta => meta.Encapsulated,
+            Primitive t when t == Primitive.MetaType => new Error("Declared type must be a check time constant"),
+            ITyped invalid => new Error($"Declaration requires valid type, found: {invalid}")
+        };
+
+        public ITyped Visit(TupleAccess t) => t.Left.Accept(this) switch
+        {
+            Error e => e,
+            TupleType tt when tt.Types.Length > t.Member => tt.Types[t.Member],
+            TupleType tt => new Error("cannot access element " + t.Member + " of tuple type " +
+                        tt.ToString() + " which has only " + tt.Types.Length + " elements"),
+            ITyped type => new Error($"Cannot reference member {t.Member} of non tuple type {type}")
+        };
 
 
-        public ITyped Visit(Deref d)
+        public ITyped Visit(MemberAccess d)
         {
             ITyped inst = d.Left.Accept(this);
             if (inst is Error) return inst;
-            if (inst is ArrayType && d.Identifier == "length")
+            if (inst is ArrayType && d.Member.Identifier == "length")
             {
                 d.ArrayLength = true;
                 return Primitive.Int;
             }
-            if (inst is TupleType tt && int.TryParse(d.Identifier, out int result))
-            {
-                if (result >= tt.Types.Length)
-                    return new Error("cannot access element " + result + " of tuple type " +
-                        tt.ToString() + " which has only " + tt.Types.Length + " elements");
-                return tt.Types[result];
-            }
-            // TODO better error handling referenced can be null
             if (inst is ProtoClass instances) 
-                return instances.GetInstanceMemberType(d.Referenced);
+                return instances.GetInstanceMemberType(d.Member);
             if (inst is TypeObject t && t.Encapsulated is ProtoClass statics) 
-                return statics.GetStaticMemberType(d.Referenced);
+                return statics.GetStaticMemberType(d.Member);
 
             return new Error("cannot dereference type: " + inst.ToString());
         }
@@ -330,16 +330,11 @@ namespace Outlet.Checking
             return new Error("the right side of an is expression must be a type, found: " + r.ToString());
         }
 
-        public ITyped Visit(Lambda l)
+        public ITyped Visit(Lambda l) => (l.Left.Accept(this), l.Right.Accept(this)) switch
         {
-            ITyped args = l.Left.Accept(this);
-            ITyped res = l.Right.Accept(this);
-            if (args is TypeObject a && res is TypeObject r)
-            {
-                return new Error("NOT IMPLEMENTED");//new MetaType(new FunctionType());
-            }
-            return new Error("Lambdas currently only work for types");
-        }
+            (TypeObject args, TypeObject result) => new Error("NOT IMPLEMENTED"),  //new TypeObject(new FunctionType())
+            _ => new Error("Lambdas currently old work for types")
+        };
 
         public ITyped Visit(ListLiteral l)
         {
@@ -348,25 +343,21 @@ namespace Outlet.Checking
 
         public ITyped Visit<E>(Literal<E> c) => c.Type;
 
-        public ITyped Visit(ShortCircuit s)
+        public ITyped Visit(ShortCircuit s) => (s.Left.Accept(this), s.Right.Accept(this)) switch
         {
-            ITyped l = s.Left.Accept(this);
-            ITyped r = s.Right.Accept(this);
-            Cast(l, Primitive.Bool);
-            Cast(r, Primitive.Bool);
-            return Primitive.Bool;
-        }
+            (Error e, _) => e,
+            (_, Error e) => e,
+            (ITyped left, ITyped right) => Cast(right, Cast(left, Primitive.Bool))
+        };
 
-        public ITyped Visit(Ternary t)
+        public ITyped Visit(Ternary t) => (t.Condition.Accept(this), t.IfTrue.Accept(this), t.IfFalse.Accept(this)) switch
         {
-            ITyped cond = t.Condition.Accept(this);
-            ITyped iftrue = t.IfTrue.Accept(this);
-            ITyped iffalse = t.IfFalse.Accept(this);
-            if (iftrue is Error) return iftrue;
-            if (iffalse is Error) return iffalse;
-            Cast(cond, Primitive.Bool, "Ternary condition requires a boolean, found a {0}");
-            return Type.CommonAncestor(iftrue, iffalse);
-        }
+            (Primitive condition, _, _) when condition != Primitive.Bool => 
+                new Error($"Ternary condition requires a boolean, found a {condition}"),
+            (_, Error e, _) => e,
+            (_, _, Error e) => e,
+            (_, ITyped iftrue, ITyped iffalse) => Type.CommonAncestor(iftrue, iffalse)
+        };
 
         public ITyped Visit(TupleLiteral t)
         {

@@ -58,7 +58,7 @@ namespace Outlet.Parsing {
 				return new ConstructorDeclaration(decl, argnames, body);
 			}
 			ClassDeclaration ClassDef() {
-                List<(string id, Variable constraint)> genericParameters = new List<(string, Variable)>();
+                List<(string id, Variable? constraint)> genericParameters = new List<(string, Variable?)>();
                 List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				List<ConstructorDeclaration> constructors = new List<ConstructorDeclaration>();

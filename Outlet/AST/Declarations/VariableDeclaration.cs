@@ -3,9 +3,7 @@
 
         public readonly Expression? Initializer;
 
-		public VariableDeclaration(Declarator decl, Expression? initializer) {
-			Name = decl.Identifier;
-			Decl = decl;
+		public VariableDeclaration(Declarator decl, Expression? initializer) : base(decl) {
 			Initializer = initializer;
 		}
 

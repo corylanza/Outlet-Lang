@@ -18,7 +18,7 @@ namespace Outlet.Tokens {
 											  LT, LTE, GT, GTE, Is, As, Isnt, BoolEquals, NotEqual, BitAnd,
 											  BitXor, BitOr, LogicalAnd, LogicalOr, Question, Ternary,
 											  Lambda, Equal, PlusEqual, MinusEqual, DivEqual, MultEqual,
-											  IncRange, ExcRange, ModEqual;
+											  /*IncRange, ExcRange,*/ ModEqual;
 
 		static Operator() {
 
@@ -109,7 +109,10 @@ namespace Outlet.Tokens {
 		public Expression Construct(Expression r, Expression l) {
 			if (this == Is || this == Isnt) return new Is(l, r, this == Is);
 			if (this == As) return new As(l, r);
-			if (this == Dot) return new Deref(l, r);
+            if (this == Dot && r is Literal<int> idx) return new TupleAccess(l, idx.Value);
+			if (this == Dot && r is Variable member) return new MemberAccess(l, member);
+            // TODO better error handling here
+            if (this == Dot) throw new System.Exception("Only variable or tuple access allowed here");
 			if (this == Lambda) return new Lambda(l, r);
 			if (this == Equal) return new Assign(l, r);
             if (this == PlusEqual) return new Assign(l, new Binary(Plus.Name, l, r, Plus.Overloads));

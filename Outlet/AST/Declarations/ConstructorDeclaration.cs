@@ -12,7 +12,6 @@ namespace Outlet.AST {
 		public ConstructorDeclaration(Decl decl, List<Decl> argnames, Statement body) 
             : base(decl, argnames, body) 
         {
-
 		}
 
 		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
