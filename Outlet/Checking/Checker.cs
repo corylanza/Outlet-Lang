@@ -299,28 +299,18 @@ namespace Outlet.Checking
         {
             Error e => e,
             TupleType tt when tt.Types.Length > t.Member => tt.Types[t.Member],
-            TupleType tt => new Error("cannot access element " + t.Member + " of tuple type " +
-                        tt.ToString() + " which has only " + tt.Types.Length + " elements"),
+            TupleType tt => new Error($"cannot access element {t.Member} of tuple type {tt} which has {tt.Types.Length} elements"),
             ITyped type => new Error($"Cannot reference member {t.Member} of non tuple type {type}")
         };
 
-
-        public ITyped Visit(MemberAccess d)
+        public ITyped Visit(MemberAccess d) => d.Left.Accept(this) switch
         {
-            ITyped inst = d.Left.Accept(this);
-            if (inst is Error) return inst;
-            if (inst is ArrayType && d.Member.Identifier == "length")
-            {
-                d.ArrayLength = true;
-                return Primitive.Int;
-            }
-            if (inst is ProtoClass instances) 
-                return instances.GetInstanceMemberType(d.Member);
-            if (inst is TypeObject t && t.Encapsulated is ProtoClass statics) 
-                return statics.GetStaticMemberType(d.Member);
-
-            return new Error("cannot dereference type: " + inst.ToString());
-        }
+            Error e => e,
+            ArrayType _ when d.ArrayLengthAccess() => Primitive.Int,
+            ProtoClass instances => instances.GetInstanceMemberType(d.Member),
+            TypeObject t when t.Encapsulated is ProtoClass statics => statics.GetStaticMemberType(d.Member),
+            ITyped other => new Error($"cannot dereference type: {other}")
+        };
 
         public ITyped Visit(Is i)
         {
