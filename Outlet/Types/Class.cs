@@ -67,24 +67,24 @@ namespace Outlet.Types {
 
         public Type GetStaticMemberType(IBindable variable)
         {
-            (Type type, int resolveLevel, int id) = StaticMembers.Resolve(variable);
-            if (resolveLevel != 0)
+            (Type? type, int resolveLevel, int id) = StaticMembers.Resolve(variable);
+            if (type is null || resolveLevel != 0)
             {
                 if(variable.Identifier == "") return new Checker.Error("type " + this + " is not instantiable");
                 return new Checker.Error(this + " does not contain static field: " + variable.Identifier);
             }
             variable.Bind(id, resolveLevel);
-            return type as Type;
+            return type;
         }
         public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.List().Select(member => (member.Id, member.Value as Type));
 
         public Type GetInstanceMemberType(IBindable variable)
         {
             if (variable.Identifier == "this") return new Checker.Error("may not access property \"this\"");
-            (Type type, int resolveLevel, int id) = InstanceMembers.Resolve(variable);
-            if (resolveLevel != 0) return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
+            (Type? type, int resolveLevel, int id) = InstanceMembers.Resolve(variable);
+            if (type is null || resolveLevel != 0) return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
             variable.Bind(id, resolveLevel);
-            return type as Type;
+            return type;
             //Class cur = this;
             //while (cur != null)
             //{

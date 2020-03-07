@@ -6,22 +6,17 @@ using Type = Outlet.Types.Type;
 
 namespace Outlet.Operands
 {
-    public class TypeObject : Operand<MetaType>, IDereferenceable
+    public class TypeObject : Operand<MetaType>
     {
         public readonly Type Encapsulated;
+
+        public override MetaType RuntimeType { get; set; }
 
         public TypeObject(Type t)
         {
             Encapsulated = t;
             RuntimeType = new MetaType(t);
         }
-
-        #region Run time
-        public Operand GetMember(IBindable field) => (Encapsulated as IDereferenceable).GetMember(field);
-        public void SetMember(IBindable field, Operand value) => (Encapsulated as IDereferenceable).SetMember(field, value);
-        public IEnumerable<(string id, Operand val)> GetMembers() => (Encapsulated as IDereferenceable).GetMembers();
-
-        #endregion
 
         public override Type GetOutletType() => Primitive.MetaType;
         public bool Is(Type t) => t == Primitive.MetaType || t.Equals(this);

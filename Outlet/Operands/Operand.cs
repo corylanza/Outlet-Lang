@@ -15,11 +15,9 @@ namespace Outlet.Operands {
 
     public abstract class Operand<T> : Operand where T : Type
     {
-        // TODO public abstract T RuntimeType { get; }
-        public T RuntimeType;
+        public abstract T RuntimeType { get; set; }
 
         public override Type GetOutletType() => RuntimeType;
-
     }
 
 	public delegate Operand Getter(IBindable s);

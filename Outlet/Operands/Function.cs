@@ -5,6 +5,8 @@ namespace Outlet.Operands {
     public abstract class Function : Operand<FunctionType>, ICallable, IOverloadable
     {
         public readonly string Name;
+        public override FunctionType RuntimeType { get; set; }
+
         public Function(string name, FunctionType type) => (Name, RuntimeType) = (name, type);
 
         public abstract Operand Call(Operand? caller, params Operand[] args);

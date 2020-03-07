@@ -26,6 +26,8 @@ namespace Outlet.Operands
     {
         public E Value;
 
+        public override Primitive RuntimeType { get; set; }
+
         public Constant(Primitive type, E value)
         {
             RuntimeType = type;

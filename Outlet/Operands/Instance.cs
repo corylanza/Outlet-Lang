@@ -5,7 +5,9 @@ using System.Linq;
 namespace Outlet.Operands {
 	public abstract class Instance : Operand<Class>, IDereferenceable
     {
-		public Instance(Class type)
+        public override Class RuntimeType { get; set; }
+
+        public Instance(Class type)
         {
 			RuntimeType = type;
 		}

@@ -4,8 +4,11 @@ using Outlet.Types;
 namespace Outlet.Operands {
 	public class OTuple : Operand<TupleType> {
 
-        private Operand[] Vals; 
-		public OTuple(params Operand[] vals) {
+        private readonly Operand[] Vals;
+
+        public override TupleType RuntimeType { get; set; }//=> throw new System.NotImplementedException();
+
+        public OTuple(params Operand[] vals) {
 			Vals = vals;
 			RuntimeType = new TupleType(vals.Select(val => val.GetOutletType()).ToArray());
 		}

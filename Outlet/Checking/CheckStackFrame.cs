@@ -63,7 +63,7 @@ namespace Outlet.Checking
             }
         }
 
-        public (Type type, int level, int localId) Resolve(IBindable variable)
+        public (Type? type, int level, int localId) Resolve(IBindable variable)
         {
             // Local variables
             foreach(var scope in Scopes)
@@ -77,7 +77,7 @@ namespace Outlet.Checking
             // Global variables, closures and static or instance members
             if (Parent != null)
             {
-                (Type type, int level, int id) = Parent.Resolve(variable);
+                (Type? type, int level, int id) = Parent.Resolve(variable);
                 // if not found in parent scope pass along not found (-1), otherwise add 1 level
                 return (type, level == -1 ? -1 : level + 1, id);
             }

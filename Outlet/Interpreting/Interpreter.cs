@@ -249,7 +249,8 @@ namespace Outlet.Interpreting {
 		public Operand Visit(MemberAccess m) {
 			Operand left = m.Left.Accept(this);
 			if(left is Array a && m.ArrayLength) return Constant.Int(a.Values().Length);
-            if (left is IDereferenceable dereferenceable) return dereferenceable.GetMember(m.Member);
+            if (left is TypeObject to && to.Encapsulated is IDereferenceable statics) return statics.GetMember(m.Member); 
+            if (left is IDereferenceable instances) return instances.GetMember(m.Member);
 			if(left is Constant<object> n && n.Value is null) throw new RuntimeException("null pointer exception");
 			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
 		}
@@ -363,9 +364,9 @@ namespace Outlet.Interpreting {
         public Operand Visit(UsingStatement u)
         {
             Operand toUse = u.Used.Accept(this);
-            if (toUse is TypeObject rc) 
+            if (toUse is TypeObject rc && rc.Encapsulated is IDereferenceable d) 
             {
-                foreach(var (id, val) in rc.GetMembers())
+                foreach(var (id, val) in d.GetMembers())
                 {
                     // TODO fix CurScope.Add(id, val.GetOutletType(), val);
                 }

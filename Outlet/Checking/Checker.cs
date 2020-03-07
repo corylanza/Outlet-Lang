@@ -168,7 +168,7 @@ namespace Outlet.Checking
             }
             else
             {
-                (Type type, _, _) = CurrentStackFrame.Resolve(f.Decl);
+                (Type? type, _, _) = CurrentStackFrame.Resolve(f.Decl);
                 FunctionType ft = (FunctionType)type;
                 // enter the function scope and define the args;
                 EnterStackFrame();
@@ -369,8 +369,8 @@ namespace Outlet.Checking
 
         public Type Visit(Variable v)
         {
-            (Type type, int level, int id) = CurrentStackFrame.Resolve(v);
-            if (level == -1) return new Error("variable " + v.Identifier + " could not be resolved");
+            (Type? type, int level, int id) = CurrentStackFrame.Resolve(v);
+            if (type is null || level == -1) return new Error("variable " + v.Identifier + " could not be resolved");
             v.Bind(id, level);
             return type;
         }
