@@ -8,7 +8,7 @@ namespace Outlet.Operands {
         public abstract bool Equals(Operand b);
 		public abstract override string ToString();
 
-        public override bool Equals(object obj) => obj is Operand o && Equals(o);
+        public override bool Equals(object? obj) => obj is Operand o && Equals(o);
         public override int GetHashCode() => base.GetHashCode();
 
     }

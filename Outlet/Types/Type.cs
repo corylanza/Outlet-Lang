@@ -32,18 +32,24 @@ namespace Outlet.Types {
 
 		public virtual Operand Default() => Constant.Null();
 
-		private static ITyped ClosestAncestor(ITyped a, ITyped b) {
-            if (!(a is Class && b is Class)) return Primitive.Object;//throw new NotImplementedException("common ancestor only currently works for classes");
-			Class cur = a as Class;
-			while(cur != Primitive.Object) {
-				if(cur.Is(b) && b.Is(cur)) return cur;
-				cur = cur.Parent;
-			}
-			cur = b as Class;
-			while(cur != Primitive.Object) {
-				if(cur.Is(a) && a.Is(cur)) return cur;
-				cur = cur.Parent;
-			}
+		private static ITyped ClosestAncestor(ITyped ca, ITyped cb) {
+            if(ca is Class a && cb is Class b)
+            {
+                Class cur = a;
+                while (cur != Primitive.Object)
+                {
+                    if (cur.Is(b) && b.Is(cur)) return cur;
+                    if (cur.Parent is null) break;
+                    cur = cur.Parent;
+                }
+                cur = b;
+                while (cur != Primitive.Object)
+                {
+                    if (cur.Is(a) && a.Is(cur)) return cur;
+                    if (cur.Parent is null) break;
+                    cur = cur.Parent;
+                }
+            }
 			return Primitive.Object;
 		}
 

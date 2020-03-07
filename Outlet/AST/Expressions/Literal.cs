@@ -6,9 +6,9 @@ namespace Outlet.AST {
     public abstract class Literal : Expression
     {
 
-    } 
+    }
 
-	public class Literal<E> : Literal {
+    public class Literal<E> : Literal {
 
 		public Primitive Type;
 		public E Value;
