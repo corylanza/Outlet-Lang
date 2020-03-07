@@ -4,15 +4,15 @@ using System.Linq;
 namespace Outlet.Types {
 	public class FunctionType : Type {
 
-		public readonly (ITyped type, string id)[] Args;
+		public readonly (Type type, string id)[] Args;
 		public readonly Type ReturnType;
 
-		public FunctionType((ITyped, string)[] args, Type returntype) {
+		public FunctionType((Type, string)[] args, Type returntype) {
 			Args = args;
 			ReturnType = returntype;
 		}
 
-		public override bool Is(ITyped t, out int level) {
+		public override bool Is(Type t, out int level) {
             level = 0;
             if (t is FunctionType ft && Args.Length == ft.Args.Length)
             {
@@ -35,7 +35,7 @@ namespace Outlet.Types {
             return false;
         }
 
-        public bool Valid(out int level, params ITyped[] args)
+        public bool Valid(out int level, params Type[] args)
         {
             level = -1;
             int distance = 0;

@@ -14,7 +14,7 @@ namespace Outlet {
 		public void Add(T t) => Overloads.Add(t);
 
 		// finds closest match
-		public T FindBestMatch(params ITyped[] inputs) {
+		public T FindBestMatch(params Type[] inputs) {
             (T best, int bestLevel) = (default, -1);
             foreach(T overload in Overloads)
             {
@@ -31,6 +31,6 @@ namespace Outlet {
 	}
 
 	public interface IOverloadable {
-		bool Valid(out int level, params ITyped[] inputs);
+		bool Valid(out int level, params Type[] inputs);
 	}
 }

@@ -6,13 +6,14 @@ using Type = Outlet.Types.Type;
 
 namespace Outlet.Operands
 {
-    public class TypeObject : Operand, ITyped, IDereferenceable
+    public class TypeObject : Operand<MetaType>, IDereferenceable
     {
         public readonly Type Encapsulated;
 
         public TypeObject(Type t)
         {
             Encapsulated = t;
+            RuntimeType = new MetaType(t);
         }
 
         #region Run time
@@ -23,8 +24,8 @@ namespace Outlet.Operands
         #endregion
 
         public override Type GetOutletType() => Primitive.MetaType;
-        public bool Is(ITyped t) => t == Primitive.MetaType || t.Equals(this);
-        public bool Is(ITyped t, out int level)
+        public bool Is(Type t) => t == Primitive.MetaType || t.Equals(this);
+        public bool Is(Type t, out int level)
         {
             level = t == Primitive.MetaType ? 1 : t.Equals(this) ? 1 : -1;
             return level > -1;

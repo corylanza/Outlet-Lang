@@ -13,7 +13,7 @@ namespace Outlet.Types
             Methods = functions.ToList();
         }
 
-        public (FunctionType? type, int id) FindBestMatch(params ITyped[] inputs)
+        public (FunctionType? type, int id) FindBestMatch(params Type[] inputs)
         {
             (FunctionType? best, int bestLevel, int bestId) = (default, -1, -1);
             foreach ((FunctionType overload, int id) in Methods)
@@ -32,7 +32,7 @@ namespace Outlet.Types
 
         //public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-        public override bool Is(ITyped t, out int level)
+        public override bool Is(Type t, out int level)
         {
             level = -1;
             return false;

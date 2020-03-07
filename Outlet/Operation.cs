@@ -13,7 +13,7 @@ namespace Outlet
 
         public abstract Operand Perform(Operand input);
 
-        public abstract bool Valid(out int level, params ITyped[] inputs);
+        public abstract bool Valid(out int level, params Type[] inputs);
         public abstract Type GetResultType();
     }
 
@@ -29,7 +29,7 @@ namespace Outlet
         public override Operand Perform(Operand input) => 
             input is I arg ? Underlying(arg) : throw new OutletException("invalid operation for type SHOULD NOT PRINT");
 
-        public override bool Valid(out int level, params ITyped[] inputs)
+        public override bool Valid(out int level, params Type[] inputs)
         {
             if (inputs.Length != 1)
             {
@@ -50,7 +50,7 @@ namespace Outlet
         public BinOp(Type left, Type right, Type output) => (LeftInput, RightInput, Output) = (left, right, output);
 
         public abstract Operand Perform(Operand l, Operand r);
-        public abstract bool Valid(out int level, params ITyped[] inputs);
+        public abstract bool Valid(out int level, params Type[] inputs);
         public abstract Type GetResultType();
     }
 
@@ -69,7 +69,7 @@ namespace Outlet
             l is L lArg &&
             r is R rArg ? Underlying(lArg, rArg) : throw new OutletException("Cannot perform operation as types do not match compile time types. SHOULD NOT PRINT");
 
-        public override bool Valid(out int level, params ITyped[] inputs)
+        public override bool Valid(out int level, params Type[] inputs)
         {
             if (inputs.Length == 2 && inputs[0].Is(LeftInput, out int l) && inputs[1].Is(RightInput, out int r))
             {

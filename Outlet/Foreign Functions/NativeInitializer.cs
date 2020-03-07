@@ -110,7 +110,7 @@ namespace Outlet.FFI
 
         public static FunctionType ToOutletMethodType(MethodInfo method) =>
             new FunctionType(method.GetParameters()
-                .Select(param => ((Convert(param.ParameterType) as ITyped)!, param.Name!))
+                .Select(param => (Convert(param.ParameterType), param.Name!))
                 .ToArray(), Convert(method.ReturnType));
 
         public static NativeFunction Convert(string name, MethodInfo method) =>
@@ -118,7 +118,7 @@ namespace Outlet.FFI
 
         public static FunctionType ToOutletConstructorType(ConstructorInfo constructor) =>
             new FunctionType(constructor.GetParameters()
-                .Select(param => ((Convert(param.ParameterType) as ITyped)!, param.Name!))
+                .Select(param => (Convert(param.ParameterType), param.Name!))
                 .ToArray(), Convert(constructor.DeclaringType!));
 
         public static NativeConstructor Convert(ConstructorInfo constructor) =>
@@ -167,7 +167,7 @@ namespace Outlet.FFI
                 // Checktime
                 // Add Create and define ProtoClass first, allowing members to reference the type they are declared in
                 ProtoClass proto = new ProtoClass(className, Primitive.Object, staticTypes, instanceTypes);
-                TypeObject checkTimeType = new TypeObject(proto);
+                MetaType checkTimeType = new MetaType(proto);
                 Conversions.OutletType.Add(type, proto);
                 CheckStackFrame.Global.Assign(className.ToVariable(), checkTimeType);
 

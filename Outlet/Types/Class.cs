@@ -19,7 +19,7 @@ namespace Outlet.Types {
 
 		//public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override bool Is(ITyped t, out int level) {
+		public override bool Is(Type t, out int level) {
             //if (t is UnionType ut) return ut.Is(this, out level);
 			level = 0;
 			if(Equals(t)) return true;
@@ -67,7 +67,7 @@ namespace Outlet.Types {
 
         public Type GetStaticMemberType(IBindable variable)
         {
-            (ITyped type, int resolveLevel, int id) = StaticMembers.Resolve(variable);
+            (Type type, int resolveLevel, int id) = StaticMembers.Resolve(variable);
             if (resolveLevel != 0)
             {
                 if(variable.Identifier == "") return new Checker.Error("type " + this + " is not instantiable");
@@ -81,7 +81,7 @@ namespace Outlet.Types {
         public Type GetInstanceMemberType(IBindable variable)
         {
             if (variable.Identifier == "this") return new Checker.Error("may not access property \"this\"");
-            (ITyped type, int resolveLevel, int id) = InstanceMembers.Resolve(variable);
+            (Type type, int resolveLevel, int id) = InstanceMembers.Resolve(variable);
             if (resolveLevel != 0) return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
             variable.Bind(id, resolveLevel);
             return type as Type;
@@ -90,7 +90,7 @@ namespace Outlet.Types {
             //{
             //    if (cur is ProtoClass pc && pc.InstanceMembers.Has(variable.Identifier))
             //    {
-            //        (ITyped type, int resolveLevel, int id) = pc.InstanceMembers.Resolve(variable);
+            //        (Type type, int resolveLevel, int id) = pc.InstanceMembers.Resolve(variable);
             //        if(resolveLevel == 0) return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
             //        return type as Type;
             //    }

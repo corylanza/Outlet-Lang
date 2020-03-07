@@ -1,13 +1,13 @@
 ﻿namespace Outlet.Types {
 	public class TupleType : Type {
 
-		public readonly ITyped[] Types;
+		public readonly Type[] Types;
 
-		public TupleType(params ITyped[] types) {
+		public TupleType(params Type[] types) {
 			Types = types;
 		}
 
-		public override bool Is(ITyped t, out int level) {
+		public override bool Is(Type t, out int level) {
             level = 0;
             if (t is TupleType tt && tt.Types.Length == Types.Length)
             {

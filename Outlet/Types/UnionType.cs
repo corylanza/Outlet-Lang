@@ -24,7 +24,7 @@ namespace Outlet.Types
         //    return b is UnionType u && ((First.Equals(u.First) && Second.Equals(u.Second)) || (Second.Equals(u.First) && First.Equals(u.Second))); 
         //}
 
-        public override bool Is(ITyped t, out int level)
+        public override bool Is(Type t, out int level)
         {
             level = -1;
             return false;// First.Is(t, out level) || Second.Is(t, out level);

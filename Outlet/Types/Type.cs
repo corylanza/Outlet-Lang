@@ -3,19 +3,12 @@ using Outlet.Operands;
 
 namespace Outlet.Types {
 
-    public interface ITyped
-    {
-        bool Is(ITyped t);
+	public abstract class Type {
 
-        bool Is(ITyped t, out int level);
-    }
+        public bool Is(Type t) => NewIs(this, t); //Is(t, out int _);
+		public abstract bool Is(Type t, out int level);
 
-	public abstract class Type : ITyped {
-
-        public bool Is(ITyped t) => NewIs(this, t); //Is(t, out int _);
-		public abstract bool Is(ITyped t, out int level);
-
-        public static bool NewIs(ITyped from, ITyped to)
+        public static bool NewIs(Type from, Type to)
         {
             return (from, to) switch
             {
@@ -24,7 +17,7 @@ namespace Outlet.Types {
                 (TupleType ttFrom, TupleType ttTo) =>ttFrom.Types.SameLengthAndAll(ttTo.Types, (fromElementType, toElementType) => NewIs(fromElementType, toElementType)),
                 (FunctionType funcFrom, FunctionType funcTo) => true,
                 (Class classFrom, Class classTo) => (classFrom.Equals(classTo) || (classFrom.Parent != null && NewIs(classFrom.Parent, classTo))),
-                (TypeObject meta, Primitive type) => type == Primitive.MetaType,
+                (MetaType meta, Primitive type) => type == Primitive.MetaType,
                 (Type any, Primitive obj) => obj == Primitive.Object,
                 _ => throw new NotImplementedException()
             };
@@ -32,7 +25,7 @@ namespace Outlet.Types {
 
 		public virtual Operand Default() => Constant.Null();
 
-		private static ITyped ClosestAncestor(ITyped ca, ITyped cb) {
+		private static Type ClosestAncestor(Type ca, Type cb) {
             if(ca is Class a && cb is Class b)
             {
                 Class cur = a;
@@ -53,11 +46,11 @@ namespace Outlet.Types {
 			return Primitive.Object;
 		}
 
-		public static Type CommonAncestor(params ITyped[] types) {
+		public static Type CommonAncestor(params Type[] types) {
 			if(types.Length == 0) return Primitive.Object;
-			ITyped ancestor = types[0];
-			foreach(ITyped cur in types) {
-                if(cur is TypeObject)
+			Type ancestor = types[0];
+			foreach(Type cur in types) {
+                if(cur is MetaType)
                 {
                     ancestor = Primitive.MetaType;
                     break;

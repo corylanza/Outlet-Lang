@@ -22,7 +22,7 @@ namespace Outlet.Types {
             throw new NotImplementedException();
         }
         
-		public override bool Is(ITyped t, out int level) {
+		public override bool Is(Type t, out int level) {
             if(t is ArrayType at && ElementType.Is(at.ElementType, out level))
             {
                 return true;

@@ -16,7 +16,7 @@ namespace Outlet.Operands {
             return Name + RuntimeType.ToString();
         }
 
-        public bool Valid(out int level, params ITyped[] inputs)
+        public bool Valid(out int level, params Type[] inputs)
         {
             return (RuntimeType as FunctionType).Valid(out level, inputs);
         }
