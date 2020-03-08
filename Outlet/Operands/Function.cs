@@ -35,6 +35,6 @@ namespace Outlet.Operands {
 			Hidden = act;
 		}
 
-		public override Operand Call(Operand caller, params Operand[] args) => Hidden(args);
+		public override Operand Call(Operand? caller, params Operand[] args) => Hidden(args);
 	}
 }

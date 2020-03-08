@@ -9,7 +9,7 @@ namespace Outlet.FFI
 {
     public class ForeignInterface : Attribute
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public bool IsStatic { get; set; }
     }
 

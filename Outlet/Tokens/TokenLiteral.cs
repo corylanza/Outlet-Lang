@@ -26,7 +26,7 @@ namespace Outlet.Tokens {
         }
 
         public E Value;
-		public override string ToString() => Value is null ? "null" : Value.ToString();
+		public override string ToString() => Value?.ToString() ?? "null";
 	}
 
 	public class IntLiteral : TokenLiteral<int> {

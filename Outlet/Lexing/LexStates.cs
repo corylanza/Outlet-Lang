@@ -114,7 +114,7 @@ namespace Outlet.Lexing {
 			dotdot.SetTransition(CharType.Dot, finalop);
         }
 
-        public delegate Token Tokenizer(string text);
+        public delegate Token? Tokenizer(string text);
 
         private static Token TokenizeID(string text) {
 			if(text == "true") return new BoolLiteral(text, LinePos, CharPos);
@@ -127,6 +127,6 @@ namespace Outlet.Lexing {
         private static Token TokenizeString(string text) => new StringLiteral(text, LinePos, CharPos);
         private static Token TokenizeInt(string text) => new IntLiteral(text, LinePos, CharPos);
         private static Token TokenizeFloat(string text) => new FloatLiteral(text, LinePos, CharPos);
-        private static Token NoToken(string text) => null;
+        private static Token? NoToken(string text) => null;
     }
 }

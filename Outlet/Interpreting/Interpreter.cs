@@ -37,11 +37,30 @@ namespace Outlet.Interpreting {
             return newStackFrame;
         }
 
-		#endregion
+        private static T Cast<T>(Operand o) where T : Operand
+        {
+            if (o is T to) return to;
+            throw new RuntimeException($"Casting failed SHOULD NOT PRINT");
+        }
 
-		#region Declarations
+        private class Empty : Operand
+        {
+            public static readonly Empty Value = new Empty();
 
-		public Operand Visit(ClassDeclaration c) {
+            private Empty() { }
+
+            public override bool Equals(Operand b) => ReferenceEquals(this, b);
+
+            public override Type GetOutletType() => Primitive.Void;
+
+            public override string ToString() => "";
+        }
+
+        #endregion
+
+        #region Declarations
+
+        public Operand Visit(ClassDeclaration c) {
 			// Find super class, if none it will always be object
 			Class? super = c.SuperClass?.Accept(this) is TypeObject t && t.Encapsulated is Class sc ? sc: Primitive.Object;
 
@@ -193,7 +212,7 @@ namespace Outlet.Interpreting {
             {
                 // Index is 0 because all array access is one-dimensional as of now
                 // multi-dimensional arrays can be accessed through chained accesses
-                int idx = (a.Index[0].Accept(this) as Constant<int>).Value;
+                int idx = Cast<Constant<int>>(a.Index[0].Accept(this)).Value;
                 int len = c.Values().Length;
                 if (idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
                 return c.Values()[idx];
@@ -220,7 +239,8 @@ namespace Outlet.Interpreting {
 			throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
 		}
 
-		public Operand Visit(Binary b) => b.Oper.Perform(b.Left.Accept(this), b.Right.Accept(this));
+		public Operand Visit(Binary b) => b.Oper is BinOp bo ? bo.Perform(b.Left.Accept(this), b.Right.Accept(this)) : 
+            throw new RuntimeException("Operator never resolved SHOULD NOT PRINT");
 
 		public Operand Visit(Call c) {
 			Operand caller = c.Caller.Accept(this);
@@ -271,9 +291,9 @@ namespace Outlet.Interpreting {
 		public Operand Visit(ListLiteral l) => new Operands.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());
 
 		public Operand Visit(ShortCircuit s) {
-			bool left= (s.Left.Accept(this) as Constant<bool>).Value;
+            bool left = Cast<Constant<bool>>(s.Left.Accept(this)).Value;
 			if(s.isand == left) {
-                bool right = (s.Right.Accept(this) as Constant<bool>).Value;
+                bool right = Cast<Constant<bool>>(s.Right.Accept(this)).Value;
                 return Constant.Bool(right);
 			} else return Constant.Bool(!s.isand);
 		}
@@ -288,12 +308,13 @@ namespace Outlet.Interpreting {
 		public Operand Visit(TupleLiteral t) {
 			IEnumerable<Operand> evaled = t.Args.Select(arg => arg.Accept(this));
 			if(evaled.All(elem => elem is TypeObject)) 
-                return new TypeObject(new TupleType(evaled.Select(elem => (elem as TypeObject).Encapsulated).ToArray()));
+                return new TypeObject(new TupleType(evaled.Select(elem => Cast<TypeObject>(elem).Encapsulated).ToArray()));
 			if(t.Args.Length == 1) return t.Args[0].Accept(this);
 			else return new OTuple(evaled.ToArray());
 		}
 
-		public Operand Visit(Unary u) => u.Oper.Perform(u.Expr.Accept(this));
+		public Operand Visit(Unary u) => u.Oper is UnOp uo ? uo.Perform(u.Expr.Accept(this)) : 
+            throw new RuntimeException("Unary operator was never resolved SHOULD NOT PRINT");
 
 		public Operand Visit(Variable v) {
             if (v.ResolveLevel == -1)
@@ -322,20 +343,20 @@ namespace Outlet.Interpreting {
 					return ret;
 				}
 			}
-			return null;
+			return Empty.Value;
 		}
 
 		public Operand Visit(ForLoop f) {
 			Operands.Array c = (Operands.Array) f.Collection.Accept(this);
 			foreach(Operand o in c.Values()) {
-				Type looptype = (f.LoopVar.Accept(this) as TypeObject).Encapsulated;
+				Type looptype = Cast<TypeObject>(f.LoopVar.Accept(this)).Encapsulated;
                 CurrentStackFrame.Assign(f.LoopVar, o);
 				Operand res = f.Body.Accept(this);
 				if(f.Body is Statement s && !(s is Expression) && res != null) {
 					return res;
 				}
 			}
-			return null;
+			return Empty.Value;
 		}
 
 		public Operand Visit(IfStatement i) {
@@ -344,9 +365,10 @@ namespace Outlet.Interpreting {
 				if(i.Iftrue is Statement s && !(s is Expression)) return ret;
 			} else {
 				var ret = i.Iffalse?.Accept(this);
+                if (ret is null) return Empty.Value;
 				if(i.Iffalse != null && i.Iffalse is Statement s && !(s is Expression)) return ret;
 			}
-			return null;
+			return Empty.Value;
 		}
 
 		public Operand Visit(ReturnStatement r) {
@@ -358,7 +380,7 @@ namespace Outlet.Interpreting {
 				var ret = w.Body.Accept(this);
                 if (w.Body is Statement s && !(s is Expression) && ret != null) return ret;
             }
-			return null;
+			return Empty.Value;
 		}
 
         public Operand Visit(UsingStatement u)
@@ -370,7 +392,7 @@ namespace Outlet.Interpreting {
                 {
                     // TODO fix CurScope.Add(id, val.GetOutletType(), val);
                 }
-                return null;
+                return Empty.Value;
             } 
             else throw new OutletException(u + " is not a valid using statement");
         }

@@ -7,7 +7,7 @@ namespace Outlet.Interpreting
     public class StackFrame : IStackFrame<Operand>
     {
         public (string Id, Operand Value)[] LocalVariables { get; private set; }
-        private readonly StackFrame Parent;
+        private readonly StackFrame? Parent;
         public string Call { get; private set; }
 
         public static readonly StackFrame Global = new StackFrame();
@@ -34,7 +34,11 @@ namespace Outlet.Interpreting
 
         private Operand Get(IBindable variable, int level)
         {
-            if (variable.ResolveLevel > level) return Parent.Get(variable, level + 1);
+            if (variable.ResolveLevel > level)
+            {
+                if (Parent is null) throw new System.Exception("Parent was null");
+                else return Parent.Get(variable, level + 1);
+            }
             return LocalVariables[variable.LocalId].Value;
         }
 
@@ -48,7 +52,11 @@ namespace Outlet.Interpreting
                 System.Array.Copy(LocalVariables, newGlobals, LocalVariables.Length);
                 LocalVariables = newGlobals;
             }
-            if (variable.ResolveLevel > level) Parent.Assign(variable, value, level + 1);
+            if (variable.ResolveLevel > level)
+            {
+                if(Parent is null) throw new System.Exception("Parent was null");
+                else Parent.Assign(variable, value, level + 1);
+            }
             else LocalVariables[variable.LocalId] = (variable.Identifier, value);
         }
 

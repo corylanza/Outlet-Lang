@@ -169,7 +169,8 @@ namespace Outlet.Checking
             else
             {
                 (Type? type, _, _) = CurrentStackFrame.Resolve(f.Decl);
-                FunctionType ft = (FunctionType)type;
+                
+                FunctionType ft = type is FunctionType fnt ? fnt : throw new CheckerException("Expected Function type");
                 // enter the function scope and define the args;
                 EnterStackFrame();
                 ft.Args.Zip(f.Args).ToList().ForEach(arg => Define(arg.First.type, arg.Second));

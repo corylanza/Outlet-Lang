@@ -14,7 +14,7 @@ namespace Outlet.FFI.Natives
             Underlying = func;
         }
 
-        public override Operand Call(Operand caller, params Operand[] args) =>
+        public override Operand Call(Operand? caller, params Operand[] args) =>
             NativeInitializer.ToOutletOperand(Underlying.Invoke((caller as NativeInstance)?.Underlying, args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }
 
@@ -27,7 +27,8 @@ namespace Outlet.FFI.Natives
             Underlying = func;
         }
 
-        public override Operand Call(Operand caller, params Operand[] args) =>
-            NativeInitializer.ToOutletInstance(RuntimeType.ReturnType as NativeClass, Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
+        public override Operand Call(Operand? caller, params Operand[] args) =>
+            NativeInitializer.ToOutletInstance(RuntimeType.ReturnType is NativeClass nc ? nc : throw new System.Exception("Expected Native Class"),
+            Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }
 }

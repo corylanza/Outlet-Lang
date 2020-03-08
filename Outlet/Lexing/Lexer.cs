@@ -35,7 +35,7 @@ namespace Outlet.Lexing {
 					machine.NextState(c);
 				} else if(machine.Cur.Accepting) {
 					if(machine.Cur.Output != NoToken) {
-						Token toadd = machine.Cur.Output(buffer);
+						Token? toadd = machine.Cur.Output is Tokenizer t ? t (buffer) : null;
 						if(toadd != null) {
 							if(tokens.Count > 1 && toadd is IntLiteral i2 && tokens.Last() == Operator.Dot) {
 								tokens.RemoveLast();
@@ -63,7 +63,7 @@ namespace Outlet.Lexing {
             }
 			if(!machine.Cur.Accepting && buffer.Length > 0) Error("illegal state");
 			else if(buffer.Length > 0) {
-				Token toadd = machine.Cur.Output(buffer);
+				Token? toadd = machine.Cur.Output is Tokenizer t ? t (buffer) : null;
 				if(toadd != null) tokens.AddLast(toadd);
 			} else if(machine.Cur == poststring) tokens.AddLast(new StringLiteral("", LinePos, CharPos));
 			if(ErrorCount > 0) throw new LexerException(ErrorCount+" Lexing errors encountered");

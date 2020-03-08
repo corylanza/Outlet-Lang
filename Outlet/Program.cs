@@ -78,23 +78,10 @@ namespace Outlet {
 		public static string ToListString<T>(this List<T> list) {
 			string s = "";
 			for(int i = 0; i < list.Count; i++) {
-				s += list[i].ToString();
+				s += list[i]?.ToString() ?? "";
 				if (i != list.Count - 1) s += ", ";
 			}
 			return s;
-		}
-
-		public static T MinElement<T>(this IEnumerable<T> list, Func<T, int> f) {
-			int min = int.MaxValue;
-			T res = default;
-			foreach(T t in list) {
-				int cur = f(t);
-				if(cur <= min) {
-					min = cur;
-					res = t;
-				}
-			}
-			return res;
 		}
 
         public static bool SameLengthAndAll<T, U>(this IEnumerable<T> list, IEnumerable<U> other, Func<T, U, bool> predicate)

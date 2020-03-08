@@ -16,7 +16,7 @@ namespace Outlet.Parsing {
 			bool expectOperand = true;
 			bool done = false;
 			var (output, stack, arity) = (new Stack<Expression>(), new Stack<Token>(), new Stack<int>());
-			Token cur = null, last;
+			Token? cur = null, last;
 			bool ValidToken() =>
 				tokens.Count > 0 && tokens.First() is Token i &&
 				((i is Delimeter d && (d != Delimeter.LeftCurly && d != Delimeter.RightCurly && d != Delimeter.SemiC)) ||

@@ -16,7 +16,7 @@ namespace Outlet.Tokens {
 			Pos = posinline;
 		}
 
-		public override bool Equals(object obj) => obj is Identifier id && id.Name == Name;
+		public override bool Equals(object? obj) => obj is Identifier id && id.Name == Name;
 		public override int GetHashCode() => base.GetHashCode();
 		public override string ToString() => Name;
 	}
