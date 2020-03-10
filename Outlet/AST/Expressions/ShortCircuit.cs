@@ -17,7 +17,7 @@ namespace Outlet.AST {
 			Right = right;
 			if (op == Operator.LogicalAnd) isand = true;
 			else if (op == Operator.LogicalOr) isand = false;
-			else throw new Exception("ShortCircuit expression is only valid for logical and and or");
+			else throw new UnexpectedException("ShortCircuit expression is only valid for logical and and or");
 		}
 
 		public override T Accept<T>(IVisitor<T> visitor) {

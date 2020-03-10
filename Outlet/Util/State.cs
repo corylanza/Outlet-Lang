@@ -27,7 +27,7 @@ namespace Outlet.Util {
         {
 			if (Transitions.ContainsKey(c)) return Transitions[c];
 			else if (DefaultState != null) return DefaultState;
-            throw new Exception("illegal state change");
+            throw new UnexpectedException("illegal state change");
         }
 
         public void SetDefault(State<Tin, Tout> s) 

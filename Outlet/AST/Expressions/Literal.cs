@@ -25,16 +25,14 @@ namespace Outlet.AST {
                 bool _ => Primitive.Bool,
                 float _ => Primitive.Float,
                 string _ => Primitive.String,
-                _ => throw new Exception("not a primitive")
+                _ => throw new UnexpectedException("not a primitive")
             };
 			Value = value;
 		}
 
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => Value is null ? "null" : Value.ToString();
+		public override string ToString() => Value?.ToString() ?? "null";
 	}
 }

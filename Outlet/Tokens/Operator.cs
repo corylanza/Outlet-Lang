@@ -112,7 +112,7 @@ namespace Outlet.Tokens {
             if (this == Dot && r is Literal<int> idx) return new TupleAccess(l, idx.Value);
 			if (this == Dot && r is Variable member) return new MemberAccess(l, member);
             // TODO better error handling here
-            if (this == Dot) throw new System.Exception("Only variable or tuple access allowed here");
+            if (this == Dot) throw new UnexpectedException("Only variable or tuple access allowed here");
 			if (this == Lambda) return new Lambda(l, r);
 			if (this == Equal) return new Assign(l, r);
             if (this == PlusEqual) return new Assign(l, new Binary(Plus.Name, l, r, Plus.Overloads));

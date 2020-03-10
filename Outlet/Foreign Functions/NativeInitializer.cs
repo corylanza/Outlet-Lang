@@ -23,7 +23,7 @@ namespace Outlet.FFI
             IEnumerable collection =>
                 new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element)).ToArray()),
             _ when Conversions.OutletType.ContainsKey(o.GetType()) => ToOutletInstance((Conversions.OutletType[o.GetType()] as NativeClass)!, o),
-            _ => throw new Exception("Cannot map type")
+            _ => throw new UnexpectedException("Cannot map type")
         };
 
         public static Operand ToOutletInstance(NativeClass nc, object o)
@@ -156,7 +156,7 @@ namespace Outlet.FFI
             foreach (var type in classes)
             {
                 ForeignClass fc = type.GetCustomAttribute(typeof(ForeignClass))
-                        is ForeignClass rc ? rc : throw new Exception("unexpected error");
+                        is ForeignClass rc ? rc : throw new UnexpectedException("unexpected error");
                 string className = !string.IsNullOrEmpty(fc.Name) ? fc.Name : type.Name;
 
                 var fields = GetFields(type);
@@ -178,7 +178,7 @@ namespace Outlet.FFI
                 foreach (FieldInfo field in fields)
                 {
                     ForeignField ff = field.GetCustomAttribute(typeof(ForeignField))
-                        is ForeignField rf ? rf : throw new Exception("unexpected error");
+                        is ForeignField rf ? rf : throw new UnexpectedException("unexpected error");
                     string ffName = ff.Name ?? field.Name;
                     if (field.IsStatic)
                     {
@@ -195,7 +195,7 @@ namespace Outlet.FFI
                 foreach (MethodInfo method in methods)
                 {
                     ForeignFunction fm = method.GetCustomAttribute(typeof(ForeignFunction))
-                        is ForeignFunction rm ? rm : throw new Exception("unexpected error");
+                        is ForeignFunction rm ? rm : throw new UnexpectedException("unexpected error");
                     string fmName = fm.Name ?? method.Name;
                     if (method.IsStatic)
                     {

@@ -187,7 +187,7 @@ namespace Outlet.Checking
                 ExitStackFrame();
                 return ft;
             }
-            else throw new System.Exception("Could not resolve function type");
+            else throw new UnexpectedException("Could not resolve function type");
         }
 
         public Type Visit(VariableDeclaration v)
@@ -281,8 +281,15 @@ namespace Outlet.Checking
             {
                 (FunctionType? bestMatch, uint? id) = mgt.FindBestMatch(argtypes);
                 if(bestMatch is null || id is null) return new Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
-                if (c.Caller is Variable v) v.Bind(id.Value, v.ResolveLevel.Value);
-                if(c.Caller is MemberAccess ma) ma.Member.Bind(id.Value, ma.Member.ResolveLevel.Value);
+                if (c.Caller is Variable v && v.ResolveLevel.HasValue)
+                {
+                    v.Bind(id.Value, v.ResolveLevel.Value);
+                }
+                else if (c.Caller is MemberAccess ma && ma.Member.ResolveLevel.HasValue)
+                {
+                    ma.Member.Bind(id.Value, ma.Member.ResolveLevel.Value);
+                }
+                else throw new UnexpectedException("Caller is not able to be overloaded");
                 return bestMatch.ReturnType;
             }
             return new Error("type " + calltype + " is not callable");

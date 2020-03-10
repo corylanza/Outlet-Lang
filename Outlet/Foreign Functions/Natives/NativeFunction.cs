@@ -28,7 +28,7 @@ namespace Outlet.FFI.Natives
         }
 
         public override Operand Call(Operand? caller, params Operand[] args) =>
-            NativeInitializer.ToOutletInstance(RuntimeType.ReturnType is NativeClass nc ? nc : throw new System.Exception("Expected Native Class"),
+            NativeInitializer.ToOutletInstance(RuntimeType.ReturnType is NativeClass nc ? nc : throw new UnexpectedException("Expected Native Class"),
             Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }
 }

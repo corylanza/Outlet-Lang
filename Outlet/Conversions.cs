@@ -26,7 +26,7 @@ namespace Outlet
             if (typeof(T) == typeof(Constant<object>)) return Primitive.Object;
             if (typeof(T) == typeof(Operand)) return Primitive.Object;
             if (typeof(T) == typeof(TypeObject)) return Primitive.MetaType;
-            throw new Exception(typeof(T).FullName + " is not a compile tiime constant type");
+            throw new UnexpectedException(typeof(T).FullName + " is not a compile tiime constant type");
         }
     }
 }

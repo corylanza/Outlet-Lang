@@ -24,7 +24,7 @@ namespace Outlet.AST {
         public void Bind(uint id, uint level)
         {
             LocalId = id;
-            if (level != 0) throw new Exception("Cannot bind decl to resolve level other than 0");
+            if (level != 0) throw new UnexpectedException("Cannot bind decl to resolve level other than 0");
             ResolveLevel = 0;
         }
 

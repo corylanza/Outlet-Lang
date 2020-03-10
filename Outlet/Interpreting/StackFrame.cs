@@ -36,10 +36,11 @@ namespace Outlet.Interpreting
         {
             if (variable.ResolveLevel > level)
             {
-                if (Parent is null) throw new System.Exception("Parent was null");
+                if (Parent is null) throw new UnexpectedException("Parent was null");
                 else return Parent.Get(variable, level + 1);
             }
-            return LocalVariables[variable.LocalId.Value].Value;
+            else if(variable.LocalId.HasValue) return LocalVariables[variable.LocalId.Value].Value;
+            else throw new UnexpectedException("Variable was not resolved");
         }
 
         public void Assign(IBindable variable, Operand value) => Assign(variable, value, 0);
@@ -54,10 +55,11 @@ namespace Outlet.Interpreting
             }
             if (variable.ResolveLevel > level)
             {
-                if(Parent is null) throw new System.Exception("Parent was null");
+                if(Parent is null) throw new UnexpectedException("Parent was null");
                 else Parent.Assign(variable, value, level + 1);
             }
-            else LocalVariables[variable.LocalId.Value] = (variable.Identifier, value);
+            else if(variable.LocalId.HasValue) LocalVariables[variable.LocalId.Value] = (variable.Identifier, value);
+            else throw new UnexpectedException("Variable was not resolved");
         }
 
         public IEnumerable<(string Id, Operand Value)> List() => LocalVariables;

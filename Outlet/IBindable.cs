@@ -11,5 +11,11 @@ namespace Outlet
         string Identifier { get; }
 
         void Bind(uint id, uint level);
+
+        bool Resolved(out uint localId)
+        {
+            localId = LocalId ?? 0;
+            return LocalId.HasValue;
+        }
     }
 }

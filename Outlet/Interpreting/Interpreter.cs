@@ -40,7 +40,7 @@ namespace Outlet.Interpreting {
         private static T Cast<T>(Operand o) where T : Operand
         {
             if (o is T to) return to;
-            throw new RuntimeException($"Casting failed SHOULD NOT PRINT");
+            throw new UnexpectedException($"Casting failed");
         }
 
         private class Empty : Operand
@@ -127,12 +127,13 @@ namespace Outlet.Interpreting {
             StackFrame staticscope = CurrentStackFrame;
 			Operand UnderlyingConstructor(params Operand[] args) {
                 UserDefinedClass type = c.Decl.Type is Variable v && staticscope.Get(v) is TypeObject t
-                    && t.Encapsulated is UserDefinedClass udc ? udc : throw new System.Exception("Expected udc");
+                    && t.Encapsulated is UserDefinedClass udc ? udc : throw new UnexpectedException("Expected udc");
 
                 // Call the constructors hidden init function to initialize instance variables/methods
                 (Instance inst, IStackFrame<Operand> instancescope) = type.Initialize();
 
                 // Enter the scope of the constructor
+                if (!c.LocalCount.HasValue) throw new System.Exception("stack frame size not allocated at check time");
                 StackFrame constructorscope = new StackFrame(instancescope as StackFrame, c.LocalCount.Value, "constructor scope");
                 CallStack.Push(constructorscope);
 				// Add all parameters to constructor scope 
@@ -154,9 +155,9 @@ namespace Outlet.Interpreting {
 			staticscope.Assign(c.Decl, func);
             var funcType = new FunctionType(c.Args.Select(arg =>
                 (arg.Accept(this) is TypeObject to ? to.Encapsulated as Type :
-                    throw new OutletException("expected type SHOULD NOT PRINT"), arg.Identifier)).ToArray(),
+                    throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 c.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated :
-                    throw new OutletException("expected type SHOULD NOT PRINT"));
+                    throw new UnexpectedException("expected type"));
             func.RuntimeType = funcType;
             return func;
 		}
@@ -164,6 +165,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(FunctionDeclaration f) {
             StackFrame closure = CurrentStackFrame;
 			Operand HiddenFunc(params Operand[] args) {
+                if (!f.LocalCount.HasValue) throw new UnexpectedException("stack frame size not allocated at check time");
                 StackFrame stackFrame = new StackFrame(closure, f.LocalCount.Value, f.Name);
                 CallStack.Push(stackFrame);
 				for(int i = 0; i < args.Length; i++) {
@@ -175,9 +177,9 @@ namespace Outlet.Interpreting {
 			}
             var funcType = new FunctionType(f.Args.Select(arg =>
                 (arg.Accept(this) is TypeObject to ? to.Encapsulated as Type : 
-                    throw new OutletException("expected type SHOULD NOT PRINT"), arg.Identifier)).ToArray(),
+                    throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 f.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated : 
-                    throw new OutletException("expected type SHOULD NOT PRINT"));
+                    throw new UnexpectedException("expected type"));
             var func = new UserDefinedFunction(f.Decl.Identifier, funcType, HiddenFunc);
             CurrentStackFrame.Assign(f.Decl, func);
 			return func;
@@ -197,7 +199,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(Declarator d) {
 			Operand t = d.Type.Accept(this);
 			if(t is TypeObject type) return type;
-			else throw new OutletException(d.Type.ToString() + " is not a valid type SHOULD NOT PRINT");
+			else throw new UnexpectedException(d.Type.ToString() + " is not a valid type");
 		}
 
 		public Operand Visit<E>(Literal<E> c) {
@@ -217,7 +219,7 @@ namespace Outlet.Interpreting {
                 if (idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
                 return c.Values()[idx];
             }
-            throw new OutletException("cannot acccess this type SHOULD NOT PRINT");
+            throw new UnexpectedException("cannot acccess this type");
 		}
 
 		public Operand Visit(As a) {
@@ -236,11 +238,11 @@ namespace Outlet.Interpreting {
                 dereferenced.SetMember(m.Member, val);
                 return val;
 			}
-			throw new RuntimeException("cannot assign to the left side of this expression SHOULD NOT PRINT");
+			throw new UnexpectedException("cannot assign to the left side of this expression");
 		}
 
 		public Operand Visit(Binary b) => b.Oper is BinOp bo ? bo.Perform(b.Left.Accept(this), b.Right.Accept(this)) : 
-            throw new RuntimeException("Operator never resolved SHOULD NOT PRINT");
+            throw new UnexpectedException("Operator never resolved");
 
 		public Operand Visit(Call c) {
 			Operand caller = c.Caller.Accept(this);
@@ -256,14 +258,14 @@ namespace Outlet.Interpreting {
                     return f.Call(null, args);
                 }
             }
-            else throw new RuntimeException(caller.GetOutletType().ToString() + " is not callable SHOULD NOT PRINT");
+            else throw new UnexpectedException(caller.GetOutletType().ToString() + " is not callable");
 		}
 
         public Operand Visit(TupleAccess t)
         {
             Operand left = t.Left.Accept(this);
             if (left is OTuple tup) return tup.Values()[t.Member];
-            throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
+            throw new UnexpectedException("Illegal dereference");
         }
 
 		public Operand Visit(MemberAccess m) {
@@ -272,7 +274,7 @@ namespace Outlet.Interpreting {
             if (left is TypeObject to && to.Encapsulated is IDereferenceable statics) return statics.GetMember(m.Member); 
             if (left is IDereferenceable instances) return instances.GetMember(m.Member);
 			if(left is Constant<object> n && n.Value is null) throw new RuntimeException("null pointer exception");
-			throw new RuntimeException("Illegal dereference THIS SHOULD NOT PRINT");
+			throw new UnexpectedException("Illegal dereference");
 		}
 
 		public Operand Visit(Is i) {
@@ -285,7 +287,7 @@ namespace Outlet.Interpreting {
 			Operand right = l.Right.Accept(this);
 			if(left is TypeObject lt && lt.Encapsulated is TupleType tt && right is TypeObject rt)
 				return new TypeObject(new FunctionType(tt.Types.Select(x => (x, "")).ToArray(), rt.Encapsulated));
-			throw new RuntimeException("lambda invalid SHOULD NOT PRINT");
+			throw new UnexpectedException("lambda invalid");
 		}
 
 		public Operand Visit(ListLiteral l) => new Operands.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());
@@ -302,7 +304,7 @@ namespace Outlet.Interpreting {
 			if(t.Condition.Accept(this) is Constant<bool> b) {
 				return b.Value ? t.IfTrue.Accept(this) : t.IfFalse.Accept(this);
 			}
-			throw new RuntimeException("expected boolean in ternary condition SHOULD NOT PRINT");
+			throw new UnexpectedException("expected boolean in ternary condition");
 		}
 
 		public Operand Visit(TupleLiteral t) {
@@ -314,12 +316,12 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(Unary u) => u.Oper is UnOp uo ? uo.Perform(u.Expr.Accept(this)) : 
-            throw new RuntimeException("Unary operator was never resolved SHOULD NOT PRINT");
+            throw new UnexpectedException("Unary operator was never resolved");
 
 		public Operand Visit(Variable v) {
             if (!v.ResolveLevel.HasValue)
             {
-                throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
+                throw new UnexpectedException($"could not find variable {v}");
             }
             return CurrentStackFrame.Get(v);
 		}
@@ -394,7 +396,7 @@ namespace Outlet.Interpreting {
                 }
                 return Empty.Value;
             } 
-            else throw new OutletException(u + " is not a valid using statement");
+            else throw new UnexpectedException(u + " is not a valid using statement");
         }
 
 		#endregion
