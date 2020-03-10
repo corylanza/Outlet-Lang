@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,15 +20,24 @@ namespace Outlet.Tokens {
         public abstract override string ToString();
     }
 
-	public abstract class TokenLiteral<E> : TokenLiteral {
+    public class NullLiteral : TokenLiteral
+    {
+        public NullLiteral(int line, int pos) : base(line, pos)
+        { }
+
+        public override string ToString() => "null";
+    }
+
+    public abstract class TokenLiteral<E> : TokenLiteral {
 
         public TokenLiteral(E val, int linenumber, int posinline) : base(linenumber, posinline)
         {
             Value = val;
         }
 
+        [NotNull]
         public E Value;
-		public override string ToString() => Value?.ToString() ?? "null";
+        public override string ToString() => $"{Value}";
 	}
 
 	public class IntLiteral : TokenLiteral<int> {
@@ -43,11 +53,5 @@ namespace Outlet.Tokens {
 
 	public class StringLiteral : TokenLiteral<string> {
 		public StringLiteral(string value, int line, int pos) : base(value, line, pos) {}
-	}
-
-	public class NullLiteral : TokenLiteral<object> {
-		public NullLiteral(int line, int pos) : base(null, line, pos) {
-			//Value = null;
-		}
 	}
 }
