@@ -23,7 +23,7 @@ namespace Outlet.Interpreting
             }
         }
 
-        public StackFrame(StackFrame parent, int localCount, string call)
+        public StackFrame(StackFrame parent, uint localCount, string call)
         {
             Parent = parent;
             LocalVariables = new (string, Operand)[localCount];
@@ -39,7 +39,7 @@ namespace Outlet.Interpreting
                 if (Parent is null) throw new System.Exception("Parent was null");
                 else return Parent.Get(variable, level + 1);
             }
-            return LocalVariables[variable.LocalId].Value;
+            return LocalVariables[variable.LocalId.Value].Value;
         }
 
         public void Assign(IBindable variable, Operand value) => Assign(variable, value, 0);
@@ -57,7 +57,7 @@ namespace Outlet.Interpreting
                 if(Parent is null) throw new System.Exception("Parent was null");
                 else Parent.Assign(variable, value, level + 1);
             }
-            else LocalVariables[variable.LocalId] = (variable.Identifier, value);
+            else LocalVariables[variable.LocalId.Value] = (variable.Identifier, value);
         }
 
         public IEnumerable<(string Id, Operand Value)> List() => LocalVariables;

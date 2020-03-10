@@ -10,9 +10,9 @@ namespace Outlet.Types
 
         public MetaType(Type type) => Stored = type;
 
-        public override bool Is(Type t, out int level)
+        public override bool Is(Type t, out uint level)
         {
-            level = -1;
+            level = 0;
             if(t == Primitive.MetaType)
             {
                 level = 1;

@@ -19,7 +19,7 @@ namespace Outlet.FFI
             float f => Constant.Float(f),
             bool b => Constant.Bool(b),
             int i => Constant.Int(i),
-            null => Constant.Null(),
+            null => Constant.Null,
             IEnumerable collection =>
                 new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element)).ToArray()),
             _ when Conversions.OutletType.ContainsKey(o.GetType()) => ToOutletInstance((Conversions.OutletType[o.GetType()] as NativeClass)!, o),
@@ -37,13 +37,13 @@ namespace Outlet.FFI
 
             Operand Get(IBindable id)
             {
-                var member = nc.InstanceMembers[id.LocalId];
+                var member = nc.InstanceMembers[id.LocalId.Value];
                 return ToMember(member.id, member.member, o);
             }
 
             void Set(IBindable id, Operand val)
             {
-                if (nc.InstanceMembers[id.LocalId].member is FieldInfo field) field.DeclaringType!.GetField(field.Name)!.SetValue(o, ToCSharpOperand(val));
+                if (nc.InstanceMembers[id.LocalId.Value].member is FieldInfo field) field.DeclaringType!.GetField(field.Name)!.SetValue(o, ToCSharpOperand(val));
             }
 
             IEnumerable<(string id, Operand val)> List()
@@ -69,13 +69,13 @@ namespace Outlet.FFI
 
             Operand Get(IBindable id)
             {
-                var member = staticMembers[id.LocalId];
+                var member = staticMembers[id.LocalId.Value];
                 return ToMember(member.id, member.member);
             };
 
             void Set(IBindable id, Operand val)
             {
-                if (staticMembers[id.LocalId].member is FieldInfo field) field.DeclaringType!.GetField(field.Name)!.SetValue(null, ToCSharpOperand(val));
+                if (staticMembers[id.LocalId.Value].member is FieldInfo field) field.DeclaringType!.GetField(field.Name)!.SetValue(null, ToCSharpOperand(val));
             }
             IEnumerable<(string id, Operand val)> List()
             {
@@ -88,12 +88,16 @@ namespace Outlet.FFI
             return new NativeClass(name, Primitive.Object, Get, Set, List, instanceMembers);
         }
 
-        public static object ToCSharpOperand(Operand o)
+        public static object? ToCSharpOperand(Operand o)
         {
             // TODO maybe make this an abstract method for operands
             return o switch
             {
-                Constant c => c.GetValue(),
+                Constant<int> c => c.Value,
+                Constant<float> c => c.Value,
+                Constant<bool> c => c.Value,
+                Constant<string> c => c.Value,
+                Constant.NullClass _ => null,
                 Operands.Array a => a.Values().Select(val => ToCSharpOperand(val)),
                 _ => throw new NotImplementedException()
             };

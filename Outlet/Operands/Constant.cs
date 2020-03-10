@@ -13,12 +13,26 @@ namespace Outlet.Operands
             new Constant<string>(Primitive.String, value);
         public static Constant<bool> Bool(bool value) =>
             new Constant<bool>(Primitive.Bool, value);
-        public static Constant<object> Null() =>
-            new Constant<object>(Primitive.Object);
-
-        public abstract object GetValue();
+        public static NullClass Null => NullClass.Self;
+        //public static Constant<object> Null() =>
+        //    new Constant<object>(Primitive.Object);
         public abstract override bool Equals(Operand b);
         public abstract override string ToString();
+
+        public class NullClass : Constant
+        {
+            public override Primitive RuntimeType { get; set; }
+            public static NullClass Self = new NullClass();
+
+            private NullClass()
+            {
+                RuntimeType = Primitive.Object;
+            }
+
+            public override bool Equals(Operand b) => b is NullClass;
+
+            public override string ToString() => "null";
+        }
     }
 
 
@@ -33,22 +47,15 @@ namespace Outlet.Operands
             RuntimeType = type;
             Value = value;
         }
-
-        public Constant(Primitive type)
-        {
-            RuntimeType = type;
-        }
-
-        public override object GetValue() => Value;
         
         public override bool Equals(Operand b)
         {
-            return b is Constant<E> other && Value.Equals(other.Value);
+            return b is Constant<E> other && (Value?.Equals(other.Value) ?? other.Value is null);
         }
 
         public override string ToString()
         {
-            return Value is null ? "null" : Value.ToString();
+            return Value?.ToString() ?? "null";
         }
     }
 }

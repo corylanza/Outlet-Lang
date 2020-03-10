@@ -8,11 +8,12 @@ namespace Outlet.AST {
 		public readonly List<Declarator> Args;
 		public readonly Statement Body;
 
-        public int LocalCount = -1;
+        public uint? LocalCount;
 
 		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) : base(decl) {
 			Args = argnames;
 			Body = body;
+            LocalCount = null;
 		}
 
 		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);

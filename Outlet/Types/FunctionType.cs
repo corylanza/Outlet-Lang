@@ -12,13 +12,13 @@ namespace Outlet.Types {
 			ReturnType = returntype;
 		}
 
-		public override bool Is(Type t, out int level) {
+		public override bool Is(Type t, out uint level) {
             level = 0;
             if (t is FunctionType ft && Args.Length == ft.Args.Length)
             {
                 foreach (var (arg, argType) in Args.Zip(ft.Args))
                 {
-                    if (arg.type.Is(argType.type, out int elementLevel))
+                    if (arg.type.Is(argType.type, out uint elementLevel))
                     {
                         level += elementLevel;
                     }
@@ -31,18 +31,18 @@ namespace Outlet.Types {
                 level = int.MaxValue;
                 return true;
             }
-            level = -1;
+            level = 0;
             return false;
         }
 
-        public bool Valid(out int level, params Type[] args)
+        public bool Valid(out uint level, params Type[] args)
         {
-            level = -1;
-            int distance = 0;
+            level = 0;
+            uint distance = 0;
             if (args.Length != Args.Length) return false;
             for(int i = 0; i < args.Length; i++)
             {
-                if (!args[i].Is(Args[i].type, out int levels)) return false;
+                if (!args[i].Is(Args[i].type, out uint levels)) return false;
                 else
                 {
                     distance += levels;

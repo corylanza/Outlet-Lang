@@ -21,8 +21,9 @@ namespace Outlet.Tokens {
 
 	public abstract class TokenLiteral<E> : TokenLiteral {
 
-        public TokenLiteral(int linenumber, int posinline) : base(linenumber, posinline)
+        public TokenLiteral(E val, int linenumber, int posinline) : base(linenumber, posinline)
         {
+            Value = val;
         }
 
         public E Value;
@@ -30,30 +31,22 @@ namespace Outlet.Tokens {
 	}
 
 	public class IntLiteral : TokenLiteral<int> {
-		public IntLiteral(string value, int line, int pos) : base(line, pos) {
-			Value = int.Parse(value);
-		}
+		public IntLiteral(string value, int line, int pos) : base(int.Parse(value), line, pos) { }
 	}
 	public class FloatLiteral : TokenLiteral<float> {
-		public FloatLiteral(string value, int line, int pos) : base(line, pos) {
-			Value = float.Parse(value);
-		}
+        public FloatLiteral(string value, int line, int pos) : base(float.Parse(value), line, pos) { }
 	}
 
 	public class BoolLiteral : TokenLiteral<bool> {
-		public BoolLiteral(string value, int line, int pos) : base(line, pos) {
-			Value = bool.Parse(value);
-		}
+		public BoolLiteral(string value, int line, int pos) : base(bool.Parse(value), line, pos) { }
 	}
 
 	public class StringLiteral : TokenLiteral<string> {
-		public StringLiteral(string value, int line, int pos) : base(line, pos) {
-			Value = value;
-		}
+		public StringLiteral(string value, int line, int pos) : base(value, line, pos) {}
 	}
 
 	public class NullLiteral : TokenLiteral<object> {
-		public NullLiteral(int line, int pos) : base(line, pos) {
+		public NullLiteral(int line, int pos) : base(null, line, pos) {
 			//Value = null;
 		}
 	}

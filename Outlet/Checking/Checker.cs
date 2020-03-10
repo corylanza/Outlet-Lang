@@ -26,8 +26,8 @@ namespace Outlet.Checking
                 Message = message;
             }
 
-            public override bool Is(Type t, out int level) {
-                level = -1;
+            public override bool Is(Type t, out uint level) {
+                level = 0;
                 return false;
             }
 
@@ -280,10 +280,10 @@ namespace Outlet.Checking
             }
             if (calltype is MethodGroupType mgt)
             {
-                (FunctionType? bestMatch, int id) = mgt.FindBestMatch(argtypes);
-                if(c.Caller is Variable v) v.Bind(id, v.LocalId);
-                if(c.Caller is MemberAccess ma) ma.Member.Bind(id, ma.Member.LocalId);
-                if (bestMatch is null) return new Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
+                (FunctionType? bestMatch, uint? id) = mgt.FindBestMatch(argtypes);
+                if(bestMatch is null || id is null) return new Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
+                if (c.Caller is Variable v) v.Bind(id.Value, v.ResolveLevel.Value);
+                if(c.Caller is MemberAccess ma) ma.Member.Bind(id.Value, ma.Member.ResolveLevel.Value);
                 return bestMatch.ReturnType;
             }
             return new Error("type " + calltype + " is not callable");
@@ -370,9 +370,9 @@ namespace Outlet.Checking
 
         public Type Visit(Variable v)
         {
-            (Type? type, int level, int id) = CurrentStackFrame.Resolve(v);
-            if (type is null || level == -1) return new Error("variable " + v.Identifier + " could not be resolved");
-            v.Bind(id, level);
+            (Type? type, uint? level, uint? id) = CurrentStackFrame.Resolve(v);
+            if (type is null || !level.HasValue || !id.HasValue) return new Error("variable " + v.Identifier + " could not be resolved");
+            v.Bind(id.Value, level.Value);
             return type;
         }
 

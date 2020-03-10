@@ -19,15 +19,15 @@ namespace Outlet.Types {
 
 		//public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-		public override bool Is(Type t, out int level) {
+		public override bool Is(Type t, out uint level) {
             //if (t is UnionType ut) return ut.Is(this, out level);
 			level = 0;
 			if(Equals(t)) return true;
-			if(Parent != null && Parent.Is(t, out int l)) {
+			if(Parent != null && Parent.Is(t, out uint l)) {
 				level = l + 1;
 				return true;
 			}
-			level = -1;
+			level = 0;
 			return false;
 		}
 
@@ -67,13 +67,13 @@ namespace Outlet.Types {
 
         public Type GetStaticMemberType(IBindable variable)
         {
-            (Type? type, int resolveLevel, int id) = StaticMembers.Resolve(variable);
-            if (type is null || resolveLevel != 0)
+            (Type? type, uint? resolveLevel, uint? id) = StaticMembers.Resolve(variable);
+            if (type is null || resolveLevel is null || id is null || resolveLevel != 0)
             {
                 if(variable.Identifier == "") return new Checker.Error("type " + this + " is not instantiable");
                 return new Checker.Error(this + " does not contain static field: " + variable.Identifier);
             }
-            variable.Bind(id, resolveLevel);
+            variable.Bind(id.Value, resolveLevel.Value);
             return type;
         }
         public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.List().Select(member => (member.Id, member.Value as Type));
@@ -81,9 +81,10 @@ namespace Outlet.Types {
         public Type GetInstanceMemberType(IBindable variable)
         {
             if (variable.Identifier == "this") return new Checker.Error("may not access property \"this\"");
-            (Type? type, int resolveLevel, int id) = InstanceMembers.Resolve(variable);
-            if (type is null || resolveLevel != 0) return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
-            variable.Bind(id, resolveLevel);
+            (Type? type, uint? resolveLevel, uint? id) = InstanceMembers.Resolve(variable);
+            if (type is null || resolveLevel is null || id is null || resolveLevel != 0) 
+                return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
+            variable.Bind(id.Value, resolveLevel.Value);
             return type;
             //Class cur = this;
             //while (cur != null)

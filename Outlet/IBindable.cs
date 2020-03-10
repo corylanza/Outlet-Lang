@@ -6,10 +6,10 @@ namespace Outlet
 {
     public interface IBindable
     {
-        int LocalId { get; }
-        int ResolveLevel { get; }
+        uint? LocalId { get; }
+        uint? ResolveLevel { get; }
         string Identifier { get; }
 
-        void Bind(int id, int level);
+        void Bind(uint id, uint level);
     }
 }

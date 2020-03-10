@@ -7,13 +7,13 @@
 			Types = types;
 		}
 
-		public override bool Is(Type t, out int level) {
+		public override bool Is(Type t, out uint level) {
             level = 0;
             if (t is TupleType tt && tt.Types.Length == Types.Length)
             {
                 for (int i = 0; i < Types.Length; i++)
                 {
-                    if (Types[i].Is(tt.Types[i], out int elementLevel))
+                    if (Types[i].Is(tt.Types[i], out uint elementLevel))
                     {
                         level += elementLevel;
                     }
@@ -26,7 +26,7 @@
                 level = int.MaxValue;
                 return true;
             }
-            level = -1;
+            level = 0;
             return false;
         }
 

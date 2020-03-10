@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Type = Outlet.Types.Type;
-using SymbolTable = System.Collections.Generic.Dictionary<string, (Outlet.Types.Type Type, int Id)>;
+using SymbolTable = System.Collections.Generic.Dictionary<string, (Outlet.Types.Type Type, uint Id)>;
 
 namespace Outlet.Checking
 {
@@ -15,9 +15,9 @@ namespace Outlet.Checking
 
         private readonly CheckStackFrame? Parent;
         private readonly Stack<SymbolTable> Scopes = new Stack<SymbolTable>();
-        public int Count { get; private set; }
+        public uint Count { get; private set; }
 
-        public void EnterScope() => Scopes.Push(new Dictionary<string, (Type type, int id)>());
+        public void EnterScope() => Scopes.Push(new Dictionary<string, (Type type, uint id)>());
         public void ExitScope() => Scopes.Pop();
 
         private CheckStackFrame() : this(null)
@@ -42,8 +42,8 @@ namespace Outlet.Checking
         {
             if (Scopes.Peek().ContainsKey(decl.Identifier))
             {
-                (Type existing, int existingId) = Scopes.Peek()[decl.Identifier];
-                int newId = Count++;
+                (Type existing, uint existingId) = Scopes.Peek()[decl.Identifier];
+                uint newId = Count++;
                 if (existing is FunctionType existingFunc && type is FunctionType newFunc)
                 {
                     Scopes.Peek()[decl.Identifier] = (new MethodGroupType((existingFunc, existingId), (newFunc, newId)), existingId);
@@ -59,30 +59,30 @@ namespace Outlet.Checking
             else
             {
                 decl.Bind(Count++, 0);
-                Scopes.Peek()[decl.Identifier] = (type, decl.LocalId);
+                Scopes.Peek()[decl.Identifier] = (type, decl.LocalId.Value);
             }
         }
 
-        public (Type? type, int level, int localId) Resolve(IBindable variable)
+        public (Type? type, uint? level, uint? localId) Resolve(IBindable variable)
         {
             // Local variables
             foreach(var scope in Scopes)
             {
                 if (scope.ContainsKey(variable.Identifier))
                 {
-                    (Type type, int id) = scope[variable.Identifier];
+                    (Type type, uint id) = scope[variable.Identifier];
                     return (type, 0, id);
                 }
             }
             // Global variables, closures and static or instance members
             if (Parent != null)
             {
-                (Type? type, int level, int id) = Parent.Resolve(variable);
-                // if not found in parent scope pass along not found (-1), otherwise add 1 level
-                return (type, level == -1 ? -1 : level + 1, id);
+                (Type? type, uint? level, uint? id) = Parent.Resolve(variable);
+                // if not found in parent scope pass along not found (null), otherwise add 1 level
+                return (type, level == null ? null : level + 1, id);
             }
             // Not found
-            return (null, -1, -1);
+            return (null, null, null);
         }
 
         public IEnumerable<(string Id, Type Value)> List() => Scopes.Peek().Select(x => (x.Key, x.Value.Type));

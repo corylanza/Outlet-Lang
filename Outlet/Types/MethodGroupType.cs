@@ -6,22 +6,22 @@ namespace Outlet.Types
 {
     public class MethodGroupType : Type
     {
-        public readonly List<(FunctionType type, int Id)> Methods;
+        public readonly List<(FunctionType type, uint Id)> Methods;
 
-        public MethodGroupType(params (FunctionType type, int id)[] functions)
+        public MethodGroupType(params (FunctionType type, uint id)[] functions)
         {
             Methods = functions.ToList();
         }
 
-        public (FunctionType? type, int id) FindBestMatch(params Type[] inputs)
+        public (FunctionType? type, uint? id) FindBestMatch(params Type[] inputs)
         {
-            (FunctionType? best, int bestLevel, int bestId) = (default, -1, -1);
-            foreach ((FunctionType overload, int id) in Methods)
+            (FunctionType? best, uint? bestLevel, uint? bestId) = (default, null, null);
+            foreach ((FunctionType overload, uint id) in Methods)
             {
-                bool valid = overload.Valid(out int level, inputs);
+                bool valid = overload.Valid(out uint level, inputs);
                 if (!valid) continue;
                 // TODO this logic may allow -1 to be set again
-                if (bestLevel == -1 || level < bestLevel)
+                if (bestLevel == null || level < bestLevel)
                 {
                     (best, bestLevel, bestId) = (overload, level, id);
                 }
@@ -32,9 +32,9 @@ namespace Outlet.Types
 
         //public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
-        public override bool Is(Type t, out int level)
+        public override bool Is(Type t, out uint level)
         {
-            level = -1;
+            level = 0;
             return false;
         }
 

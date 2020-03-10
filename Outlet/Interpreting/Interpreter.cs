@@ -30,7 +30,7 @@ namespace Outlet.Interpreting {
             }
 		}
 
-        public StackFrame EnterStackFrame(int localCount, string call)
+        public StackFrame EnterStackFrame(uint localCount, string call)
         {
             var newStackFrame = new StackFrame(CurrentStackFrame, localCount, call);
             CallStack.Push(newStackFrame);
@@ -67,14 +67,14 @@ namespace Outlet.Interpreting {
             StackFrame closure = CurrentStackFrame;
 
             var staticFields = new Field[c.StaticDecls.Count + c.Constructors.Count];
-            StackFrame staticScope = new StackFrame(closure, staticFields.Length, $"{c.Name} static scope");
+            StackFrame staticScope = new StackFrame(closure, (uint) staticFields.Length, $"{c.Name} static scope");
 
             // Hidden function for initializing instance variables/methods and defining this
             (Instance, IStackFrame<Operand>) Init(UserDefinedClass type)
             {
                 // Enter the instance scope
                 // add one to instance count for "this" which is not a member but lives in instance scope
-                StackFrame instancescope = new StackFrame(staticScope, c.InstanceDecls.Count + 1, "class scope");
+                StackFrame instancescope = new StackFrame(staticScope, (uint) c.InstanceDecls.Count + 1, "class scope");
                 CallStack.Push(instancescope);
 
                 UserDefinedInstance instance = new UserDefinedInstance(type, instancescope, c.InstanceDecls.Count);
@@ -133,7 +133,7 @@ namespace Outlet.Interpreting {
                 (Instance inst, IStackFrame<Operand> instancescope) = type.Initialize();
 
                 // Enter the scope of the constructor
-                StackFrame constructorscope = new StackFrame(instancescope as StackFrame, c.LocalCount, "constructor scope");
+                StackFrame constructorscope = new StackFrame(instancescope as StackFrame, c.LocalCount.Value, "constructor scope");
                 CallStack.Push(constructorscope);
 				// Add all parameters to constructor scope 
 				for(int i = 0; i < args.Length; i++) {
@@ -164,7 +164,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(FunctionDeclaration f) {
             StackFrame closure = CurrentStackFrame;
 			Operand HiddenFunc(params Operand[] args) {
-                StackFrame stackFrame = new StackFrame(closure, f.LocalCount, f.Name);
+                StackFrame stackFrame = new StackFrame(closure, f.LocalCount.Value, f.Name);
                 CallStack.Push(stackFrame);
 				for(int i = 0; i < args.Length; i++) {
                     stackFrame.Assign(f.Args[i], args[i]);
@@ -202,7 +202,7 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit<E>(Literal<E> c) {
 			if(c.Value != null) return new Constant<E>(c.Type, c.Value);
-			return Constant.Null();
+			return Constant.Null;
 		}
 
 		public Operand Visit(Access a) {
@@ -317,7 +317,7 @@ namespace Outlet.Interpreting {
             throw new RuntimeException("Unary operator was never resolved SHOULD NOT PRINT");
 
 		public Operand Visit(Variable v) {
-            if (v.ResolveLevel == -1)
+            if (!v.ResolveLevel.HasValue)
             {
                 throw new RuntimeException("could not find variable, THIS SHOULD NEVER PRINT");
             }

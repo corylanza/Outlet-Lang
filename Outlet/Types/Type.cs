@@ -6,7 +6,7 @@ namespace Outlet.Types {
 	public abstract class Type {
 
         public bool Is(Type t) => NewIs(this, t); //Is(t, out int _);
-		public abstract bool Is(Type t, out int level);
+		public abstract bool Is(Type t, out uint level);
 
         public static bool NewIs(Type from, Type to)
         {
@@ -23,7 +23,7 @@ namespace Outlet.Types {
             };
         }
 
-		public virtual Operand Default() => Constant.Null();
+		public virtual Operand Default() => Constant.Null;
 
 		private static Type ClosestAncestor(Type ca, Type cb) {
             if(ca is Class a && cb is Class b)

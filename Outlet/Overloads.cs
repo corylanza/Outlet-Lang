@@ -15,12 +15,12 @@ namespace Outlet {
 
 		// finds closest match
 		public T FindBestMatch(params Type[] inputs) {
-            (T best, int bestLevel) = (default, -1);
+            (T best, uint? bestLevel) = (default, null);
             foreach(T overload in Overloads)
             {
-                bool valid = overload.Valid(out int level, inputs);
+                bool valid = overload.Valid(out uint level, inputs);
                 if (!valid) continue;
-                if (bestLevel == -1 || level < bestLevel)
+                if (bestLevel is null || level < bestLevel)
                 {
                     (best, bestLevel) = (overload, level);
                 }
@@ -31,6 +31,6 @@ namespace Outlet {
 	}
 
 	public interface IOverloadable {
-		bool Valid(out int level, params Type[] inputs);
+		bool Valid(out uint level, params Type[] inputs);
 	}
 }

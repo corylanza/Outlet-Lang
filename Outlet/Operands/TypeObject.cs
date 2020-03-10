@@ -19,12 +19,6 @@ namespace Outlet.Operands
         }
 
         public override Type GetOutletType() => Primitive.MetaType;
-        public bool Is(Type t) => t == Primitive.MetaType || t.Equals(this);
-        public bool Is(Type t, out int level)
-        {
-            level = t == Primitive.MetaType ? 1 : t.Equals(this) ? 1 : -1;
-            return level > -1;
-        }
 
         public override bool Equals(Operand b) => b is TypeObject other && Encapsulated.Equals(other.Encapsulated);
         public override string ToString()
