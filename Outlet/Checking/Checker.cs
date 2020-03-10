@@ -166,10 +166,8 @@ namespace Outlet.Checking
                 Define(ft, f.Decl);
                 return ft;
             }
-            else
+            else if (CurrentStackFrame.Resolve(f.Decl, out Type type, out uint _, out uint _))
             {
-                (Type? type, _, _) = CurrentStackFrame.Resolve(f.Decl);
-                
                 FunctionType ft = type is FunctionType fnt ? fnt : throw new CheckerException("Expected Function type");
                 // enter the function scope and define the args;
                 EnterStackFrame();
@@ -189,6 +187,7 @@ namespace Outlet.Checking
                 ExitStackFrame();
                 return ft;
             }
+            else throw new System.Exception("Could not resolve function type");
         }
 
         public Type Visit(VariableDeclaration v)
@@ -370,10 +369,12 @@ namespace Outlet.Checking
 
         public Type Visit(Variable v)
         {
-            (Type? type, uint? level, uint? id) = CurrentStackFrame.Resolve(v);
-            if (type is null || !level.HasValue || !id.HasValue) return new Error("variable " + v.Identifier + " could not be resolved");
-            v.Bind(id.Value, level.Value);
-            return type;
+            if(CurrentStackFrame.Resolve(v, out Type type, out uint level, out uint id))
+            {
+                v.Bind(id, level);
+                return type;
+            }
+            return new Error("variable " + v.Identifier + " could not be resolved");
         }
 
         #endregion

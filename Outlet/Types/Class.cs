@@ -67,25 +67,25 @@ namespace Outlet.Types {
 
         public Type GetStaticMemberType(IBindable variable)
         {
-            (Type? type, uint? resolveLevel, uint? id) = StaticMembers.Resolve(variable);
-            if (type is null || resolveLevel is null || id is null || resolveLevel != 0)
-            {
-                if(variable.Identifier == "") return new Checker.Error("type " + this + " is not instantiable");
-                return new Checker.Error(this + " does not contain static field: " + variable.Identifier);
+            if (StaticMembers.Resolve(variable, out Type type, out uint resolveLevel, out uint id)) {
+                variable.Bind(id, resolveLevel);
+                return type;
             }
-            variable.Bind(id.Value, resolveLevel.Value);
-            return type;
+            else if(variable.Identifier == "") return new Checker.Error("type " + this + " is not instantiable");
+            else return new Checker.Error(this + " does not contain static field: " + variable.Identifier);
         }
         public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.List().Select(member => (member.Id, member.Value as Type));
 
         public Type GetInstanceMemberType(IBindable variable)
         {
             if (variable.Identifier == "this") return new Checker.Error("may not access property \"this\"");
-            (Type? type, uint? resolveLevel, uint? id) = InstanceMembers.Resolve(variable);
-            if (type is null || resolveLevel is null || id is null || resolveLevel != 0) 
-                return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
-            variable.Bind(id.Value, resolveLevel.Value);
-            return type;
+            if (InstanceMembers.Resolve(variable, out Type type, out uint resolveLevel, out uint id))
+            {
+                variable.Bind(id, resolveLevel);
+                return type;
+            }
+            return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
+
             //Class cur = this;
             //while (cur != null)
             //{

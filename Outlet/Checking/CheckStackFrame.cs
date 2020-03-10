@@ -63,26 +63,30 @@ namespace Outlet.Checking
             }
         }
 
-        public (Type? type, uint? level, uint? localId) Resolve(IBindable variable)
+        public bool Resolve(IBindable variable, out Type type, out uint resolveLevel, out uint localId)
         {
             // Local variables
-            foreach(var scope in Scopes)
+            foreach (var scope in Scopes)
             {
                 if (scope.ContainsKey(variable.Identifier))
                 {
-                    (Type type, uint id) = scope[variable.Identifier];
-                    return (type, 0, id);
+                    (type, localId) = scope[variable.Identifier];
+                    resolveLevel = 0;
+                    return true;
                 }
             }
             // Global variables, closures and static or instance members
             if (Parent != null)
             {
-                (Type? type, uint? level, uint? id) = Parent.Resolve(variable);
-                // if not found in parent scope pass along not found (null), otherwise add 1 level
-                return (type, level == null ? null : level + 1, id);
+                // pass along results from parent scope, add 1 level if found
+                bool found = Parent.Resolve(variable, out type, out resolveLevel, out localId);
+                if (found) resolveLevel += 1;
+                return found;
             }
             // Not found
-            return (null, null, null);
+            type = new Checker.Error($"variable {variable.Identifier} could not be resolved");
+            (resolveLevel, localId) = (0, 0);
+            return false;
         }
 
         public IEnumerable<(string Id, Type Value)> List() => Scopes.Peek().Select(x => (x.Key, x.Value.Type));
