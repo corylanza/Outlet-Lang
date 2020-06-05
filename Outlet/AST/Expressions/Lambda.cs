@@ -18,6 +18,6 @@ namespace Outlet.AST {
 			return visitor.Visit(this);
 		}
 
-		public override string ToString() => "lambda";
+		public override string ToString() => $"{Left} => {Right}";
 	}
 }

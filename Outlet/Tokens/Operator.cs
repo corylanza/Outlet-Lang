@@ -25,7 +25,6 @@ namespace Outlet.Tokens {
 
 			PostInc =		new UnaryOperator("++",    1,  Side.Left);
 			PostDec =		new UnaryOperator("--",    1,  Side.Left);
-			Lambda =		new BinaryOperator("=>",   1,  Side.Left);
 			Dot =			new BinaryOperator(".",    1,  Side.Left);
 			//ExcRange =		new BinaryOperator("..",   1,  Side.Right,   new BinOp<Int, Int, Operands.Array>((l, r) => Range(l.Val, r.Val, false)));
 			//IncRange =		new BinaryOperator("...",  1,  Side.Right,   new BinOp<Int, Int, Operands.Array>((l, r) => Range(l.Val, r.Val, true)));
@@ -80,6 +79,7 @@ namespace Outlet.Tokens {
 			DivEqual =		new BinaryOperator("/=",   14, Side.Right);
 			MultEqual =		new BinaryOperator("*=",   14, Side.Right);
 			ModEqual =		new BinaryOperator("%=",   14, Side.Right);
+			Lambda =		new BinaryOperator("=>",   14, Side.Right);
 		}
 
 		public readonly string Name;

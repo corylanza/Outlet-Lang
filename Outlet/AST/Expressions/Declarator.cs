@@ -39,6 +39,6 @@ namespace Outlet.AST {
 
 		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => (Type?.ToString() ?? "null") + " " + Identifier;
+		public override string ToString() => (Type?.ToString() ?? "var") + " " + Identifier;
 	}
 }
