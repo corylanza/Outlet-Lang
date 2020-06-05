@@ -6,7 +6,7 @@ namespace Outlet.Operands {
 
         private readonly Operand[] Vals;
 
-        public override TupleType RuntimeType { get; set; }//=> throw new System.NotImplementedException();
+        public override TupleType RuntimeType { get; }
 
         public OTuple(params Operand[] vals) {
 			Vals = vals;

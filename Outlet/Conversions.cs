@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Outlet.Operands;
 using Outlet.Types;
+using String = Outlet.Operands.String;
 
 namespace Outlet
 {
@@ -19,11 +20,11 @@ namespace Outlet
 
         public static Types.Type GetRuntimeType<T>() where T : Operand
         {
-            if (typeof(T) == typeof(Constant<int>)) return Primitive.Int;
-            if (typeof(T) == typeof(Constant<bool>)) return Primitive.Bool;
-            if (typeof(T) == typeof(Constant<float>)) return Primitive.Float;
-            if (typeof(T) == typeof(Constant<string>)) return Primitive.String;
-            if (typeof(T) == typeof(Constant<object>)) return Primitive.Object;
+            if (typeof(T) == typeof(Value<int>)) return Primitive.Int;
+            if (typeof(T) == typeof(Value<bool>)) return Primitive.Bool;
+            if (typeof(T) == typeof(Value<float>)) return Primitive.Float;
+            if (typeof(T) == typeof(String)) return Primitive.String;
+            if (typeof(T) == typeof(Value.NullClass)) return Primitive.Object;
             if (typeof(T) == typeof(Operand)) return Primitive.Object;
             if (typeof(T) == typeof(TypeObject)) return Primitive.MetaType;
             throw new UnexpectedException(typeof(T).FullName + " is not a compile tiime constant type");

@@ -158,7 +158,8 @@ namespace Outlet.Interpreting {
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 c.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated :
                     throw new UnexpectedException("expected type"));
-            func.RuntimeType = funcType;
+            throw new System.NotImplementedException("Fix this by uncommenting below");
+            //func.RuntimeType = funcType;
             return func;
 		}
 
@@ -196,24 +197,25 @@ namespace Outlet.Interpreting {
 		#region Expressions
 
 		public Operand Visit(Declarator d) {
-			Operand t = d.Type.Accept(this);
+			Operand? t = d.Type?.Accept(this);
 			if(t is TypeObject type) return type;
-			else throw new UnexpectedException(d.Type.ToString() + " is not a valid type");
+			else throw new UnexpectedException(d.Type?.ToString() ?? "invalid type" + " is not a valid type");
 		}
 
-		public Operand Visit<E>(Literal<E> c) {
-			if(c.Value != null) return new Constant<E>(c.Type, c.Value);
-			return Constant.Null;
-		}
+		public Operand Visit<E>(Literal<E> c) where E : struct => new Value<E>(c.Type, c.Value);
 
-		public Operand Visit(Access a) {
+        public Operand Visit(StringLiteral s) => new String(s.Value);
+
+        public Operand Visit(NullExpr n) => Value.Null;
+
+        public Operand Visit(Access a) {
 			Operand col = a.Collection.Accept(this);
 			if(col is TypeObject at && a.Index.Length == 0) return new TypeObject(new ArrayType(at.Encapsulated));
             if(col is Array c)
             {
                 // Index is 0 because all array access is one-dimensional as of now
                 // multi-dimensional arrays can be accessed through chained accesses
-                int idx = Cast<Constant<int>>(a.Index[0].Accept(this)).Value;
+                int idx = Cast<Value<int>>(a.Index[0].Accept(this)).Underlying;
                 int len = c.Values().Length;
                 if (idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
                 return c.Values()[idx];
@@ -269,16 +271,16 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(MemberAccess m) {
 			Operand left = m.Left.Accept(this);
-			if(left is Array a && m.ArrayLength) return Constant.Int(a.Values().Length);
+			if(left is Array a && m.ArrayLength) return Value.Int(a.Values().Length);
             if (left is TypeObject to && to.Encapsulated is IDereferenceable statics) return statics.GetMember(m.Member); 
             if (left is IDereferenceable instances) return instances.GetMember(m.Member);
-			if(left is Constant<object> n && n.Value is null) throw new RuntimeException("null pointer exception");
+			if(left == Value.Null) throw new RuntimeException("null pointer exception");
 			throw new UnexpectedException("Illegal dereference");
 		}
 
 		public Operand Visit(Is i) {
 			bool val = i.Left.Accept(this).GetOutletType().Is(((TypeObject) i.Right.Accept(this)).Encapsulated);
-			return Constant.Bool(i.NotIsnt ? val : !val); 
+			return Value.Bool(i.NotIsnt ? val : !val); 
 		}
 
 		public Operand Visit(Lambda l) {
@@ -292,16 +294,16 @@ namespace Outlet.Interpreting {
 		public Operand Visit(ListLiteral l) => new Operands.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());
 
 		public Operand Visit(ShortCircuit s) {
-            bool left = Cast<Constant<bool>>(s.Left.Accept(this)).Value;
+            bool left = Cast<Value<bool>>(s.Left.Accept(this)).Underlying;
 			if(s.isand == left) {
-                bool right = Cast<Constant<bool>>(s.Right.Accept(this)).Value;
-                return Constant.Bool(right);
-			} else return Constant.Bool(!s.isand);
+                bool right = Cast<Value<bool>>(s.Right.Accept(this)).Underlying;
+                return Value.Bool(right);
+			} else return Value.Bool(!s.isand);
 		}
 
 		public Operand Visit(Ternary t) {
-			if(t.Condition.Accept(this) is Constant<bool> b) {
-				return b.Value ? t.IfTrue.Accept(this) : t.IfFalse.Accept(this);
+			if(t.Condition.Accept(this) is Value<bool> b) {
+				return b.Underlying ? t.IfTrue.Accept(this) : t.IfFalse.Accept(this);
 			}
 			throw new UnexpectedException("expected boolean in ternary condition");
 		}
@@ -361,7 +363,7 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(IfStatement i) {
-			if(i.Condition.Accept(this) is Constant<bool> b && b.Value) {
+			if(i.Condition.Accept(this) is Value<bool> b && b.Underlying) {
 				var ret = i.Iftrue.Accept(this);
 				if(i.Iftrue is Statement s && !(s is Expression)) return ret;
 			} else {
@@ -377,7 +379,7 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(WhileLoop w) {
-			while(w.Condition.Accept(this) is Constant<bool> b && b.Value) {
+			while(w.Condition.Accept(this) is Value<bool> b && b.Underlying) {
 				var ret = w.Body.Accept(this);
                 if (w.Body is Statement s && !(s is Expression) && ret != null) return ret;
             }

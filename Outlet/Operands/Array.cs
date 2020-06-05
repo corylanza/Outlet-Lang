@@ -8,7 +8,7 @@ namespace Outlet.Operands {
 
         private readonly Operand[] Vals;
 
-        public override ArrayType RuntimeType { get; set; }
+        public override ArrayType RuntimeType { get; }
 
         public Array(params Operand[] vals) {
             RuntimeType = new ArrayType(Type.CommonAncestor(vals.Select(x => x.GetOutletType()).ToArray()));

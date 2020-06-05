@@ -2,10 +2,10 @@
 using Outlet.AST;
 using Outlet.Operands;
 using Outlet.Types;
-using Int = Outlet.Operands.Constant<int>;
-using Bln = Outlet.Operands.Constant<bool>;
-using Flt = Outlet.Operands.Constant<float>;
-using Str = Outlet.Operands.Constant<string>;
+using Int = Outlet.Operands.Value<int>;
+using Bln = Outlet.Operands.Value<bool>;
+using Flt = Outlet.Operands.Value<float>;
+using Str = Outlet.Operands.String;
 using Obj = Outlet.Operands.Operand;
 
 namespace Outlet.Tokens {
@@ -23,53 +23,53 @@ namespace Outlet.Tokens {
 		static Operator() {
 
 
-			PostInc =		new UnaryOperator("++",    1,  Side.Left,	new UnOp<Int, Int>((l) => Constant.Int(l.Value++)));
-			PostDec =		new UnaryOperator("--",    1,  Side.Left,	new UnOp<Int, Int>((l) => Constant.Int(l.Value--)));
+			//PostInc =		new UnaryOperator("++",    1,  Side.Left,	new UnOp<Int, Int>((l) => Value.Int(l.Underlying++)));
+			//PostDec =		new UnaryOperator("--",    1,  Side.Left,	new UnOp<Int, Int>((l) => Value.Int(l.Underlying--)));
 			Lambda =		new BinaryOperator("=>",   1,  Side.Left);
 			Dot =			new BinaryOperator(".",    1,  Side.Left);
 			//ExcRange =		new BinaryOperator("..",   1,  Side.Right,   new BinOp<Int, Int, Operands.Array>((l, r) => Range(l.Val, r.Val, false)));
 			//IncRange =		new BinaryOperator("...",  1,  Side.Right,   new BinOp<Int, Int, Operands.Array>((l, r) => Range(l.Val, r.Val, true)));
-			PreInc =		new UnaryOperator("++",	   1,  Side.Left,	new UnOp<Int, Int>((l) => Constant.Int(++l.Value)));
-			PreDec =		new UnaryOperator("--",	   1,  Side.Left,	new UnOp<Int, Int>((l) => Constant.Int(--l.Value)));
+			//PreInc =		new UnaryOperator("++",	   1,  Side.Left,	new UnOp<Int, Int>((l) => Value.Int(++l.Underlying)));
+			//PreDec =		new UnaryOperator("--",	   1,  Side.Left,	new UnOp<Int, Int>((l) => Value.Int(--l.Underlying)));
 			UnaryPlus =		new UnaryOperator("+",	   2,  Side.Right);
-			Complement =	new UnaryOperator("~",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Constant.Int(~l.Value)));
+			Complement =	new UnaryOperator("~",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Value.Int(~l.Underlying)));
 			UnaryAnd =		new UnaryOperator("&",	   2,  Side.Right,	new UnOp<Obj, TypeObject> ((l) => new TypeObject(l.GetOutletType())));
-			Negative =		new UnaryOperator("-",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Constant.Int(-l.Value)), 
-																		new UnOp<Flt, Flt>((l) => Constant.Float(-l.Value)),
-																		new UnOp<Str, Str>((l) => Constant.String("olleh")));
-			Not =			new UnaryOperator("!",	   2,  Side.Right,	new UnOp<Bln, Bln>((l) => Constant.Bool(!l.Value)));
-			Times =			new BinaryOperator("*",    3,  Side.Left,	new BinOp<Int, Int, Int>((l, r) => Constant.Int(l.Value * r.Value)),
-																		new BinOp<Flt, Flt, Flt>((l, r) => Constant.Float(l.Value * r.Value)));
-			Divide =		new BinaryOperator("/",    3,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => r.Value == 0 ? 
+			Negative =		new UnaryOperator("-",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Value.Int(-l.Underlying)), 
+																		new UnOp<Flt, Flt>((l) => Value.Float(-l.Underlying)),
+																		new UnOp<Str, Str>((l) => new Str("olleh")));
+			Not =			new UnaryOperator("!",	   2,  Side.Right,	new UnOp<Bln, Bln>((l) => Value.Bool(!l.Underlying)));
+			Times =			new BinaryOperator("*",    3,  Side.Left,	new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying * r.Underlying)),
+																		new BinOp<Flt, Flt, Flt>((l, r) => Value.Float(l.Underlying * r.Underlying)));
+			Divide =		new BinaryOperator("/",    3,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => r.Underlying == 0 ? 
 																			throw new RuntimeException("Divide By 0") : 
-																			Constant.Int(l.Value / r.Value)),
-																		new BinOp<Flt, Flt, Flt>((l, r) => r.Value == 0 ?
+																			Value.Int(l.Underlying / r.Underlying)),
+																		new BinOp<Flt, Flt, Flt>((l, r) => r.Underlying == 0 ?
 																			throw new RuntimeException("Divide By 0") :
-																			Constant.Float(l.Value / r.Value)),
+																			Value.Float(l.Underlying / r.Underlying)),
                                                                         new BinOp<TypeObject, TypeObject, TypeObject>((l, r) => new TypeObject(new UnionType(l.Encapsulated, r.Encapsulated))));
-			Modulus =		new BinaryOperator("%",    3,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => r.Value == 0 ? 
+			Modulus =		new BinaryOperator("%",    3,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => r.Underlying == 0 ? 
 																			throw new RuntimeException("Divide By 0") : 
-																			Constant.Int(l.Value % r.Value)));
-			Plus =			new BinaryOperator("+",    4,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => Constant.Int(l.Value + r.Value)),
-																		new BinOp<Flt, Flt, Flt>((l, r) => Constant.Float(l.Value + r.Value)),
-																		new BinOp<Str, Obj, Str>((l, r) => Constant.String(l.Value + r.ToString())),
-																		new BinOp<Obj, Str, Str>((l, r) => Constant.String(l.ToString() + r.Value)));
-			Minus =			new BinaryOperator("-",    4,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => Constant.Int(l.Value - r.Value)),
-																		new BinOp<Flt, Flt, Flt>((l, r) => Constant.Float(l.Value - r.Value)));
-			LShift =		new BinaryOperator("<<",   5,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => Constant.Int(l.Value << r.Value)));
-			RShift =		new BinaryOperator(">>",   5,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => Constant.Int(l.Value >> r.Value)));
-			LT =			new BinaryOperator("<",    6,  Side.Left,	new BinOp<Flt, Flt, Bln>((l, r) => Constant.Bool(l.Value < r.Value)));
-			LTE =			new BinaryOperator("<=",   6,  Side.Left,  	new BinOp<Flt, Flt, Bln>((l, r) => Constant.Bool(l.Value <= r.Value)));
-			GT =			new BinaryOperator(">",    6,  Side.Left, 	new BinOp<Flt, Flt, Bln>((l, r) => Constant.Bool(l.Value > r.Value)));
-			GTE =			new BinaryOperator(">=",   6,  Side.Left, 	new BinOp<Flt, Flt, Bln>((l, r) => Constant.Bool(l.Value >= r.Value)));
+																			Value.Int(l.Underlying % r.Underlying)));
+			Plus =			new BinaryOperator("+",    4,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying + r.Underlying)),
+																		new BinOp<Flt, Flt, Flt>((l, r) => Value.Float(l.Underlying + r.Underlying)),
+																		new BinOp<Str, Obj, Str>((l, r) => new Str(l.Underlying + r.ToString())),
+																		new BinOp<Obj, Str, Str>((l, r) => new Str(l.ToString() + r.Underlying)));
+			Minus =			new BinaryOperator("-",    4,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying - r.Underlying)),
+																		new BinOp<Flt, Flt, Flt>((l, r) => Value.Float(l.Underlying - r.Underlying)));
+			LShift =		new BinaryOperator("<<",   5,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying << r.Underlying)));
+			RShift =		new BinaryOperator(">>",   5,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying >> r.Underlying)));
+			LT =			new BinaryOperator("<",    6,  Side.Left,	new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying < r.Underlying)));
+			LTE =			new BinaryOperator("<=",   6,  Side.Left,  	new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying <= r.Underlying)));
+			GT =			new BinaryOperator(">",    6,  Side.Left, 	new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying > r.Underlying)));
+			GTE =			new BinaryOperator(">=",   6,  Side.Left, 	new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying >= r.Underlying)));
 			As =			new BinaryOperator("as",   6,  Side.Left);
 			Is =			new BinaryOperator("is",   6,  Side.Left);
 			Isnt =			new BinaryOperator("isnt", 6,  Side.Left);
-			BoolEquals =	new BinaryOperator("==",   7,  Side.Left, 	new BinOp<Obj, Obj, Bln>((l, r) => Constant.Bool(l.Equals(r))));
-			NotEqual =		new BinaryOperator("!=",   7,  Side.Left, 	new BinOp<Obj, Obj, Bln>((l, r) => Constant.Bool(!l.Equals(r))));
-			BitAnd =		new BinaryOperator("&",	   8,  Side.Left,	new BinOp<Int, Int, Int>((l, r) => Constant.Int(l.Value & r.Value)));
-			BitXor =		new BinaryOperator("^",    9,  Side.Left,  	new BinOp<Int, Int, Int>((l, r) => Constant.Int(l.Value ^ r.Value)));
-			BitOr =			new BinaryOperator("|",    10, Side.Left,  	new BinOp<Int, Int, Int>((l, r) => Constant.Int(l.Value | r.Value)));
+			BoolEquals =	new BinaryOperator("==",   7,  Side.Left, 	new BinOp<Obj, Obj, Bln>((l, r) => Value.Bool(l.Equals(r))));
+			NotEqual =		new BinaryOperator("!=",   7,  Side.Left, 	new BinOp<Obj, Obj, Bln>((l, r) => Value.Bool(!l.Equals(r))));
+			BitAnd =		new BinaryOperator("&",	   8,  Side.Left,	new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying & r.Underlying)));
+			BitXor =		new BinaryOperator("^",    9,  Side.Left,  	new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying ^ r.Underlying)));
+			BitOr =			new BinaryOperator("|",    10, Side.Left,  	new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying | r.Underlying)));
 			LogicalAnd =	new BinaryOperator("&&",   11, Side.Left);
 			LogicalOr =		new BinaryOperator("||",   12, Side.Left);
 			Question =		new BinaryOperator("?",    13, Side.Right);
@@ -93,7 +93,7 @@ namespace Outlet.Tokens {
 
 		private static Operands.Array Range(int start, int end, bool inc) {
 			int i = inc ? 1 : 0;
-			return new Operands.Array(Enumerable.Range(start, end - start + i).Select((x) => Constant.Int(x)).ToArray());
+			return new Operands.Array(Enumerable.Range(start, end - start + i).Select((x) => Value.Int(x)).ToArray());
 		}
 	}
 

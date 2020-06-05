@@ -15,11 +15,11 @@ namespace Outlet.FFI
 
         public static Operand ToOutletOperand(object? o) => o switch
         {
-            string s => Constant.String(s),
-            float f => Constant.Float(f),
-            bool b => Constant.Bool(b),
-            int i => Constant.Int(i),
-            null => Constant.Null,
+            string s => new Operands.String(s),
+            float f => Value.Float(f),
+            bool b => Value.Bool(b),
+            int i => Value.Int(i),
+            null => Value.Null,
             IEnumerable collection =>
                 new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element)).ToArray()),
             _ when Conversions.OutletType.ContainsKey(o.GetType()) => ToOutletInstance((Conversions.OutletType[o.GetType()] as NativeClass)!, o),
@@ -93,11 +93,11 @@ namespace Outlet.FFI
             // TODO maybe make this an abstract method for operands
             return o switch
             {
-                Constant<int> c => c.Value,
-                Constant<float> c => c.Value,
-                Constant<bool> c => c.Value,
-                Constant<string> c => c.Value,
-                Constant.NullClass _ => null,
+                Value<int> i => i.Underlying,
+                Value<float> f => f.Underlying,
+                Value<bool> b => b.Underlying,
+                Operands.String s => s.Underlying,
+                Value.NullClass _ => null,
                 Operands.Array a => a.Values().Select(val => ToCSharpOperand(val)),
                 _ => throw new NotImplementedException()
             };

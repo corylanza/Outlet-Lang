@@ -1,5 +1,6 @@
 ﻿using System;
 using Outlet.Operands;
+using String = Outlet.Operands.String;
 
 namespace Outlet.Types {
 	public class Primitive : Class {
@@ -7,10 +8,10 @@ namespace Outlet.Types {
 		public static readonly Primitive MetaType = new Primitive("type", null);
 		public static readonly Primitive Void = new Primitive("void", null);
 		public static readonly Primitive Object = new Primitive("object", null);
-		public static readonly Primitive Float = new Primitive("float", Object, () => Constant.Float(0.0f));
-		public static readonly Primitive Int = new Primitive("int", Float, () => Constant.Int(0));
-		public static readonly Primitive Bool = new Primitive("bool", Object, () => Constant.Bool(false));
-		public static readonly Primitive String = new Primitive("string", Object, () => Constant.String(""));
+		public static readonly Primitive Float = new Primitive("float", Object, () => Value.Float(0.0f));
+		public static readonly Primitive Int = new Primitive("int", Float, () => Value.Int(0));
+		public static readonly Primitive Bool = new Primitive("bool", Object, () => Value.Bool(false));
+		public static readonly Primitive String = new Primitive("string", Object, () => new String(""));
 
         private readonly Func<Operand> Initialize;
 

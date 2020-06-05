@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Util {
-    public class StateMachine<Tin, Tout> where Tout : class
+    public class StateMachine<Tin, Tout> where Tout : class where Tin : struct
     {
 
         public State<Tin, Tout> Cur;

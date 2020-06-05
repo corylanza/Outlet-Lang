@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.Util {
-    public class State<Tin, Tout> where Tout : class 
+    public class State<Tin, Tout> where Tout : class where Tin : struct
     {
 
         public bool Accepting;

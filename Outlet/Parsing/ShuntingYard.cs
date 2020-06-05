@@ -174,8 +174,8 @@ namespace Outlet.Parsing {
                 IntLiteral i => new Literal<int>(i.Value),
                 FloatLiteral f => new Literal<float>(f.Value),
                 BoolLiteral b => new Literal<bool>(b.Value),
-                StringLiteral s => new Literal<string>(s.Value),
-                NullLiteral _ => new Literal<object>(),
+				Tokens.StringLiteral s => new AST.StringLiteral(s.Value),
+                NullLiteral _ => new NullExpr(),
                 _ => throw new NotImplementedException()
             }; 
         }

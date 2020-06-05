@@ -15,7 +15,7 @@ namespace Outlet.Operands {
 
     public abstract class Operand<T> : Operand where T : Type
     {
-        public abstract T RuntimeType { get; set; }
+        public abstract T RuntimeType { get; }
 
         public override Type GetOutletType() => RuntimeType;
     }

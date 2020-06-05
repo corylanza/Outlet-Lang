@@ -348,7 +348,11 @@ namespace Outlet.Checking
             return new ArrayType(Type.CommonAncestor(l.Args.Select(x => x.Accept(this)).ToArray()));
         }
 
-        public Type Visit<E>(Literal<E> c) => c.Type;
+        public Type Visit<E>(Literal<E> c) where E : struct => c.Type;
+
+        public Type Visit(StringLiteral s) => Primitive.String;
+
+        public Type Visit(NullExpr n) => Primitive.Object;
 
         public Type Visit(ShortCircuit s) => (s.Left.Accept(this), s.Right.Accept(this)) switch
         {

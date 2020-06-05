@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Outlet.AST;
+﻿using Outlet.AST;
 
 namespace Outlet {
 	public interface IVisitor<T> {
@@ -18,7 +13,9 @@ namespace Outlet {
 		T Visit(Assign a);
 		T Visit(Binary b);
 		T Visit(Call c);
-		T Visit<E>(Literal<E> c);
+		T Visit<E>(Literal<E> c) where E : struct;
+		T Visit(StringLiteral s);
+		T Visit(NullExpr n);
 		T Visit(Declarator d);
 		T Visit(TupleAccess d);
 		T Visit(MemberAccess d);

@@ -8,15 +8,10 @@ namespace Outlet.AST {
 
     }
 
-    public class Literal<E> : Literal {
+    public class Literal<E> : Literal where E : struct {
 
 		public Primitive Type;
 		public E Value;
-
-		public Literal() {
-			Value = default;
-            Type = Primitive.Object;
-        }
 
         public Literal(E value) {
             Type = value switch
@@ -24,7 +19,7 @@ namespace Outlet.AST {
                 int _ => Primitive.Int,
                 bool _ => Primitive.Bool,
                 float _ => Primitive.Float,
-                string _ => Primitive.String,
+                //string _ => Primitive.String,
                 _ => throw new UnexpectedException("not a primitive")
             };
 			Value = value;
@@ -33,6 +28,24 @@ namespace Outlet.AST {
 
 		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => Value?.ToString() ?? "null";
+        public override string ToString() => Value.ToString() ?? throw new Exception("Invalid value");
 	}
+
+    public class StringLiteral : Literal
+    {
+        public string Value;
+
+        public StringLiteral(string s) => Value = s;
+
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+
+        public override string ToString() => Value;
+    }
+
+    public class NullExpr : Literal
+    {
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+
+        public override string ToString() => "null";
+    }
 }

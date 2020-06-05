@@ -23,7 +23,7 @@ namespace Outlet.Types {
             };
         }
 
-		public virtual Operand Default() => Constant.Null;
+		public virtual Operand Default() => Value.Null;
 
 		private static Type ClosestAncestor(Type ca, Type cb) {
             if(ca is Class a && cb is Class b)

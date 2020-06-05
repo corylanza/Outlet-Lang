@@ -10,7 +10,7 @@ namespace Outlet.Operands
     {
         public readonly Type Encapsulated;
 
-        public override MetaType RuntimeType { get; set; }
+        public override MetaType RuntimeType { get; }
 
         public TypeObject(Type t)
         {
