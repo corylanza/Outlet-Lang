@@ -37,13 +37,21 @@ namespace Outlet.FFI
 
             Operand Get(IBindable id)
             {
-                var member = nc.InstanceMembers[id.LocalId.Value];
-                return ToMember(member.id, member.member, o);
+                if (id.Resolved(out uint localId))
+                {
+                    var (memberId, member) = nc.InstanceMembers[localId];
+                    return ToMember(memberId, member, o);
+                }
+                throw new Exception("Not resolved");
             }
 
             void Set(IBindable id, Operand val)
             {
-                if (nc.InstanceMembers[id.LocalId.Value].member is FieldInfo field) field.DeclaringType!.GetField(field.Name)!.SetValue(o, ToCSharpOperand(val));
+                if (id.Resolved(out uint localId) && nc.InstanceMembers[localId].member is FieldInfo field)
+                {
+                    field.DeclaringType!.GetField(field.Name)!.SetValue(o, ToCSharpOperand(val));
+                }
+                throw new Exception("Not resolved or cannot set non field native member");
             }
 
             IEnumerable<(string id, Operand val)> List()
@@ -69,13 +77,21 @@ namespace Outlet.FFI
 
             Operand Get(IBindable id)
             {
-                var member = staticMembers[id.LocalId.Value];
-                return ToMember(member.id, member.member);
+                if (id.Resolved(out uint localId))
+                {
+                    var (memberId, member) = staticMembers[localId];
+                    return ToMember(memberId, member);
+                }
+                throw new Exception("Not resolved");
             };
 
             void Set(IBindable id, Operand val)
             {
-                if (staticMembers[id.LocalId.Value].member is FieldInfo field) field.DeclaringType!.GetField(field.Name)!.SetValue(null, ToCSharpOperand(val));
+                if (id.Resolved(out uint localId) && staticMembers[localId].member is FieldInfo field)
+                {
+                    field.DeclaringType!.GetField(field.Name)!.SetValue(null, ToCSharpOperand(val));
+                }
+                throw new Exception("Not resolved or cannot set non field native member");
             }
             IEnumerable<(string id, Operand val)> List()
             {

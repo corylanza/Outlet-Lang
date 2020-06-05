@@ -23,14 +23,14 @@ namespace Outlet.Tokens {
 		static Operator() {
 
 
-			//PostInc =		new UnaryOperator("++",    1,  Side.Left,	new UnOp<Int, Int>((l) => Value.Int(l.Underlying++)));
-			//PostDec =		new UnaryOperator("--",    1,  Side.Left,	new UnOp<Int, Int>((l) => Value.Int(l.Underlying--)));
+			PostInc =		new UnaryOperator("++",    1,  Side.Left);
+			PostDec =		new UnaryOperator("--",    1,  Side.Left);
 			Lambda =		new BinaryOperator("=>",   1,  Side.Left);
 			Dot =			new BinaryOperator(".",    1,  Side.Left);
 			//ExcRange =		new BinaryOperator("..",   1,  Side.Right,   new BinOp<Int, Int, Operands.Array>((l, r) => Range(l.Val, r.Val, false)));
 			//IncRange =		new BinaryOperator("...",  1,  Side.Right,   new BinOp<Int, Int, Operands.Array>((l, r) => Range(l.Val, r.Val, true)));
-			//PreInc =		new UnaryOperator("++",	   1,  Side.Left,	new UnOp<Int, Int>((l) => Value.Int(++l.Underlying)));
-			//PreDec =		new UnaryOperator("--",	   1,  Side.Left,	new UnOp<Int, Int>((l) => Value.Int(--l.Underlying)));
+			PreInc =		new UnaryOperator("++",	   1,  Side.Left);
+			PreDec =		new UnaryOperator("--",	   1,  Side.Left);
 			UnaryPlus =		new UnaryOperator("+",	   2,  Side.Right);
 			Complement =	new UnaryOperator("~",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Value.Int(~l.Underlying)));
 			UnaryAnd =		new UnaryOperator("&",	   2,  Side.Right,	new UnOp<Obj, TypeObject> ((l) => new TypeObject(l.GetOutletType())));

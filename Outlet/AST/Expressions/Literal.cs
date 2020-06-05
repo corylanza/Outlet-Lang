@@ -19,7 +19,6 @@ namespace Outlet.AST {
                 int _ => Primitive.Int,
                 bool _ => Primitive.Bool,
                 float _ => Primitive.Float,
-                //string _ => Primitive.String,
                 _ => throw new UnexpectedException("not a primitive")
             };
 			Value = value;
