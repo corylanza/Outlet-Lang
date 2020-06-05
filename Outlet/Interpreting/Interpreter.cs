@@ -151,15 +151,14 @@ namespace Outlet.Interpreting {
             // as it cannot be stored in the instance scope despite its being resolved 
             // at the instance level)
 
-			var func = new UserDefinedFunction(c.Decl.Identifier, null, UnderlyingConstructor);
-			staticscope.Assign(c.Decl, func);
+			
             var funcType = new FunctionType(c.Args.Select(arg =>
                 (arg.Accept(this) is TypeObject to ? to.Encapsulated as Type :
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 c.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated :
                     throw new UnexpectedException("expected type"));
-            throw new System.NotImplementedException("Fix this by uncommenting below");
-            //func.RuntimeType = funcType;
+            var func = new UserDefinedFunction(c.Decl.Identifier, funcType, UnderlyingConstructor);
+            staticscope.Assign(c.Decl, func);
             return func;
 		}
 
