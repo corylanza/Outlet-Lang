@@ -186,8 +186,7 @@ namespace Outlet.Interpreting {
 		}
 
 		public Operand Visit(VariableDeclaration v) {
-			TypeObject type = (TypeObject) v.Decl.Accept(this);
-			Operand initial = v.Initializer?.Accept(this) ?? type.Encapsulated.Default();
+			Operand initial = v.Initializer?.Accept(this) ?? ((TypeObject) v.Decl.Accept(this)).Encapsulated.Default();
             CurrentStackFrame.Assign(v.Decl, initial);
 			return initial;
 		}

@@ -192,11 +192,20 @@ namespace Outlet.Checking
 
         public Type Visit(VariableDeclaration v)
         {
-            Type decl = v.Decl.Accept(this);
             Type? init = v.Initializer?.Accept(this);
-            if (init != null) Cast(init, decl);
-            if (init is MetaType meta) Define(meta, v.Decl);
-            else Define(decl, v.Decl);
+            if (v.Decl.IsVar)
+            {
+                if (init is null) return new Error($"Cannot determine type of var {v.Name} without initializer");
+                if (init is MetaType meta) Define(meta, v.Decl);
+                else Define(init, v.Decl);
+            }
+            else
+            {
+                Type decl = v.Decl.Accept(this);
+                if (init != null) Cast(init, decl);
+                if (init is MetaType meta) Define(meta, v.Decl);
+                else Define(decl, v.Decl);
+            }
             return Primitive.Void;
         }
 
@@ -295,11 +304,12 @@ namespace Outlet.Checking
             return new Error("type " + calltype + " is not callable");
         }
 
-        public Type Visit(Declarator d) => d.Type.Accept(this) switch
+        public Type Visit(Declarator d) => d.Type?.Accept(this) switch
         {
             MetaType meta => meta.Stored,
             Primitive t when t == Primitive.MetaType => new Error("Declared type must be a check time constant"),
-            Type invalid => new Error($"Declaration requires valid type, found: {invalid}")
+            Type invalid => new Error($"Declaration requires valid type, found: {invalid}"),
+            null => new Error($"Cannot use var here")
         };
 
         public Type Visit(TupleAccess t) => t.Left.Accept(this) switch

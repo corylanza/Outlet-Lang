@@ -191,10 +191,10 @@ namespace Outlet.Parsing {
 			if(Match(Keyword.While)) return WhileLoop();
 			if(Match(Keyword.Return)) return Return();
             if(Match(Keyword.Using)) return Using();
-			Expression expr =  NextExpression(tokens);
-			if(Match(Delimeter.SemiC) || tokens.Count == 0) return expr;
-			Identifier id = ConsumeType<Identifier>("unexpected token: "+tokens.First().ToString()+", expected: ;");
-			return new Declarator(expr, id.Name);
+			Expression? expr = Match(Keyword.Var) ? null : NextExpression(tokens);
+			if((Match(Delimeter.SemiC) || tokens.Count == 0) && expr != null) return expr;
+			Identifier id = ConsumeType<Identifier>($"unexpected token: {tokens.First()} expected: ;");
+			return expr is null ? new Declarator(id.Name) : new Declarator(expr, id.Name);
 		}
 	}
 }

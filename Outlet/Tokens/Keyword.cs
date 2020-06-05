@@ -19,7 +19,9 @@ namespace Outlet.Tokens {
 		public static readonly Keyword Class = new Keyword("class");
 		public static readonly Keyword Operator = new Keyword("operator");
         public static readonly Keyword Using = new Keyword("using");
+        public static readonly Keyword Var = new Keyword("var");
 		public readonly string Name;
+
 		private Keyword(string name) {
 			Name = name;
 		}

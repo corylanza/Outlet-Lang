@@ -26,6 +26,7 @@ namespace Outlet.Tokens {
 			{"while", Keyword.While },
 			{"return", Keyword.Return },
             {"using", Keyword.Using },
+            {"var", Keyword.Var },
 			// Operators
 			{"++", Operator.PostInc },
 			{"--", Operator.PostDec },

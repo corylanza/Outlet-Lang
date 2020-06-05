@@ -8,7 +8,8 @@ namespace Outlet.AST {
 	public class Declarator : Expression, IBindable
     {
 
-		public readonly Expression Type;
+		public readonly Expression? Type;
+        public bool IsVar => Type is null;
 		public string Identifier { get; private set; }
 		public uint? ResolveLevel { get; private set; }
         public uint? LocalId { get; private set; }
@@ -21,6 +22,14 @@ namespace Outlet.AST {
             ResolveLevel = null;
 		}
 
+        public Declarator(string id)
+        {
+            Type = null;
+            Identifier = id;
+            LocalId = null;
+            ResolveLevel = null;
+        }
+
         public void Bind(uint id, uint level)
         {
             LocalId = id;
@@ -30,6 +39,6 @@ namespace Outlet.AST {
 
 		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => Type.ToString() + " " + Identifier;
+		public override string ToString() => (Type?.ToString() ?? "null") + " " + Identifier;
 	}
 }

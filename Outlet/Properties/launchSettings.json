@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Outlet": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\coryl\\Programming Workspace\\C# Projects\\Outlet-Lang\\Outlet\\Test"
+    }
+  }
+}
