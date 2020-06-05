@@ -261,7 +261,7 @@ namespace Outlet.Checking
             (Type left, Type right) => 
                 b.Overloads.FindBestMatch(left, right) switch
                 {
-                    null => new Error("binary operator not defined for " + left.ToString() + " " + b.Op + " " + right.ToString()),
+                    null => new Error($"binary operator not defined for {left} {b.Op} {right}"),
                     BinOp op => (b.Oper = op).GetResultType()
                 }
         };
