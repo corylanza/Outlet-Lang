@@ -7,7 +7,7 @@ namespace Outlet.Interpreting
     public class StackFrame : IStackFrame<Operand>
     {
         public (string Id, Operand Value)[] LocalVariables { get; private set; }
-        private readonly StackFrame? Parent;
+        private readonly IStackFrame<Operand>? Parent;
         public string Call { get; private set; }
 
         public static readonly StackFrame Global = new StackFrame();
@@ -23,16 +23,14 @@ namespace Outlet.Interpreting
             }
         }
 
-        public StackFrame(StackFrame parent, uint localCount, string call)
+        public StackFrame(IStackFrame<Operand> parent, uint localCount, string call)
         {
             Parent = parent;
             LocalVariables = new (string, Operand)[localCount];
             Call = call;
         }
 
-        public Operand Get(IBindable variable) => Get(variable, 0);
-
-        private Operand Get(IBindable variable, int level)
+        public Operand Get(IBindable variable, uint level = 0)
         {
             if (variable.ResolveLevel > level)
             {
@@ -43,9 +41,7 @@ namespace Outlet.Interpreting
             else throw new UnexpectedException("Variable was not resolved");
         }
 
-        public void Assign(IBindable variable, Operand value) => Assign(variable, value, 0);
-
-        private void Assign(IBindable variable, Operand value, int level)
+        public void Assign(IBindable variable, Operand value, uint level = 0)
         {
             if (this == Global) 
             {

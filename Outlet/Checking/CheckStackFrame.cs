@@ -36,7 +36,7 @@ namespace Outlet.Checking
             EnterScope();
         }
 
-        public void Assign(IBindable variable, Type type) => Define(variable, type);
+        public void Assign(IBindable variable, Type type, uint level = 0) => Define(variable, type);
 
         private void Define(IBindable decl, Type type)
         {
@@ -93,9 +93,7 @@ namespace Outlet.Checking
         
         public bool Has(string s) => Scopes.Peek().ContainsKey(s);
 
-        public Type Get(IBindable variable) => GetType(variable);
-
-        private Type GetType(IBindable variable, int level = 0)
+        public Type Get(IBindable variable, uint level = 0)
         {
             string id = variable.Identifier;
             if (variable.ResolveLevel < 0) return new Checker.Error($"variable {id} has not been resolved");
@@ -107,18 +105,8 @@ namespace Outlet.Checking
                 }
                 return new Checker.Error($"could not get type of {id}");
             }
-            if (level < variable.ResolveLevel && Parent != null) return Parent.GetType(variable, level + 1);
+            if (level < variable.ResolveLevel && Parent != null) return Parent.Get(variable, level + 1);
             return new Checker.Error($"variable {id} is defined at a stack frame that could not be found");
         }
-
-        //public Type this[string id] {
-        //    get {
-        //        return Symbols[id].type;
-        //    }
-        //    set {
-        //        Symbols[id] = (value, Symbols.Count);
-        //    }
-        //}
-
     }
 }

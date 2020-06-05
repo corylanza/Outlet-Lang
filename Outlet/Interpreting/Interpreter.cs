@@ -134,7 +134,7 @@ namespace Outlet.Interpreting {
 
                 // Enter the scope of the constructor
                 if (!c.LocalCount.HasValue) throw new System.Exception("stack frame size not allocated at check time");
-                StackFrame constructorscope = new StackFrame(instancescope as StackFrame, c.LocalCount.Value, "constructor scope");
+                StackFrame constructorscope = new StackFrame(instancescope, c.LocalCount.Value, "constructor scope");
                 CallStack.Push(constructorscope);
 				// Add all parameters to constructor scope 
 				for(int i = 0; i < args.Length; i++) {

@@ -6,9 +6,9 @@ namespace Outlet
 {
     public interface IStackFrame<T>
     {
-        void Assign(IBindable variable, T value);
+        void Assign(IBindable variable, T value, uint level = 0);
 
-        T Get(IBindable variable);
+        T Get(IBindable variable, uint level = 0);
 
         IEnumerable<(string Id, T Value)> List();
     }
