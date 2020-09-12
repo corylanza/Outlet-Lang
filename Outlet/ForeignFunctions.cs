@@ -6,7 +6,8 @@ using Outlet.Types;
 using Type = Outlet.Types.Type;
 
 namespace Outlet {
-	public static class ForeignFunctions {
+	public static class NativeOutletTypes
+	{
 
 	    public static Dictionary<string, Type> NativeTypes = new Dictionary<string, Type>() {
 			{"int", Primitive.Int },

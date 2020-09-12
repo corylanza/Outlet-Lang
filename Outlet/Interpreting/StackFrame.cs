@@ -16,10 +16,10 @@ namespace Outlet.Interpreting
         {
             Call = "Global scope";
             int index = 0;
-            LocalVariables = new (string, Operand)[ForeignFunctions.NativeTypes.Count];
-            foreach(string type in ForeignFunctions.NativeTypes.Keys)
+            LocalVariables = new (string, Operand)[NativeOutletTypes.NativeTypes.Count];
+            foreach(string type in NativeOutletTypes.NativeTypes.Keys)
             {
-                LocalVariables[index++] = (type, new TypeObject(ForeignFunctions.NativeTypes[type]));
+                LocalVariables[index++] = (type, new TypeObject(NativeOutletTypes.NativeTypes[type]));
             }
         }
 

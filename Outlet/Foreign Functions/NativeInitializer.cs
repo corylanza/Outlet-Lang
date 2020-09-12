@@ -1,5 +1,6 @@
 ﻿using Outlet.Checking;
 using Outlet.FFI.Natives;
+using Outlet.ForeignFunctions;
 using Outlet.Operands;
 using Outlet.Types;
 using System;
@@ -151,8 +152,8 @@ namespace Outlet.FFI
 
         #region Reflection
 
-        private static IEnumerable<System.Type> GetForeignClasses() =>
-            AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+        private static IEnumerable<System.Type> GetForeignClasses(Assembly assembly) =>
+            assembly.GetTypes()
                 .Where(x => x.IsClass && x.GetCustomAttributes(typeof(ForeignClass)).FirstOrDefault() != null);
 
         private static IEnumerable<MethodInfo> GetMethods(System.Type type) =>
@@ -166,9 +167,9 @@ namespace Outlet.FFI
 
         #endregion
 
-        public static void Register()
+        public static void Register(Assembly assembly)
         {
-            var classes = GetForeignClasses();
+            var classes = GetForeignClasses(assembly);
             foreach (var type in classes)
             {
                 ForeignClass fc = type.GetCustomAttribute(typeof(ForeignClass))
@@ -234,7 +235,7 @@ namespace Outlet.FFI
 
                 // Runtime
                 NativeClass c = ToOutletClass(className, staticMembers.ToArray(), instanceMembers.ToArray());
-                ForeignFunctions.NativeTypes.Add(className, c);
+                NativeOutletTypes.NativeTypes.Add(className, c);
                 Conversions.OutletType[type] = c;
             };
         }

@@ -22,9 +22,9 @@ namespace Outlet.Checking
 
         private CheckStackFrame() : this(null)
         {
-            foreach (string s in ForeignFunctions.NativeTypes.Keys)
+            foreach (string s in NativeOutletTypes.NativeTypes.Keys)
             {
-                Type t = ForeignFunctions.NativeTypes[s];
+                Type t = NativeOutletTypes.NativeTypes[s];
                 Scopes.Peek()[s] = (new MetaType(t), Count++);
             }
         }

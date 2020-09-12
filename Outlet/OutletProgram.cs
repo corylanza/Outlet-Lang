@@ -27,7 +27,7 @@ namespace Outlet
 
         protected OutletProgram(StandardIn stdin, StandardOut stdout, StandardError stderror)
         {
-            NativeInitializer.Register();
+            NativeInitializer.Register(AppDomain.CurrentDomain.Load("Outlet.StandardLib"));
 
             Checker = new Checker();
             Interpreter = new Interpreter();

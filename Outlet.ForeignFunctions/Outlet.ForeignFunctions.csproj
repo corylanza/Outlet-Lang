@@ -5,8 +5,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Outlet.ForeignFunctions\Outlet.ForeignFunctions.csproj" />
-  </ItemGroup>
-
 </Project>
