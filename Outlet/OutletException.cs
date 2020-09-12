@@ -6,9 +6,18 @@ using System.Threading.Tasks;
 
 namespace Outlet {
 	public class OutletException : Exception {
-		public OutletException() { }
-		public OutletException(string s) : base(s) { }
-	}
+		public List<string> Errors { get; set; }
+		public int ErrorCount => Errors.Count;
+
+
+		public OutletException() {
+			Errors = new List<string>();
+		}
+		public OutletException(string s) : base(s)
+		{
+			Errors = new List<string>();
+		}
+    }
 
 	public class LexerException : OutletException {
 		public LexerException(string message) : base("Lexing Error: "+message) { }

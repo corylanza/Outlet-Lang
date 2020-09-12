@@ -3,73 +3,53 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Outlet.Lexing;
-using Outlet.Tokens;
-using Outlet.Parsing;
 using Outlet.AST;
-using Outlet.Checking;
-using Outlet.Operands;
-using Outlet.Interpreting;
-using Outlet.FFI;
 
 namespace Outlet {
 	public static class Program {
 
+		public static void Main(string[] args) {
+#if (DEBUG)
+			REPL();
+#else
 
-        public static Checker checker = new Checker();
-        public static Interpreter interpreter = new Interpreter();
-
-        public static void Main(string[] args) {
-            NativeInitializer.Register();
-            if(args.Length == 0) REPL();
-			if(args.Length == 1 && args[0] == "run") {
-				while(true) {
+			if (args.Length == 1) RunFile(args[0]);
+			else {
+				while (true) {
 					Console.WriteLine("enter the name of the file:");
 					string f = Console.ReadLine();
-					RunFile(Directory.GetCurrentDirectory()+@"\Outlet\Test\" + f + ".txt");
+					RunFile(Directory.GetCurrentDirectory() + @"\Outlet\Test\" + f + ".txt");
 				}
-			} else if(args.Length == 1) RunFile(args[0]);
+			}
+#endif
+
 		}
 
-        public static void RunFile(string path) {
-			if(!File.Exists(path)) ThrowException("file does not exist");
+		public static void RunFile(string path) {
+			if (!File.Exists(path)) ThrowException("file does not exist");
 			else {
 				byte[] file = File.ReadAllBytes(path);
 				byte[] bytes = file.Skip(3).ToArray();
-				Run(bytes);
+				new OutletProgramFile(bytes, () => Console.ReadLine(), text => Console.WriteLine(text), ex => ThrowException(ex.Message));
 				Console.ReadLine();
 			}
-        }
+		}
 
-        public static void REPL() {
+		public static void REPL() {
+			var repl = new ReplOutletProgram(() => Console.ReadLine(), text => Console.WriteLine(text), ex => ThrowException(ex.Message));
 			while (true) {
 				Console.ForegroundColor = ConsoleColor.White;
 				Console.WriteLine("<enter an expression>");
 				string input = "";
-				while (input.Length == 0 || input.Count((c) => c == '{') > input.Count((c) => c == '}')) { 
+				while (input.Length == 0 || input.Count((c) => c == '{') > input.Count((c) => c == '}')) {
 					input += Console.ReadLine();
 				}
-                byte[] bytes = Encoding.ASCII.GetBytes(input);
-				Run(bytes);
-            }
-        }
-
-		public static void Run(byte[] bytes) {
-			try {
-				LinkedList<Token> lexout = Lexer.Scan(bytes);
-				IASTNode program = Parser.Parse(lexout);
-				checker.Check(program);
-				Operand res = interpreter.Interpret(program);
-				if(res != null) Console.WriteLine("Expression returned " + res);
-			} catch(OutletException ex) {
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine(ex.Message);
-				Console.ForegroundColor = ConsoleColor.White;
+				byte[] bytes = Encoding.ASCII.GetBytes(input);
+				Console.WriteLine(repl.Run(bytes).ToString());
 			}
 		}
 
-		public static void ThrowException(string message) {
+		private static void ThrowException(string message) {
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.WriteLine(message);
 			Console.ForegroundColor = ConsoleColor.White;
@@ -77,21 +57,30 @@ namespace Outlet {
 
 		public static string ToListString<T>(this List<T> list) {
 			string s = "";
-			for(int i = 0; i < list.Count; i++) {
+			for (int i = 0; i < list.Count; i++) {
 				s += list[i]?.ToString() ?? "";
 				if (i != list.Count - 1) s += ", ";
 			}
 			return s;
 		}
 
-        public static bool SameLengthAndAll<T, U>(this IEnumerable<T> list, IEnumerable<U> other, Func<T, U, bool> predicate)
+		public static bool SameLengthAndAll<T, U>(this IEnumerable<T> list, IEnumerable<U> other, Func<T, U, bool> predicate)
+		{
+			if (list.Count() != other.Count()) return false;
+			for (int i = 0; i < list.Count(); i++)
+			{
+				if (!predicate(list.ElementAt(i), other.ElementAt(i))) return false;
+			}
+			return true;
+		}
+
+		public static IEnumerable<(F, S)> Zip<F, S>(this IEnumerable<F> first, IEnumerable<S> second)
         {
-            if (list.Count() != other.Count()) return false;
-            for(int i = 0; i < list.Count(); i++)
+			if(first.Count() == second.Count())
             {
-                if (!predicate(list.ElementAt(i), other.ElementAt(i))) return false;
+				return Enumerable.Range(0, first.Count()).Select(idx => (first.ElementAt(idx), second.ElementAt(idx)));
             }
-            return true;
+			throw new Exception("can't zip collections of different lengths");
         }
 
         public static Variable ToVariable(this string s) => new Variable(s);

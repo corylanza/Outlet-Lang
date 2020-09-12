@@ -8,8 +8,8 @@ using Outlet.Operands;
 
 namespace Outlet.FFI
 {
-    [ForeignClass(Name = "console", IsStatic = true)]
-    public class Global
+    [ForeignClass(Name = "console")]
+    public static class ConsoleWrapper
     {
         [ForeignFunction(Name = "print")]
         public static void PrintThis(object text) => Console.WriteLine(text);
@@ -18,8 +18,8 @@ namespace Outlet.FFI
         public static string ReadThis() => Console.ReadLine();
     }
 
-    [ForeignClass(Name = "math", IsStatic = true)]
-    public class MathO
+    [ForeignClass(Name = "math")]
+    public static class MathO
     {
         [ForeignField(Name = "pi")]
         public const float PI = (float)Math.PI;
@@ -40,8 +40,8 @@ namespace Outlet.FFI
         public static int Max(int a, int b, int c) => a > b ? a : b > c ? b : c;
     }
 
-    [ForeignClass(Name = "outlet", IsStatic = true)]
-    public class Outlet
+    [ForeignClass(Name = "outlet")]
+    public static class Outlet
     {
         [ForeignFunction(Name = "run")]
         public static void Run(string name)
@@ -50,7 +50,7 @@ namespace Outlet.FFI
         }
     }
 
-    [ForeignClass(Name = "dict", IsStatic = false)]
+    [ForeignClass(Name = "dict")]
     public class ODictionary 
     {
         private readonly Dictionary<string, object> dictionary = new Dictionary<string, object>();

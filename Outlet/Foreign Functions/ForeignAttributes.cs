@@ -10,27 +10,28 @@ namespace Outlet.FFI
     public class ForeignInterface : Attribute
     {
         public string? Name { get; set; }
-        public bool IsStatic { get; set; }
     }
 
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-    public class ForeignFunction : ForeignInterface
+    public sealed class ForeignFunction : ForeignInterface
     {
+        public bool IsStatic { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public class ForeignField : ForeignInterface
+    public sealed class ForeignField : ForeignInterface
     {
+        public bool IsStatic { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class ForeignClass : ForeignInterface
+    public sealed class ForeignClass : ForeignInterface
     {
     }
 
     [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = true)]
-    public class ForeignConstructor : ForeignInterface
+    public sealed class ForeignConstructor : ForeignInterface
     {
     }
 }

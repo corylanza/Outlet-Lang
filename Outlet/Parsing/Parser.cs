@@ -39,8 +39,5 @@ namespace Outlet.Parsing {
 			ll.RemoveFirst();
 			return temp;
 		}
-
-		public static T Head<T>(this LinkedList<T> ll) => ll.Count == 0 ? default : ll.First();
-
 	}
 }

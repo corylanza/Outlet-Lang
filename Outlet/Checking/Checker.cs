@@ -22,7 +22,7 @@ namespace Outlet.Checking
             public Error(string message)
             {
                 ErrorCount++;
-                if (message != "") Program.ThrowException(message);
+                //if (message != "") Program.ThrowException(message);
                 Message = message;
             }
 
@@ -171,7 +171,7 @@ namespace Outlet.Checking
                 FunctionType ft = type is FunctionType fnt ? fnt : throw new CheckerException("Expected Function type");
                 // enter the function scope and define the args;
                 EnterStackFrame();
-                ft.Args.Zip(f.Args).ToList().ForEach(arg => Define(arg.First.type, arg.Second));
+                ft.Args.Zip(f.Args).ToList().ForEach(arg => Define(arg.Item1.type, arg.Item2));
                 // check the body now that its header and args have been defined
                 Type body = f.Body.Accept(this);
                 if (f is ConstructorDeclaration)

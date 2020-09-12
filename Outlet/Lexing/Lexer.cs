@@ -18,12 +18,12 @@ namespace Outlet.Lexing {
             InitStates();
         }
 
-		public static void Error(string message) {
+		private static void Error(string message, StandardError errorHandler) {
 			ErrorCount++;
-			Program.ThrowException(message);
+			errorHandler(new LexerException(message));
 		}
 
-        public static LinkedList<Token> Scan(byte[] charStream) {
+        public static LinkedList<Token> Scan(byte[] charStream, StandardError errorHandler) {
 			ErrorCount = 0;
 			machine.Cur = start; 
 			string buffer = "";
@@ -52,7 +52,7 @@ namespace Outlet.Lexing {
 					buffer = "";
 					machine.Cur = start.Transition(c);
 				} else {
-					Error("illegal character");
+					Error("illegal character", errorHandler);
 				}
                 if(machine.Cur.Keep) buffer += (char) b;
 				CharPos++;
@@ -61,7 +61,7 @@ namespace Outlet.Lexing {
 					CharPos = 0;
 				}
             }
-			if(!machine.Cur.Accepting && buffer.Length > 0) Error("illegal state");
+			if(!machine.Cur.Accepting && buffer.Length > 0) Error("illegal state", errorHandler);
 			else if(buffer.Length > 0) {
 				Token? toadd = machine.Cur.Output is Tokenizer t ? t (buffer) : null;
 				if(toadd != null) tokens.AddLast(toadd);

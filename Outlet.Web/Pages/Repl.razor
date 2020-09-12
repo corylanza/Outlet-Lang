@@ -1,0 +1,16 @@
+﻿@page "/repl"
+
+<h3>Repl</h3>
+
+<OutletEditor @bind-Text="Input" />
+
+<button class="btn btn-primary" @onclick="RunOutlet">Run</button>
+
+<p>@Output</p>
+
+@foreach (var error in Errors)
+{
+    <div class="alert alert-primary" role="alert">
+        @error
+    </div>
+}
