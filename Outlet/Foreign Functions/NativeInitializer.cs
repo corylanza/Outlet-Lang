@@ -12,10 +12,16 @@ using System.Reflection;
 
 namespace Outlet.FFI
 {
-    public static class NativeInitializer
+    public class NativeInitializer
     {
+        private SystemInterface System { get; }
 
-        public static Operand ToOutletOperand(object? o, SystemInterface sys) => o switch
+        public NativeInitializer(SystemInterface system)
+        {
+            System = system;
+        }
+
+        public Operand ToOutletOperand(object? o) => o switch
         {
             string s => new Operands.String(s),
             float f => Value.Float(f),
@@ -23,17 +29,17 @@ namespace Outlet.FFI
             int i => Value.Int(i),
             null => Value.Null,
             IEnumerable collection =>
-                new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element, sys)).ToArray()),
-            _ when Conversions.OutletType.ContainsKey(o.GetType()) => ToOutletInstance((Conversions.OutletType[o.GetType()] as NativeClass)!, o, sys),
+                new Operands.Array(collection.OfType<object>().Select(element => ToOutletOperand(element)).ToArray()),
+            _ when Conversions.OutletType.ContainsKey(o.GetType()) => ToOutletInstance((Conversions.OutletType[o.GetType()] as NativeClass)!, o),
             _ => throw new UnexpectedException("Cannot map type")
         };
 
-        public static Operand ToOutletInstance(NativeClass nc, object o, SystemInterface sys)
+        public Operand ToOutletInstance(NativeClass nc, object o)
         {
-            static Operand ToMember(string id, MemberInfo member, object o, SystemInterface sys) => member switch
+            Operand ToMember(string id, MemberInfo member, object o) => member switch
             {
-                MethodInfo method => Convert(id, method, sys),
-                FieldInfo field => ToOutletOperand(o.GetType()!.GetField(field.Name)!.GetValue(o), sys),
+                MethodInfo method => Convert(id, method),
+                FieldInfo field => ToOutletOperand(o.GetType()!.GetField(field.Name)!.GetValue(o)),
                 _ => throw new NotSupportedException()
             };
 
@@ -42,7 +48,7 @@ namespace Outlet.FFI
                 if (id.Resolved(out uint localId))
                 {
                     var (memberId, member) = nc.InstanceMembers[localId];
-                    return ToMember(memberId, member, o, sys);
+                    return ToMember(memberId, member, o);
                 }
                 throw new Exception("Not resolved");
             }
@@ -60,20 +66,20 @@ namespace Outlet.FFI
             {
                 foreach ((string id, MemberInfo member) in nc.InstanceMembers)
                 {
-                    yield return (id, ToMember(id, member, o, sys));
+                    yield return (id, ToMember(id, member, o));
                 }
             }
 
             return new NativeInstance(nc, o, Get, Set, List);
         }
 
-        public static NativeClass ToOutletClass(string name, (string id, MemberInfo member)[] staticMembers, (string, MemberInfo)[] instanceMembers, SystemInterface sys)
+        public NativeClass ToOutletClass(string name, (string id, MemberInfo member)[] staticMembers, (string, MemberInfo)[] instanceMembers)
         {
-            static Operand ToMember(string id, MemberInfo member, SystemInterface sys) => member switch
+            Operand ToMember(string id, MemberInfo member) => member switch
             {
-                MethodInfo method => Convert(id, method, sys),
-                FieldInfo field => ToOutletOperand(field.DeclaringType!.GetField(field.Name)!.GetValue(null), sys),
-                ConstructorInfo constructor => Convert(constructor, sys),
+                MethodInfo method => Convert(id, method),
+                FieldInfo field => ToOutletOperand(field.DeclaringType!.GetField(field.Name)!.GetValue(null)),
+                ConstructorInfo constructor => Convert(constructor),
                 _ => throw new NotSupportedException()
             };
 
@@ -82,7 +88,7 @@ namespace Outlet.FFI
                 if (id.Resolved(out uint localId))
                 {
                     var (memberId, member) = staticMembers[localId];
-                    return ToMember(memberId, member, sys);
+                    return ToMember(memberId, member);
                 }
                 throw new Exception("Not resolved");
             };
@@ -99,7 +105,7 @@ namespace Outlet.FFI
             {
                 foreach ((string id, MemberInfo member) in staticMembers)
                 {
-                    yield return (id, ToMember(id, member, sys));
+                    yield return (id, ToMember(id, member));
                 }
             }
 
@@ -137,20 +143,20 @@ namespace Outlet.FFI
                 .Select(param => (Convert(param.ParameterType), param.Name!))
                 .ToArray(), Convert(method.ReturnType));
 
-        public static NativeFunction Convert(string name, MethodInfo method, SystemInterface sys) =>
-            new NativeFunction(name, ToOutletMethodType(method), method, sys);
+        public NativeFunction Convert(string name, MethodInfo method) =>
+            new NativeFunction(name, ToOutletMethodType(method), method, System);
 
         public static FunctionType ToOutletConstructorType(ConstructorInfo constructor) =>
             new FunctionType(constructor.GetParameters()
                 .Select(param => (Convert(param.ParameterType), param.Name!))
                 .ToArray(), Convert(constructor.DeclaringType!));
 
-        public static NativeConstructor Convert(ConstructorInfo constructor, SystemInterface sys) =>
-            new NativeConstructor("", ToOutletConstructorType(constructor), constructor, sys);
+        public NativeConstructor Convert(ConstructorInfo constructor) =>
+            new NativeConstructor("", ToOutletConstructorType(constructor), constructor, System);
 
-        public static Operand Convert(FieldInfo field, SystemInterface sys)
+        public Operand Convert(FieldInfo field)
         {
-            return ToOutletOperand(field.GetValue(null), sys);
+            return ToOutletOperand(field.GetValue(null));
         }
 
         #region Reflection
@@ -170,7 +176,7 @@ namespace Outlet.FFI
 
         #endregion
 
-        public static void Register(Assembly assembly, SystemInterface sys)
+        public void Register(Assembly assembly)
         {
             var classes = GetForeignClasses(assembly);
             foreach (var type in classes)
@@ -237,7 +243,7 @@ namespace Outlet.FFI
 
 
                 // Runtime
-                NativeClass c = ToOutletClass(className, staticMembers.ToArray(), instanceMembers.ToArray(), sys);
+                NativeClass c = ToOutletClass(className, staticMembers.ToArray(), instanceMembers.ToArray());
                 NativeOutletTypes.NativeTypes.Add(className, c);
                 Conversions.OutletType[type] = c;
             };

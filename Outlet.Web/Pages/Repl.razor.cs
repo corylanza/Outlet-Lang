@@ -29,7 +29,7 @@ namespace Outlet.Web.Pages
         public void RunOutlet()
         {
             Errors.Clear();
-            Output = Program.Run(Encoding.ASCII.GetBytes(Input)).ToString();
+            Output += Program.Run(Encoding.ASCII.GetBytes(Input)).ToString();
         }
 
         public void ShowError(Exception ex)
@@ -39,7 +39,7 @@ namespace Outlet.Web.Pages
 
         public void ShowOutput(string output)
         {
-
+            Output += output;
         }
 
         public string GetInput()

@@ -9,16 +9,16 @@ namespace Outlet.StandardLib
     [ForeignClass(Name = "File")]
     public class OFile
     {
-        private string? Path;
+        [ForeignField]
+        public string Path;
+
+        public OFile(string path)
+        {
+            Path = path;
+        }
 
         [ForeignFunction(Name = "open")]
-        public static OFile Open(string path)
-        {
-            return new OFile()
-            {
-                Path = path
-            };
-        }
+        public static OFile Open(string path) => new OFile(path);
 
         [ForeignFunction(Name = "read")]
         public string[] Read()

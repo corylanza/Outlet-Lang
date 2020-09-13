@@ -25,7 +25,7 @@ namespace Outlet
         protected OutletProgram(SystemInterface sys)
         {
             System = sys;
-            NativeInitializer.Register(AppDomain.CurrentDomain.Load("Outlet.StandardLib"), sys);
+            new NativeInitializer(sys).Register(AppDomain.CurrentDomain.Load("Outlet.StandardLib"));
 
             Checker = new Checker();
             Interpreter = new Interpreter();

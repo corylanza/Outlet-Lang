@@ -14,18 +14,18 @@ namespace Outlet.Tests
         {
         }
 
-        public static OutletProgramFile LoadProgramFromFile(string path)
-        {
-            byte[] file = File.ReadAllBytes(path);
-            byte[] bytes = file.Skip(3).ToArray();
-            return new OutletProgramFile(bytes, () => "", s => { }, ex => { });
-        }
+        //public static OutletProgramFile LoadProgramFromFile(string path)
+        //{
+        //    byte[] file = File.ReadAllBytes(path);
+        //    byte[] bytes = file.Skip(3).ToArray();
+        //    return new OutletProgramFile(bytes, Program.ConsoleInterface);
+        //}
 
         [Test]
         public void TestRepl()
         {
             int errorCount = 0;
-            ReplOutletProgram program = new ReplOutletProgram(() => Console.ReadLine(), text => Console.WriteLine(text), OnException);
+            ReplOutletProgram program = new ReplOutletProgram(Program.ConsoleInterface(OnException));
             string RunCode(string code) => program.Run(Encoding.ASCII.GetBytes(code)).ToString();
             void OnException(Exception ex)
             {
@@ -44,7 +44,7 @@ namespace Outlet.Tests
         public void TestClasses()
         {
             List<string> errors = new List<string>();
-            ReplOutletProgram program = new ReplOutletProgram(() => Console.ReadLine(), text => Console.WriteLine(text), OnException);
+            ReplOutletProgram program = new ReplOutletProgram(Program.ConsoleInterface(OnException));
             string RunCode(string code) => program.Run(Encoding.ASCII.GetBytes(code)).ToString();
             void OnException(Exception ex)
             {

@@ -36,7 +36,7 @@ namespace Outlet.FFI.Natives
                 } 
             }).ToArray();
             var res = Underlying.Invoke(instance, args);
-            return NativeInitializer.ToOutletOperand(res, System);
+            return new NativeInitializer(System).ToOutletOperand(res);
         }
     }
 
@@ -52,7 +52,7 @@ namespace Outlet.FFI.Natives
         }
 
         public override Operand Call(Operand? caller, params Operand[] args) =>
-            NativeInitializer.ToOutletInstance(RuntimeType.ReturnType is NativeClass nc ? nc : throw new UnexpectedException("Expected Native Class"),
-            Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()), System);
+            new NativeInitializer(System).ToOutletInstance(RuntimeType.ReturnType is NativeClass nc ? nc : throw new UnexpectedException("Expected Native Class"),
+            Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }
 }

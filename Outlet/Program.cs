@@ -26,24 +26,24 @@ namespace Outlet {
 
 		}
 
-		public static SystemInterface ConsoleInterface => new SystemInterface(
+		public static SystemInterface ConsoleInterface(StandardError stderror) => new SystemInterface(
 			stdin: () => Console.ReadLine(),
 			stdout: text => Console.WriteLine(text),
-			stderr: ex => ThrowException(ex.Message)
+			stderr: stderror
 		);
 
 		public static void RunFile(string path) {
-			if (!File.Exists(path)) ThrowException("file does not exist");
+			if (!File.Exists(path)) ThrowException(new Exception("file does not exist"));
 			else {
 				byte[] file = File.ReadAllBytes(path);
 				byte[] bytes = file.Skip(3).ToArray();
-				new OutletProgramFile(bytes, ConsoleInterface);
+				new OutletProgramFile(bytes, ConsoleInterface(ThrowException));
 				Console.ReadLine();
 			}
 		}
 
 		public static void REPL() {
-			var repl = new ReplOutletProgram(ConsoleInterface);
+			var repl = new ReplOutletProgram(ConsoleInterface(ThrowException));
 			while (true) {
 				Console.ForegroundColor = ConsoleColor.White;
 				Console.WriteLine("<enter an expression>");
@@ -56,9 +56,9 @@ namespace Outlet {
 			}
 		}
 
-		private static void ThrowException(string message) {
+		private static void ThrowException(Exception ex) {
 			Console.ForegroundColor = ConsoleColor.Red;
-			Console.WriteLine(message);
+			Console.WriteLine(ex.Message);
 			Console.ForegroundColor = ConsoleColor.White;
 		}
 
