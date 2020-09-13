@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Outlet.StandardLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -15,7 +16,12 @@ namespace Outlet.Web.Pages
 
         public Repl()
         {
-            Program = new ReplOutletProgram(GetInput, ShowOutput, ShowError);
+            var browserInterface = new SystemInterface(
+                stdin: GetInput,
+                stdout: ShowOutput,
+                stderr: ShowError
+            );
+            Program = new ReplOutletProgram(browserInterface);
         }
 
         protected List<string> Errors { get; set; } = new List<string>();

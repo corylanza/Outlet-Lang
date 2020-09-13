@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Outlet.Util;
 using Outlet.Tokens;
+using Outlet.StandardLib;
 
 namespace Outlet.Lexing {
     public static partial class Lexer {

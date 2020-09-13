@@ -7,7 +7,7 @@ using System.Text;
 namespace Outlet.StandardLib
 {
     [ForeignClass(Name = "Directory")]
-    public class ODirectory
+    public static class ODirectory
     {
         [ForeignFunction(Name = "current")]
         public static string Current() => Directory.GetCurrentDirectory();

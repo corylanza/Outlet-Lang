@@ -21,9 +21,10 @@ namespace Outlet.Checking
 
             public Error(string message)
             {
-                ErrorCount++;
                 //if (message != "") Program.ThrowException(message);
                 Message = message;
+
+                CheckingErrors.Add(this);
             }
 
             public override bool Is(Type t, out uint level) {
@@ -34,7 +35,7 @@ namespace Outlet.Checking
             public override string ToString() => "error";
         }
         //private static readonly Type ErrorType = new ProtoClass("error", null, null, null);
-        public static int ErrorCount = 0;
+        public static List<Error> CheckingErrors = new List<Error>();
 
         public Checker()
         {
@@ -45,7 +46,7 @@ namespace Outlet.Checking
 
         public void Check(IASTNode program)
         {
-            ErrorCount = 0;
+            CheckingErrors.Clear();
             if (program is FunctionDeclaration || program is ClassDeclaration)
             {
                 DoImpl.Push(false);
@@ -56,7 +57,18 @@ namespace Outlet.Checking
                 DoImpl.Pop();
             }
             else program.Accept(this);
-            if (ErrorCount > 0) throw new CheckerException(ErrorCount + " Checking errors encountered");
+
+            if (CheckingErrors.Count > 0)
+            {
+                var errorMessage = $"{CheckingErrors.Count} Checking errors encountered\n";
+                foreach(var error in CheckingErrors)
+                {
+                    errorMessage += error.Message + "\n";
+                }
+
+                throw new CheckerException(errorMessage);
+            }
+
         }
 
         public void EnterScope() => CurrentStackFrame.EnterScope();
@@ -393,9 +405,8 @@ namespace Outlet.Checking
             if(CurrentStackFrame.Resolve(v, out Type type, out uint level, out uint id))
             {
                 v.Bind(id, level);
-                return type;
             }
-            return new Error("variable " + v.Identifier + " could not be resolved");
+            return type;
         }
 
         #endregion

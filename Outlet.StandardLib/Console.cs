@@ -7,9 +7,9 @@ namespace Outlet.StandardLib
     public static class ConsoleClass
     {
         [ForeignFunction(Name = "print")]
-        public static void PrintThis(object text) => Console.WriteLine(text);
+        public static void PrintThis(SystemInterface sys, object text) => sys.StdOut(text.ToString());
 
         [ForeignFunction(Name = "read")]
-        public static string ReadThis() => Console.ReadLine();
+        public static string ReadThis(SystemInterface sys) => sys.StdIn();
     }
 }

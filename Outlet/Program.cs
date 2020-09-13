@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Outlet.AST;
+using Outlet.StandardLib;
 
 namespace Outlet {
 	public static class Program {
@@ -25,18 +26,24 @@ namespace Outlet {
 
 		}
 
+		public static SystemInterface ConsoleInterface => new SystemInterface(
+			stdin: () => Console.ReadLine(),
+			stdout: text => Console.WriteLine(text),
+			stderr: ex => ThrowException(ex.Message)
+		);
+
 		public static void RunFile(string path) {
 			if (!File.Exists(path)) ThrowException("file does not exist");
 			else {
 				byte[] file = File.ReadAllBytes(path);
 				byte[] bytes = file.Skip(3).ToArray();
-				new OutletProgramFile(bytes, () => Console.ReadLine(), text => Console.WriteLine(text), ex => ThrowException(ex.Message));
+				new OutletProgramFile(bytes, ConsoleInterface);
 				Console.ReadLine();
 			}
 		}
 
 		public static void REPL() {
-			var repl = new ReplOutletProgram(() => Console.ReadLine(), text => Console.WriteLine(text), ex => ThrowException(ex.Message));
+			var repl = new ReplOutletProgram(ConsoleInterface);
 			while (true) {
 				Console.ForegroundColor = ConsoleColor.White;
 				Console.WriteLine("<enter an expression>");

@@ -59,7 +59,10 @@ namespace Outlet.Checking
             else
             {
                 decl.Bind(Count++, 0);
-                Scopes.Peek()[decl.Identifier] = (type, decl.LocalId.Value);
+                if(decl.LocalId.HasValue)
+                {
+                    Scopes.Peek()[decl.Identifier] = (type, decl.LocalId.Value);
+                }
             }
         }
 
