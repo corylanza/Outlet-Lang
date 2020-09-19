@@ -11,7 +11,7 @@ namespace Outlet.Tokens {
     {
         public int LineNumber, CharPos;
 
-        public TokenLiteral(int linenumber, int posinline)
+        protected TokenLiteral(int linenumber, int posinline)
         {
             LineNumber = linenumber;
             CharPos = posinline;
@@ -30,7 +30,7 @@ namespace Outlet.Tokens {
 
     public abstract class TokenLiteral<E> : TokenLiteral {
 
-        public TokenLiteral(E val, int linenumber, int posinline) : base(linenumber, posinline)
+        protected TokenLiteral(E val, int linenumber, int posinline) : base(linenumber, posinline)
         {
             Value = val;
         }

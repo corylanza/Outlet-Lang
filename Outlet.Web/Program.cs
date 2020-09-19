@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Outlet.Web
 {
-    public class Program
+    public static class Program
     {
         public static async Task Main(string[] args)
         {

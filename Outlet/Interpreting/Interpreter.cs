@@ -70,14 +70,14 @@ namespace Outlet.Interpreting {
             StackFrame staticScope = new StackFrame(closure, (uint) staticFields.Length, $"{c.Name} static scope");
 
             // Hidden function for initializing instance variables/methods and defining this
-            (Instance, IStackFrame<Operand>) Init(UserDefinedClass type)
+            (Instance, StackFrame) Init(UserDefinedClass type)
             {
                 // Enter the instance scope
                 // add one to instance count for "this" which is not a member but lives in instance scope
                 StackFrame instancescope = new StackFrame(staticScope, (uint) c.InstanceDecls.Count + 1, "class scope");
                 CallStack.Push(instancescope);
 
-                UserDefinedInstance instance = new UserDefinedInstance(type, instancescope, c.InstanceDecls.Count);
+                UserDefinedInstance instance = new UserDefinedInstance(type, instancescope);
 
                 // Assign the value of "this"
                 instancescope.LocalVariables[Class.This] = ("this", instance);
@@ -96,7 +96,7 @@ namespace Outlet.Interpreting {
 
 
             // Define the class
-            UserDefinedClass newClass = new UserDefinedClass(c.Name, super, staticScope, staticFields, Init);
+            UserDefinedClass newClass = new UserDefinedClass(c.Name, super, staticScope, Init);
             var newType = new TypeObject(newClass);
             CurrentStackFrame.Assign(c.Decl, newType);
 
@@ -130,7 +130,7 @@ namespace Outlet.Interpreting {
                     && t.Encapsulated is UserDefinedClass udc ? udc : throw new UnexpectedException("Expected udc");
 
                 // Call the constructors hidden init function to initialize instance variables/methods
-                (Instance inst, IStackFrame<Operand> instancescope) = type.Initialize();
+                (Instance inst, StackFrame instancescope) = type.Initialize();
 
                 // Enter the scope of the constructor
                 if (!c.LocalCount.HasValue) throw new System.Exception("stack frame size not allocated at check time");
@@ -153,7 +153,7 @@ namespace Outlet.Interpreting {
 
 			
             var funcType = new FunctionType(c.Args.Select(arg =>
-                (arg.Accept(this) is TypeObject to ? to.Encapsulated as Type :
+                (arg.Accept(this) is TypeObject to ? to.Encapsulated :
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 c.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated :
                     throw new UnexpectedException("expected type"));
@@ -176,7 +176,7 @@ namespace Outlet.Interpreting {
 				return returnval;
 			}
             var funcType = new FunctionType(f.Args.Select(arg =>
-                (arg.Accept(this) is TypeObject to ? to.Encapsulated as Type : 
+                (arg.Accept(this) is TypeObject to ? to.Encapsulated : 
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 f.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated : 
                     throw new UnexpectedException("expected type"));
@@ -351,7 +351,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(ForLoop f) {
 			Operands.Array c = (Operands.Array) f.Collection.Accept(this);
 			foreach(Operand o in c.Values()) {
-				Type looptype = Cast<TypeObject>(f.LoopVar.Accept(this)).Encapsulated;
+				Cast<TypeObject>(f.LoopVar.Accept(this));
                 CurrentStackFrame.Assign(f.LoopVar, o);
 				Operand res = f.Body.Accept(this);
 				if(f.Body is Statement s && !(s is Expression) && res != null) {
@@ -392,7 +392,8 @@ namespace Outlet.Interpreting {
             {
                 foreach(var (id, val) in d.GetMembers())
                 {
-                    // TODO fix CurScope.Add(id, val.GetOutletType(), val);
+                    // TODO fix
+                    CurrentStackFrame.Assign(new Variable(id), val);
                 }
                 return Empty.Value;
             } 

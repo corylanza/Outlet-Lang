@@ -176,7 +176,7 @@ namespace Outlet.FFI
 
         #endregion
 
-        public void Register(Assembly assembly)
+        public void Register(Assembly assembly, CheckStackFrame globalScope, Action<Error> checkingError)
         {
             var classes = GetForeignClasses(assembly);
             foreach (var type in classes)
@@ -190,16 +190,16 @@ namespace Outlet.FFI
                 var constructors = GetConstructors(type);
 
                 var staticMembers = new List<(string id, MemberInfo member)>();
-                var staticTypes = new CheckStackFrame(null);
+                var staticTypes = new CheckStackFrame(null, checkingError);
                 var instanceMembers = new List<(string id, MemberInfo member)>();
-                var instanceTypes = new CheckStackFrame(null);
+                var instanceTypes = new CheckStackFrame(null, checkingError);
 
                 // Checktime
                 // Add Create and define ProtoClass first, allowing members to reference the type they are declared in
-                ProtoClass proto = new ProtoClass(className, Primitive.Object, staticTypes, instanceTypes);
+                ProtoClass proto = new ProtoClass(className, checkingError, Primitive.Object, staticTypes, instanceTypes);
                 MetaType checkTimeType = new MetaType(proto);
                 Conversions.OutletType.Add(type, proto);
-                CheckStackFrame.Global.Assign(className.ToVariable(), checkTimeType);
+                globalScope.Assign(className.ToVariable(), checkTimeType);
 
                 foreach (FieldInfo field in fields)
                 {

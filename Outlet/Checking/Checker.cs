@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Outlet.AST;
 using Outlet.Operands;
 using Outlet.Types;
@@ -15,32 +16,23 @@ namespace Outlet.Checking
         public readonly Stack<bool> DoImpl = new Stack<bool>();
         public readonly Stack<CheckStackFrame> StackFrames = new Stack<CheckStackFrame>();
         public CheckStackFrame CurrentStackFrame => StackFrames.Peek();
-        public class Error : Type
-        {
-            public readonly string Message;
 
-            public Error(string message)
-            {
-                //if (message != "") Program.ThrowException(message);
-                Message = message;
-
-                CheckingErrors.Add(this);
-            }
-
-            public override bool Is(Type t, out uint level) {
-                level = 0;
-                return false;
-            }
-
-            public override string ToString() => "error";
-        }
         //private static readonly Type ErrorType = new ProtoClass("error", null, null, null);
-        public static List<Error> CheckingErrors = new List<Error>();
+        private readonly List<Error> CheckingErrors = new List<Error>();
 
         public Checker()
         {
-            StackFrames.Push(CheckStackFrame.Global);
+            StackFrames.Push(CheckStackFrame.Global(ErrorHandler));
         }
+
+        public void ErrorHandler(Error error)
+        {
+            CheckingErrors.Add(error);
+        }
+
+        public CheckStackFrame GlobalScope => StackFrames.First();
+
+        public Error Error(string message) => new Error(message, ErrorHandler);
 
         private void Define(Type type, IBindable decl) => CurrentStackFrame.Assign(decl, type);
 
@@ -77,7 +69,7 @@ namespace Outlet.Checking
         public CheckStackFrame EnterStackFrame(CheckStackFrame? toPush = null) {
             if (toPush is null)
             {
-                var newFrame = new CheckStackFrame(CurrentStackFrame);
+                var newFrame = new CheckStackFrame(CurrentStackFrame, ErrorHandler);
                 StackFrames.Push(newFrame);
                 return newFrame;
             }
@@ -99,7 +91,7 @@ namespace Outlet.Checking
         {
             if (from is Error) return from;
             if (to is Error) return to;
-            if (!from.Is(to)) return new Error(string.Format(message, from, to));
+            if (!from.Is(to)) return Error(string.Format(message, from, to));
             return to;
         }
 
@@ -111,18 +103,18 @@ namespace Outlet.Checking
         {
             if (!DoImpl.Peek())
             {
-                CheckStackFrame statics = new CheckStackFrame(CurrentStackFrame);
-                CheckStackFrame instances = new CheckStackFrame(statics);
+                CheckStackFrame statics = new CheckStackFrame(CurrentStackFrame, ErrorHandler);
+                CheckStackFrame instances = new CheckStackFrame(statics, ErrorHandler);
                 Class parent = Primitive.Object;
                 if (c.SuperClass != null)
                 {
                     if (c.SuperClass.Accept(this) is MetaType to && to.Stored is Class super)
                     {
                         parent = super;
-                    } else new Error("cannot extend anything other than a class");
+                    } else Error("cannot extend anything other than a class");
                 }
 
-                ProtoClass proto = new ProtoClass(c.Name, parent, statics, instances);
+                ProtoClass proto = new ProtoClass(c.Name, ErrorHandler, parent, statics, instances);
                 Define(new MetaType(proto), c.Decl);
                 EnterStackFrame(statics);
                 //foreach (var (id, classConstraint) in c.GenericParameters)
@@ -188,11 +180,11 @@ namespace Outlet.Checking
                 Type body = f.Body.Accept(this);
                 if (f is ConstructorDeclaration)
                 {
-                    if (body != Primitive.Void) return new Error("constructor cannot return value");
+                    if (body != Primitive.Void) return Error("constructor cannot return value");
                 }
                 else if (body == null || body == Primitive.Void)
                 {
-                    if (ft.ReturnType != Primitive.Void) return new Error("function " + f.Decl.Identifier + "not all code paths return a value");
+                    if (ft.ReturnType != Primitive.Void) return Error("function " + f.Decl.Identifier + "not all code paths return a value");
                 }
                 else Cast(body, ft.ReturnType, f.Decl.Identifier + " function definition invalid, expected {1}, returned {0}");
                 f.LocalCount = CurrentStackFrame.Count;
@@ -207,7 +199,7 @@ namespace Outlet.Checking
             Type? init = v.Initializer?.Accept(this);
             if (v.Decl.IsVar)
             {
-                if (init is null) return new Error($"Cannot determine type of var {v.Name} without initializer");
+                if (init is null) return Error($"Cannot determine type of var {v.Name} without initializer");
                 if (init is MetaType meta) Define(meta, v.Decl);
                 else Define(init, v.Decl);
             }
@@ -232,17 +224,17 @@ namespace Outlet.Checking
             if (elem is MetaType meta && meta.Stored is Class c)
             {
                 if (idxType is MetaType)
-                    return new Error("Generics not supported yet");
+                    return Error("Generics not supported yet");
                 // array types are defined with empty braces []
                 if (idxType == null)
                     return new MetaType(new ArrayType(meta.Stored));
             }
             if (a.Index.Length != 1)
-                return new Error("array access requires exactly 1 index");
+                return Error("array access requires exactly 1 index");
             if (idxType != Primitive.Int)
-                return new Error("only ints can be used to index into an array, found: " + idxType?.ToString());
+                return Error("only ints can be used to index into an array, found: " + idxType?.ToString());
             if (elem is ArrayType at) return at.ElementType;
-            return new Error("type " + elem.ToString() + " is not accessable by array access operator []");
+            return Error("type " + elem.ToString() + " is not accessable by array access operator []");
         }
 
         public Type Visit(As a)
@@ -250,12 +242,12 @@ namespace Outlet.Checking
             a.Left.Accept(this);
             Type r = a.Right.Accept(this);
             if (r is MetaType castedTo) return castedTo.Stored;
-            return new Error("the right side of an is expression must be a type, found: " + r.ToString());
+            return Error("the right side of an is expression must be a type, found: " + r.ToString());
         }
 
         public Type Visit(Assign a) => a.Left switch
         {
-            MemberAccess d when d.ArrayLength => new Error("cannot assign to an array length"),
+            MemberAccess d when d.ArrayLength => Error("cannot assign to an array length"),
             Expression left when left is Variable || left is MemberAccess =>
                 (a.Left.Accept(this), a.Right.Accept(this)) switch
                 {
@@ -263,7 +255,7 @@ namespace Outlet.Checking
                     (_, Error e) => e,
                     (Type l, Type r) => Cast(r, l)
                 },
-            _ => new Error("illegal assignment, can only assign to variables and fields")
+            _ => Error("illegal assignment, can only assign to variables and fields")
         };
 
         public Type Visit(Binary b) => (b.Left.Accept(this), b.Right.Accept(this)) switch
@@ -273,7 +265,7 @@ namespace Outlet.Checking
             (Type left, Type right) => 
                 b.Overloads.FindBestMatch(left, right) switch
                 {
-                    null => new Error($"binary operator not defined for {left} {b.Op} {right}"),
+                    null => Error($"binary operator not defined for {left} {b.Op} {right}"),
                     BinOp op => (b.Oper = op).GetResultType()
                 }
         };
@@ -296,12 +288,12 @@ namespace Outlet.Checking
                 var funcargs = functype.Args.ToArray();
                 bool argsMatch = funcargs.SameLengthAndAll(argtypes, (arg, argType) => !(Cast(argType, arg.type, "Could not cast {0} to {1}") is Error));
                 return argsMatch ? functype.ReturnType :
-                    new Error(c.Caller + " expects " + "(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
+                    Error(c.Caller + " expects " + "(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
             }
             if (calltype is MethodGroupType mgt)
             {
                 (FunctionType? bestMatch, uint? id) = mgt.FindBestMatch(argtypes);
-                if(bestMatch is null || id is null) return new Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
+                if(bestMatch is null || id is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
                 if (c.Caller is Variable v && v.ResolveLevel.HasValue)
                 {
                     v.Bind(id.Value, v.ResolveLevel.Value);
@@ -313,23 +305,23 @@ namespace Outlet.Checking
                 else throw new UnexpectedException("Caller is not able to be overloaded");
                 return bestMatch.ReturnType;
             }
-            return new Error("type " + calltype + " is not callable");
+            return Error("type " + calltype + " is not callable");
         }
 
         public Type Visit(Declarator d) => d.Type?.Accept(this) switch
         {
             MetaType meta => meta.Stored,
-            Primitive t when t == Primitive.MetaType => new Error("Declared type must be a check time constant"),
-            Type invalid => new Error($"Declaration requires valid type, found: {invalid}"),
-            null => new Error($"Cannot use var here")
+            Primitive t when t == Primitive.MetaType => Error("Declared type must be a check time constant"),
+            Type invalid => Error($"Declaration requires valid type, found: {invalid}"),
+            null => Error($"Cannot use var here")
         };
 
         public Type Visit(TupleAccess t) => t.Left.Accept(this) switch
         {
             Error e => e,
             TupleType tt when tt.Types.Length > t.Member => tt.Types[t.Member],
-            TupleType tt => new Error($"cannot access element {t.Member} of tuple type {tt} which has {tt.Types.Length} elements"),
-            Type type => new Error($"Cannot reference member {t.Member} of non tuple type {type}")
+            TupleType tt => Error($"cannot access element {t.Member} of tuple type {tt} which has {tt.Types.Length} elements"),
+            Type type => Error($"Cannot reference member {t.Member} of non tuple type {type}")
         };
 
         public Type Visit(MemberAccess d) => d.Left.Accept(this) switch
@@ -338,7 +330,7 @@ namespace Outlet.Checking
             ArrayType _ when d.ArrayLengthAccess() => Primitive.Int,
             ProtoClass instances => instances.GetInstanceMemberType(d.Member),
             MetaType t when t.Stored is ProtoClass statics => statics.GetStaticMemberType(d.Member),
-            Type other => new Error($"cannot dereference type: {other}")
+            Type other => Error($"cannot dereference type: {other}")
         };
 
         public Type Visit(Is i)
@@ -346,13 +338,13 @@ namespace Outlet.Checking
             i.Left.Accept(this);
             Type r = i.Right.Accept(this);
             if (r is MetaType || r == Primitive.MetaType) return Primitive.Bool;
-            return new Error("the right side of an is expression must be a type, found: " + r.ToString());
+            return Error("the right side of an is expression must be a type, found: " + r.ToString());
         }
 
         public Type Visit(Lambda l) => (l.Left.Accept(this), l.Right.Accept(this)) switch
         {
-            (MetaType args, MetaType result) => new Error("NOT IMPLEMENTED"),  //new TypeObject(new FunctionType())
-            _ => new Error("Lambdas currently old work for types")
+            (MetaType args, MetaType result) => Error("NOT IMPLEMENTED"),  //new TypeObject(new FunctionType())
+            _ => Error("Lambdas currently old work for types")
         };
 
         public Type Visit(ListLiteral l)
@@ -376,7 +368,7 @@ namespace Outlet.Checking
         public Type Visit(Ternary t) => (t.Condition.Accept(this), t.IfTrue.Accept(this), t.IfFalse.Accept(this)) switch
         {
             (Primitive condition, _, _) when condition != Primitive.Bool => 
-                new Error($"Ternary condition requires a boolean, found a {condition}"),
+                Error($"Ternary condition requires a boolean, found a {condition}"),
             (_, Error e, _) => e,
             (_, _, Error e) => e,
             (_, Type iftrue, Type iffalse) => Type.CommonAncestor(iftrue, iffalse)
@@ -395,7 +387,7 @@ namespace Outlet.Checking
             Type input = u.Expr.Accept(this);
             if (input is Error) return input;
             var op = u.Overloads.FindBestMatch(input);
-            if (op == null) return new Error("unary operator " + u.Op + " is not defined for type " + input.ToString());
+            if (op == null) return Error("unary operator " + u.Op + " is not defined for type " + input.ToString());
             u.Oper = op;
             return op.GetResultType();
         }
@@ -433,7 +425,7 @@ namespace Outlet.Checking
             foreach (IASTNode d in b.Lines)
             {
                 Type temp = d.Accept(this);
-                if (ret != null) return new Error("unreachable code detected");
+                if (ret != null) return Error("unreachable code detected");
                 if (d is Statement && !(d is Expression) && temp != null)
                 {
                     ret = temp;
@@ -458,7 +450,7 @@ namespace Outlet.Checking
                 if (f.Body is Statement && !(f.Body is Expression) && body != null) return body;
                 return Primitive.Void;
             }
-            return new Error("only array types are iterable, found:" + collection.ToString());
+            return Error("only array types are iterable, found:" + collection.ToString());
         }
 
         public Type Visit(IfStatement i)
@@ -499,7 +491,7 @@ namespace Outlet.Checking
                 foreach (var (id, type) in staticClass.GetStaticMemberTypes())
                 {
                     // TODO restore functionality
-                    //CurrentScope.Define(type, id);
+                    CurrentStackFrame.Assign(new Variable(id), type);
                 }
             {
                 return Primitive.Void;

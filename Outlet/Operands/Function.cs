@@ -7,7 +7,7 @@ namespace Outlet.Operands {
         public readonly string Name;
         public override FunctionType RuntimeType { get; }
 
-        public Function(string name, FunctionType type) => (Name, RuntimeType) = (name, type);
+        protected Function(string name, FunctionType type) => (Name, RuntimeType) = (name, type);
 
         public abstract Operand Call(Operand? caller, params Operand[] args);
 
@@ -18,10 +18,7 @@ namespace Outlet.Operands {
             return Name + RuntimeType.ToString();
         }
 
-        public bool Valid(out uint level, params Type[] inputs)
-        {
-            return (RuntimeType as FunctionType).Valid(out level, inputs);
-        }
+        public bool Valid(out uint level, params Type[] inputs) => RuntimeType.Valid(out level, inputs);
     }
 
 	public class UserDefinedFunction : Function 

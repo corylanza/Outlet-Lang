@@ -8,10 +8,10 @@ namespace Outlet.Lexing {
 
     public static class CharClass {
 
-        private static CharType[] ASCII = new CharType[128];
+        private static readonly CharType[] ASCII = new CharType[128];
 
         static CharClass() {
-            void SetRange(CharType c, int start, int end) {
+            static void SetRange(CharType c, int start, int end) {
                 for(int i = start; i < end; i++) {
                     ASCII[i] = c;
                 }

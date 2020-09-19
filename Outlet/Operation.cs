@@ -9,7 +9,7 @@ namespace Outlet
     {
         protected Type Input, Output;
 
-        public UnOp(Type input, Type output) => (Input, Output) = (input, output);
+        protected UnOp(Type input, Type output) => (Input, Output) = (input, output);
 
         public abstract Operand Perform(Operand input);
 
@@ -47,7 +47,7 @@ namespace Outlet
 
         protected Type LeftInput, RightInput, Output;
 
-        public BinOp(Type left, Type right, Type output) => (LeftInput, RightInput, Output) = (left, right, output);
+        protected BinOp(Type left, Type right, Type output) => (LeftInput, RightInput, Output) = (left, right, output);
 
         public abstract Operand Perform(Operand l, Operand r);
         public abstract bool Valid(out uint level, params Type[] inputs);

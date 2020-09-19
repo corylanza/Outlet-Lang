@@ -3,6 +3,7 @@ using Outlet.Operands;
 using Outlet.Checking;
 using System.Collections.Generic;
 using System.Linq;
+using Outlet.Interpreting;
 
 namespace Outlet.Types {
 
@@ -12,7 +13,7 @@ namespace Outlet.Types {
 		public readonly Class? Parent;
         public const int This = 0;
 
-		public Class(string name, Class? parent) {
+		protected Class(string name, Class? parent) {
 			Name = name;
 			Parent = parent;
 		}
@@ -36,19 +37,17 @@ namespace Outlet.Types {
 
     public class UserDefinedClass : Class, IDereferenceable {
 
-		private readonly Func<UserDefinedClass, (Instance, IStackFrame<Operand>)> Init;
-        private readonly IStackFrame<Operand> StaticStackFrame;
-        private readonly Field[] StaticMembers;
+		private readonly Func<UserDefinedClass, (Instance, StackFrame)> Init;
+        private readonly StackFrame StaticStackFrame;
 
-        public UserDefinedClass(string name, Class parent, IStackFrame<Operand> stackFrame, 
-            Field[] staticMembers, Func<UserDefinedClass, (Instance, IStackFrame<Operand>)> init) : base(name, parent)
+        public UserDefinedClass(string name, Class parent, StackFrame stackFrame, 
+            Func<UserDefinedClass, (Instance, StackFrame)> init) : base(name, parent)
         {
-            StaticMembers = staticMembers;
             StaticStackFrame = stackFrame;
             Init = init;
         }
 
-        public (Instance, IStackFrame<Operand>) Initialize() => Init(this);
+        public (Instance, StackFrame) Initialize() => Init(this);
 
         public Operand GetMember(IBindable field) => StaticStackFrame.Get(field); //StaticMembers[id.LocalId].Value;
         public void SetMember(IBindable field, Operand value) => StaticStackFrame.Assign(field, value); // StaticMembers[id.LocalId] = new Field(id.Identifier, value);
@@ -59,45 +58,35 @@ namespace Outlet.Types {
 
         public readonly CheckStackFrame InstanceMembers;
         public readonly CheckStackFrame StaticMembers;
+        private readonly Action<Error> CheckingError;
 
-        public ProtoClass(string name, Class? parent, CheckStackFrame statics, CheckStackFrame instances) : base(name, parent) {
+        public ProtoClass(string name, Action<Error> checkErrorHandler, Class? parent, CheckStackFrame statics, CheckStackFrame instances) : base(name, parent) {
             InstanceMembers = instances;
             StaticMembers = statics;
+            CheckingError = checkErrorHandler;
 		}
 
         public Type GetStaticMemberType(IBindable variable)
         {
-            if (StaticMembers.Resolve(variable, out Type type, out uint resolveLevel, out uint id)) {
+            if (StaticMembers.Resolve(variable, out Type type, out uint resolveLevel, out uint id))
+            {
                 variable.Bind(id, resolveLevel);
                 return type;
             }
-            else if(variable.Identifier == "") return new Checker.Error("type " + this + " is not instantiable");
-            else return new Checker.Error(this + " does not contain static field: " + variable.Identifier);
+            else if (variable.Identifier == "") return new Error("type " + this + " is not instantiable", CheckingError);
+            else return new Error(this + " does not contain static field: " + variable.Identifier, CheckingError);
         }
         public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.List().Select(member => (member.Id, member.Value as Type));
 
         public Type GetInstanceMemberType(IBindable variable)
         {
-            if (variable.Identifier == "this") return new Checker.Error("may not access property \"this\"");
+            if (variable.Identifier == "this") return new Error("may not access property \"this\"", CheckingError);
             if (InstanceMembers.Resolve(variable, out Type type, out uint resolveLevel, out uint id))
             {
                 variable.Bind(id, resolveLevel);
                 return type;
             }
-            return new Checker.Error(this + " does not contain instance field: " + variable.Identifier);
-
-            //Class cur = this;
-            //while (cur != null)
-            //{
-            //    if (cur is ProtoClass pc && pc.InstanceMembers.Has(variable.Identifier))
-            //    {
-            //        (Type type, int resolveLevel, int id) = pc.InstanceMembers.Resolve(variable);
-            //        if(resolveLevel == 0) return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
-            //        return type as Type;
-            //    }
-            //    cur = cur.Parent;
-            //}
-            //return Checker.Error(this + " does not contain instance field: " + variable.Identifier);
+            return new Error(this + " does not contain instance field: " + variable.Identifier, CheckingError);
         }
         public IEnumerable<(string id, Type type)> GetIntanceMemberTypes() => InstanceMembers.List().Select(member => (member.Id, member.Value as Type));
     }
