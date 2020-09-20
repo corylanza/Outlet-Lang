@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Outlet.StandardLib;
+using Outlet.TreeViewer;
 
 namespace Outlet
 {
@@ -21,6 +22,7 @@ namespace Outlet
         public Checker Checker { get; private set; }
         public Interpreter Interpreter { get; private set; }
         public SystemInterface System { get; private set; }
+        private List<IASTNode> Nodes { get; set; } = new List<IASTNode>();
 
         protected OutletProgram(SystemInterface sys)
         {
@@ -38,6 +40,7 @@ namespace Outlet
             {
                 LinkedList<Token> lexout = Lexer.Scan(bytes, System.StdErr);
                 IASTNode program = Parser.Parse(lexout);
+                Nodes.Add(program);
                 Checker.Check(program);
                 Operand res = Interpreter.Interpret(program);
                 return res;
@@ -55,6 +58,10 @@ namespace Outlet
             Interpreter = new Interpreter();
         }
 
+        public Node GenerateAST()
+        {
+            return new ASTViewer().BuildTree(Nodes.ToArray());
+        }
     }
 
     public class ReplOutletProgram : OutletProgram

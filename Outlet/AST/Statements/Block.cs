@@ -9,17 +9,19 @@ namespace Outlet.AST {
 
 		public readonly List<ClassDeclaration> Classes = new List<ClassDeclaration>();
 		public readonly List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
+		public readonly List<OperatorOverloadDeclaration> OverloadedOperators = new List<OperatorOverloadDeclaration>();
         public readonly List<IASTNode> Lines = new List<IASTNode>();
 
-		public Block(List<IASTNode> lines, List<FunctionDeclaration> funcs, List<ClassDeclaration> classes) {
+		public Block(List<IASTNode> lines, List<FunctionDeclaration> funcs, List<ClassDeclaration> classes, List<OperatorOverloadDeclaration> opOverloads) {
 			Lines = lines;
 			Functions = funcs;
 			Classes = classes;
+			OverloadedOperators = opOverloads;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public static Block Empty() => new Block(new List<IASTNode>(), new List<FunctionDeclaration>(), new List<ClassDeclaration>(), new List<OperatorOverloadDeclaration>());
+
+		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() {
 			string s = "{\n";

@@ -1,12 +1,60 @@
 ﻿@page "/repl"
+@using Microsoft.AspNetCore.Components.Rendering
+
+@functions {
+    private void ASTNode(RenderTreeBuilder __builder, Outlet.TreeViewer.Node node)
+    {
+        <a href="#" class="list-group-item list-group-item-action flex-column align-items-start active">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">@node.Text</h5>
+                <small>3 days ago</small>
+            </div>
+            @*<p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>*@
+            <div class="list-group">
+                @foreach(var child in node.Children)
+                {
+                    ASTNode(__builder, child);
+                }
+            </div>
+        </a>
+    }
+}
 
 <h3>Repl</h3>
 
-<OutletEditor @bind-Text="Input" />
+<div class="container">
+    @foreach (var (input, consoleOutput, result) in History)
+    {
+        <div class="card my-1">
+            <h5 class="card-header">@input</h5>
+            <div class="card-body">
+                @foreach (var output in consoleOutput)
+                {
+                    <p class="card-text">@output</p>
+                }
+                <h5 class="card-title">@result</h5>
+            </div>
+        </div>
+    }
+
+    @if (History.Count > 0)
+    {
+        <button class="btn btn-primary my-1" @onclick="() => History.Clear()">Clear History</button>
+    }
+    <button class="btn btn-primary my-1" @onclick="ShowAST">Show AST</button>
+    <OutletEditor @bind-Text="Input" />
+
+    @if (AST != null)
+    {
+        <div class="list-group">
+        @{
+            ASTNode(__builder, AST);
+        }
+        </div>
+    }
+</div>
 
 <button class="btn btn-primary" @onclick="RunOutlet">Run</button>
-
-<p>@Output</p>
 
 @foreach (var error in Errors)
 {

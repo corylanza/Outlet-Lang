@@ -10,6 +10,7 @@ namespace Outlet.AST {
 
 		public readonly Expression? Type;
         public bool IsVar => Type is null;
+        public bool IsOperatorOverload => Identifier == "operator";
 		public string Identifier { get; private set; }
 		public uint? ResolveLevel { get; private set; }
         public uint? LocalId { get; private set; }

@@ -7,6 +7,7 @@ using Bln = Outlet.Operands.Value<bool>;
 using Flt = Outlet.Operands.Value<float>;
 using Str = Outlet.Operands.String;
 using Obj = Outlet.Operands.Operand;
+using Typ = Outlet.Operands.TypeObject;
 
 namespace Outlet.Tokens {
 	public enum Side { Left, Right }
@@ -32,7 +33,7 @@ namespace Outlet.Tokens {
 			PreDec =		new UnaryOperator("--",	   1,  Side.Left);
 			UnaryPlus =		new UnaryOperator("+",	   2,  Side.Right);
 			Complement =	new UnaryOperator("~",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Value.Int(~l.Underlying)));
-			UnaryAnd =		new UnaryOperator("&",	   2,  Side.Right,	new UnOp<Obj, TypeObject> ((l) => new TypeObject(l.GetOutletType())));
+			UnaryAnd =		new UnaryOperator("&",	   2,  Side.Right,	new UnOp<Obj, Typ> ((l) => new Typ(l.GetOutletType())));
 			Negative =		new UnaryOperator("-",	   2,  Side.Right,	new UnOp<Int, Int>((l) => Value.Int(-l.Underlying)), 
 																		new UnOp<Flt, Flt>((l) => Value.Float(-l.Underlying)),
 																		new UnOp<Str, Str>((l) => new Str("olleh")));
@@ -45,7 +46,7 @@ namespace Outlet.Tokens {
 																		new BinOp<Flt, Flt, Flt>((l, r) => r.Underlying == 0 ?
 																			throw new RuntimeException("Divide By 0") :
 																			Value.Float(l.Underlying / r.Underlying)),
-                                                                        new BinOp<TypeObject, TypeObject, TypeObject>((l, r) => new TypeObject(new UnionType(l.Encapsulated, r.Encapsulated))));
+                                                                        new BinOp<Typ, Typ, Typ>((l, r) => new Typ(new UnionType(l.Encapsulated, r.Encapsulated))));
 			Modulus =		new BinaryOperator("%",    3,  Side.Left, 	new BinOp<Int, Int, Int>((l, r) => r.Underlying == 0 ? 
 																			throw new RuntimeException("Divide By 0") : 
 																			Value.Int(l.Underlying % r.Underlying)));

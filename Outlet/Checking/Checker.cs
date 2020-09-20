@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Outlet.AST;
 using Outlet.Operands;
+using Outlet.Tokens;
 using Outlet.Types;
 using Type = Outlet.Types.Type;
 
@@ -194,6 +194,24 @@ namespace Outlet.Checking
             else throw new UnexpectedException("Could not resolve function type");
         }
 
+        public Type Visit(OperatorOverloadDeclaration o)
+        {
+            switch (o.Operator) {
+                case BinaryOperator b:
+                    if (o.Args.Count != 2) return Error($"Binary operator {b.Name} requires two parameters to overload");
+                    var bb = new UserDefinedBinaryOperation(null, o.Args[0].Accept(this), o.Args[1].Accept(this), o.Decl.Accept(this));
+                    b.Overloads.Add(bb);
+                    return bb.GetResultType();
+                case UnaryOperator u:
+                    if (o.Args.Count != 2) return Error($"Unary operator {u.Name} requires two parameters to overload");
+                    var uu = new UserDefinedUnaryOperation(null, o.Args[0].Accept(this), o.Decl.Accept(this));
+                    u.Overloads.Add(uu);
+                    return uu.GetResultType();
+                default:
+                    return Error("");
+            }
+        }
+
         public Type Visit(VariableDeclaration v)
         {
             Type? init = v.Initializer?.Accept(this);
@@ -274,7 +292,7 @@ namespace Outlet.Checking
         {
             Type calltype = c.Caller.Accept(this);
             if (calltype is Error) return calltype;
-            if (calltype is MetaType t && t.Stored is ProtoClass proto)
+            if (calltype is MetaType t && t.Stored is ProtoClass)
             {
                 // Rather than have to store the overload id within the call it is easier to turn a constructor call into
                 // a dereference to static field "" where the constructor lives
@@ -354,7 +372,7 @@ namespace Outlet.Checking
 
         public Type Visit<E>(Literal<E> c) where E : struct => c.Type;
 
-        public Type Visit(StringLiteral s) => Primitive.String;
+        public Type Visit(AST.StringLiteral s) => Primitive.String;
 
         public Type Visit(NullExpr n) => Primitive.Object;
 

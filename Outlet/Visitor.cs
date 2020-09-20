@@ -6,6 +6,7 @@ namespace Outlet {
 		T Visit(ClassDeclaration c);
 		T Visit(ConstructorDeclaration c);
 		T Visit(FunctionDeclaration f);
+		T Visit(OperatorOverloadDeclaration o);
 		T Visit(VariableDeclaration v);
 
 		T Visit(Access a);
@@ -21,7 +22,7 @@ namespace Outlet {
 		T Visit(MemberAccess d);
 		T Visit(Is i);
 		T Visit(Lambda l);
-		T Visit(ListLiteral l);
+        T Visit(ListLiteral l);
 		T Visit(ShortCircuit s);
 		T Visit(Ternary t);
 		T Visit(TupleLiteral t);

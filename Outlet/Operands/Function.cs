@@ -25,7 +25,6 @@ namespace Outlet.Operands {
     {
 
 		private readonly CallFunc Hidden;
-        public delegate Operand CallFunc(params Operand[] args);
 
         public UserDefinedFunction(string id, FunctionType type, CallFunc act) : base(id, type) 
         {
@@ -34,4 +33,9 @@ namespace Outlet.Operands {
 
 		public override Operand Call(Operand? caller, params Operand[] args) => Hidden(args);
 	}
+
+
+    public delegate Operand CallFunc(params Operand[] args);
+    public delegate Operand BinaryOperation(Operand left, Operand right);
+    public delegate Operand UnaryOperation(Operand expr);
 }

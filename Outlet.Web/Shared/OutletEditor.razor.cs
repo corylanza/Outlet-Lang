@@ -8,6 +8,8 @@ namespace Outlet.Web.Shared
 {
     public partial class OutletEditor
     {
+        private const bool useCodeEditor = false;
+
         [Parameter]
         public string Text { get; set; } = "";
 
@@ -16,13 +18,16 @@ namespace Outlet.Web.Shared
 
         private async Task OnTextChanged(ChangeEventArgs e)
         {
-            Text = e.Value.ToString();
+            Text = useCodeEditor ? await JSRuntime.InvokeAsync<string>("getCodeEditorValue", Array.Empty<object>()) : e.Value.ToString();
             await TextChanged.InvokeAsync(Text);
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            //await JSRuntime.InvokeAsync<string>("initCodeEditor", Array.Empty<object>());
+            if (useCodeEditor && firstRender)
+            {
+                await JSRuntime.InvokeAsync<string>("initCodeEditor", Array.Empty<object>());
+            }
         }
     }
 }

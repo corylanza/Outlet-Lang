@@ -21,6 +21,7 @@ namespace Outlet.Parsing {
 			List<IASTNode> lines = new List<IASTNode>();
 			List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
 			List<ClassDeclaration> classes = new List<ClassDeclaration>();
+			List<OperatorOverloadDeclaration> overloads = new List<OperatorOverloadDeclaration>();
 			while(tokens.Count > 0) {
 				var nextdecl = NextDeclaration(tokens);
 				if(nextdecl is FunctionDeclaration fd) funcs.Add(fd);
@@ -28,10 +29,11 @@ namespace Outlet.Parsing {
 					if(cd.SuperClass == null) classes.Insert(0, cd);
 					else classes.Add(cd);
 				}
+				if (nextdecl is OperatorOverloadDeclaration o) overloads.Add(o);
 				lines.Add(nextdecl);
 			}
 			if (lines.Count == 1) return lines[0];
-			return new Block(lines, funcs, classes);
+			return new Block(lines, funcs, classes, overloads);
 		}
 
 		public static T Dequeue<T>(this LinkedList<T> ll) {

@@ -185,7 +185,12 @@ namespace Outlet.Interpreting {
 			return func;
 		}
 
-		public Operand Visit(VariableDeclaration v) {
+        public Operand Visit(OperatorOverloadDeclaration o)
+        {
+            return Visit(o as FunctionDeclaration);
+        }
+
+        public Operand Visit(VariableDeclaration v) {
 			Operand initial = v.Initializer?.Accept(this) ?? ((TypeObject) v.Decl.Accept(this)).Encapsulated.Default();
             CurrentStackFrame.Assign(v.Decl, initial);
 			return initial;

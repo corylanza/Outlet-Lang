@@ -57,6 +57,11 @@ namespace Outlet.Parsing {
 				(List<Declarator> argnames, Statement body) = ProtoType();
 				return new ConstructorDeclaration(decl, argnames, body);
 			}
+			OperatorOverloadDeclaration OperatorOverloadDef(Declarator decl, Operator op)
+			{
+				(List<Declarator> argnames, Statement body) = ProtoType();
+				return new OperatorOverloadDeclaration(decl, op, argnames, body);
+            }
 			ClassDeclaration ClassDef() {
                 List<(string id, Variable? constraint)> genericParameters = new List<(string, Variable?)>();
                 List<Declaration> instance = new List<Declaration>();
@@ -103,13 +108,19 @@ namespace Outlet.Parsing {
 						} else throw new OutletException("statement: " + nextfield.ToString() + " must be inside a function body");
 					}
 				}
-				if(constructors.Count == 0) constructors.Add(new ConstructorDeclaration(new Declarator(new Variable(name.Name), ""), new List<Declarator>(), new Block(new List<IASTNode>(), new List<FunctionDeclaration>(), new List<ClassDeclaration>())));
+				if(constructors.Count == 0) constructors.Add(new ConstructorDeclaration(new Declarator(new Variable(name.Name), ""), new List<Declarator>(), Block.Empty()));
 				return new ClassDeclaration(name.Name, superclass, genericParameters, constructors, instance, statics);
 			}
 			if(Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement(tokens);
 
 			if(next is Declarator d) {
+				if(d.IsOperatorOverload)
+                {
+					var op = ConsumeType<Operator>("Expected operator following overload");
+					Consume(Delimeter.LeftParen, "Expected ( before operator overload args");
+					return OperatorOverloadDef(d, op);
+                }
 				if(Match(Delimeter.LeftParen)) return FunctionDef(d);
 				else return VarDeclaration(d);
 			}
@@ -135,17 +146,19 @@ namespace Outlet.Parsing {
                 List<IASTNode> lines = new List<IASTNode>();
                 List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
                 List<ClassDeclaration> classes = new List<ClassDeclaration>();
+                List<OperatorOverloadDeclaration> overloads = new List<OperatorOverloadDeclaration>();
                 while (tokens.Count > 0 && tokens.First() != Delimeter.RightCurly) {
                     var nextdecl = NextDeclaration(tokens);
                     if (nextdecl is FunctionDeclaration fd) funcs.Add(fd);
                     if (nextdecl is ClassDeclaration cd) {
                         if (cd.SuperClass == null) classes.Insert(0, cd);
                         else classes.Add(cd);
-                    }
-                    lines.Add(nextdecl);
+					}
+					if (nextdecl is OperatorOverloadDeclaration o) overloads.Add(o);
+					lines.Add(nextdecl);
                 }
                 Consume(Delimeter.RightCurly, "Expected } to close code block");
-                return new Block(lines, funcs, classes);
+                return new Block(lines, funcs, classes, overloads);
             }
             Statement IfStatement() {
                 Consume(Delimeter.LeftParen, "Expected ( after if");
@@ -193,7 +206,7 @@ namespace Outlet.Parsing {
             if(Match(Keyword.Using)) return Using();
 			Expression? expr = Match(Keyword.Var) ? null : NextExpression(tokens);
 			if((Match(Delimeter.SemiC) || tokens.Count == 0) && expr != null) return expr;
-			Identifier id = ConsumeType<Identifier>($"unexpected token: {tokens.First()} expected: ;");
+			Identifier id = ConsumeType<Identifier>($"unexpected token: {tokens.First()}, expected: ;");
 			return expr is null ? new Declarator(id.Name) : new Declarator(expr, id.Name);
 		}
 	}
