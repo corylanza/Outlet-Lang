@@ -8,27 +8,27 @@ using Outlet.Util;
 using Outlet.AST;
 
 namespace Outlet.Parsing {
-	public static partial class Parser {
+	public partial class Parser {
 
 
-		public static Expression NextExpression(LinkedList<Token> tokens) {
+		private Expression NextExpression() {
 			#region preliminary definitons
 			bool expectOperand = true;
 			bool done = false;
 			var (output, stack, arity) = (new Stack<Expression>(), new Stack<Token>(), new Stack<int>());
 			Token? cur = null, last;
 			bool ValidToken() =>
-				tokens.Count > 0 && tokens.First() is Token i &&
+				Tokens.Count > 0 && Tokens.First() is Token i &&
 				((i is Delimeter d && (d != Delimeter.LeftCurly && d != Delimeter.RightCurly && d != Delimeter.SemiC)) ||
 				i is TokenLiteral || i is Operator || i is Identifier);
-			bool NotExpectingOperand(Token toputback) { if(!expectOperand) { tokens.AddFirst(toputback); done = true; return true; } else return false; }
-			bool NotExpectingOperator(Token toputback) { if(expectOperand) { tokens.AddFirst(toputback); done = true; return true; } else return false; }
+			bool NotExpectingOperand(Token toputback) { if(!expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
+			bool NotExpectingOperator(Token toputback) { if(expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Assoc == Side.Left);
 			#endregion
 
 			while (ValidToken() && !done) {
 				last = cur;
-				cur = tokens.Dequeue();
+				cur = Tokens.Dequeue();
 				switch (cur) {
 					case Identifier id:
 						if(NotExpectingOperand(id)) break;
@@ -49,14 +49,14 @@ namespace Outlet.Parsing {
 
 						if(o is UnaryOperator) {
 							if(IsPreUnary(last) && NotExpectingOperand(o)) break;
-							if(IsPostUnary(tokens.FirstOrDefault()) && NotExpectingOperator(o)) break;
+							if(IsPostUnary(Tokens.FirstOrDefault()) && NotExpectingOperator(o)) break;
 						} 
 						if(o is BinaryOperator && NotExpectingOperator(o)) break;
 						while (lesserPrecedence(o)) {
 							ReduceOperator(output, stack);
 						}
 						stack.Push(o);
-						expectOperand = !IsPostUnary(tokens.FirstOrDefault());
+						expectOperand = !IsPostUnary(Tokens.FirstOrDefault());
 						break;
 					case Delimeter colon when colon == Delimeter.Colon:
 						if(NotExpectingOperator(colon)) break;
@@ -78,7 +78,7 @@ namespace Outlet.Parsing {
 						}
 						// If this is a function call push a special function delim to stack, otherwise push (
 						stack.Push(func ? Delimeter.FuncParen : d);
-						if(tokens.Count > 0 && tokens.First() == Delimeter.RightParen) {
+						if(Tokens.Count > 0 && Tokens.First() == Delimeter.RightParen) {
 							arity.Push(0);
 							expectOperand = false;
 						} else {
@@ -92,7 +92,7 @@ namespace Outlet.Parsing {
 						if(!index && NotExpectingOperand(lb)) break;
 						// If this is an index, push a special array index delim to stack, otherwise push [
 						stack.Push(index ? Delimeter.IndexBrace : lb);
-						if(tokens.Count > 0 && tokens.First() == Delimeter.RightBrace) {
+						if(Tokens.Count > 0 && Tokens.First() == Delimeter.RightBrace) {
 							arity.Push(0);
 							expectOperand = false;
 						} else {
@@ -115,7 +115,7 @@ namespace Outlet.Parsing {
 							ReduceOperator(output, stack);
 						}
 						if (stack.Count == 0) {
-							tokens.AddFirst(cur);
+							Tokens.AddFirst(cur);
 							if (output.Count == 1) return output.Pop();
 							else throw new OutletException("invalid expression before )");
 						} else {
@@ -152,7 +152,7 @@ namespace Outlet.Parsing {
 			throw new OutletException("Expression invalid, more operands than needed operators");
 		}
 
-		public static void ReduceOperator(Stack<Expression> output, Stack<Token> stack) {
+		private static void ReduceOperator(Stack<Expression> output, Stack<Token> stack) {
 			if (stack.Count > 0 && stack.Peek() is Operator op) {
 				stack.Pop();
 				if(op == Operator.Ternary) {
@@ -167,17 +167,5 @@ namespace Outlet.Parsing {
 				} else throw new OutletException("Syntax Error: Incomplete expression, tried to reduce");
 			} else throw new OutletException("Expression invalid, more operators than needed operands");
 		}
-
-        public static Literal ToLiteral(this TokenLiteral literal)
-        {
-            return literal switch {
-                IntLiteral i => new Literal<int>(i.Value),
-                FloatLiteral f => new Literal<float>(f.Value),
-                BoolLiteral b => new Literal<bool>(b.Value),
-				Tokens.StringLiteral s => new AST.StringLiteral(s.Value),
-                NullLiteral _ => new NullExpr(),
-                _ => throw new NotImplementedException()
-            }; 
-        }
 	}
 }

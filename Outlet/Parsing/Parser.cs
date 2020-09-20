@@ -7,7 +7,32 @@ using Outlet.AST;
 using Outlet.Tokens;
 
 namespace Outlet.Parsing {
-	public static partial class Parser {
+	public partial class Parser {
+
+		private LinkedList<Token> Tokens { get; set; }
+
+		public Parser(LinkedList<Token> tokens)
+        {
+			Tokens = tokens;
+        }
+
+		private bool Match(Token s)
+		{
+			if (Tokens.Count > 0 && s.Equals(Tokens.First()))
+			{
+				Tokens.RemoveFirst(); return true;
+			}
+			else return false;
+		}
+		private void Consume(Token s, string error)
+		{
+			if (Tokens.Count == 0 || Tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error);
+		}
+		private T ConsumeType<T>(string error) where T : Token
+		{
+			if (Tokens.Count > 0 && Tokens.Dequeue() is T t) return t;
+			else throw new OutletException("Syntax Error: " + error);
+		}
 
 		private static bool IsBinary(Token last) => 
 			last is TokenLiteral || last == Delimeter.RightParen || last == Delimeter.RightBrace;
@@ -17,29 +42,33 @@ namespace Outlet.Parsing {
 			next is null || next is Operator || next == Delimeter.RightParen ||
 			next == Delimeter.Comma || next == Delimeter.RightBrace || next == Delimeter.SemiC;
 
-		public static IASTNode Parse(LinkedList<Token> tokens) {
-			List<IASTNode> lines = new List<IASTNode>();
-			List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
-			List<ClassDeclaration> classes = new List<ClassDeclaration>();
-			List<OperatorOverloadDeclaration> overloads = new List<OperatorOverloadDeclaration>();
-			while(tokens.Count > 0) {
-				var nextdecl = NextDeclaration(tokens);
-				if(nextdecl is FunctionDeclaration fd) funcs.Add(fd);
-				if(nextdecl is ClassDeclaration cd) {
-					if(cd.SuperClass == null) classes.Insert(0, cd);
-					else classes.Add(cd);
-				}
-				if (nextdecl is OperatorOverloadDeclaration o) overloads.Add(o);
-				lines.Add(nextdecl);
-			}
-			if (lines.Count == 1) return lines[0];
-			return new Block(lines, funcs, classes, overloads);
+		public IASTNode Parse() {
+			var block = ParseBlock();
+			if (block.Lines.Count == 1) return block.Lines.First();
+			return block;
 		}
 
-		public static T Dequeue<T>(this LinkedList<T> ll) {
-			T temp = ll.First();
-			ll.RemoveFirst();
-			return temp;
-		}
+        private Block ParseBlock()
+        {
+            List<IASTNode> lines = new List<IASTNode>();
+            List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
+            List<ClassDeclaration> classes = new List<ClassDeclaration>();
+            List<OperatorOverloadDeclaration> overloads = new List<OperatorOverloadDeclaration>();
+            while (Tokens.Count > 0 && Tokens.First() != Delimeter.RightCurly)
+            {
+                var nextdecl = NextDeclaration();
+                if (nextdecl is FunctionDeclaration fd) funcs.Add(fd);
+                if (nextdecl is ClassDeclaration cd)
+                {
+                    if (cd.SuperClass == null) classes.Insert(0, cd);
+                    else classes.Add(cd);
+                }
+                if (nextdecl is OperatorOverloadDeclaration o) overloads.Add(o);
+                lines.Add(nextdecl);
+            }
+            return new Block(lines, funcs, classes, overloads);
+        }
+
+
 	}
 }

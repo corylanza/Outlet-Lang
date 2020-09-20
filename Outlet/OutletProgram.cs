@@ -39,7 +39,7 @@ namespace Outlet
             try
             {
                 LinkedList<Token> lexout = Lexer.Scan(bytes, System.StdErr);
-                IASTNode program = Parser.Parse(lexout);
+                IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
                 Checker.Check(program);
                 Operand res = Interpreter.Interpret(program);

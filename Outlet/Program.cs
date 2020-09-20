@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Outlet.AST;
 using Outlet.StandardLib;
+using Outlet.Tokens;
 
 namespace Outlet {
 	public static class Program {
@@ -90,6 +91,26 @@ namespace Outlet {
 			throw new Exception("can't zip collections of different lengths");
         }
 
-        public static Variable ToVariable(this string s) => new Variable(s);
+		public static T Dequeue<T>(this LinkedList<T> ll)
+		{
+			T temp = ll.First();
+			ll.RemoveFirst();
+			return temp;
+		}
+
+		public static Literal ToLiteral(this TokenLiteral literal)
+		{
+			return literal switch
+			{
+				IntLiteral i => new Literal<int>(i.Value),
+				FloatLiteral f => new Literal<float>(f.Value),
+				BoolLiteral b => new Literal<bool>(b.Value),
+				Tokens.StringLiteral s => new AST.StringLiteral(s.Value),
+				NullLiteral _ => new NullExpr(),
+				_ => throw new NotImplementedException()
+			};
+		}
+
+		public static Variable ToVariable(this string s) => new Variable(s);
 	}
 }
