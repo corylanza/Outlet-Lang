@@ -2,6 +2,7 @@
 using System.Linq;
 using Outlet.AST;
 using Outlet.Operands;
+using Outlet.Operators;
 using Outlet.Tokens;
 using Outlet.Types;
 using Type = Outlet.Types.Type;

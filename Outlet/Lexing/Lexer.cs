@@ -38,13 +38,13 @@ namespace Outlet.Lexing {
 					if(machine.Cur.Output != NoToken) {
 						Token? toadd = machine.Cur.Output is Tokenizer t ? t (buffer) : null;
 						if(toadd != null) {
-							if(tokens.Count > 1 && toadd is IntLiteral i2 && tokens.Last() == Operator.Dot) {
+							if(tokens.Count > 1 && toadd is IntLiteral i2 && tokens.Last() == OperatorToken.Dot) {
 								tokens.RemoveLast();
 								if(tokens.Last() is IntLiteral i1) {
 									tokens.RemoveLast();
 									tokens.AddLast(new FloatLiteral(i1.Value + "." + i2.Value, 0, 0));
 								} else {
-									tokens.AddLast(Operator.Dot);
+									tokens.AddLast(OperatorToken.Dot);
 									tokens.AddLast(i2);
 								}
 							} else tokens.AddLast(toadd);

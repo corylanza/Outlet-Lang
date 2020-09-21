@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Operator = Outlet.Tokens.OperatorToken;
 
 namespace Outlet.Tokens {
 
@@ -68,15 +69,15 @@ namespace Outlet.Tokens {
 			//{"..", Operator.ExcRange},
 			//{"...", Operator.IncRange},
 			// Delimeters
-			{"(", Delimeter.LeftParen },
-			{")", Delimeter.RightParen },
-			{"[", Delimeter.LeftBrace },
-			{"]", Delimeter.RightBrace },
-			{"}", Delimeter.RightCurly },
-			{"{", Delimeter.LeftCurly },
-			{",", Delimeter.Comma },
-			{":", Delimeter.Colon },
-			{";", Delimeter.SemiC },
+			{"(", DelimeterToken.LeftParen },
+			{")", DelimeterToken.RightParen },
+			{"[", DelimeterToken.LeftBrace },
+			{"]", DelimeterToken.RightBrace },
+			{"}", DelimeterToken.RightCurly },
+			{"{", DelimeterToken.LeftCurly },
+			{",", DelimeterToken.Comma },
+			{":", DelimeterToken.Colon },
+			{";", DelimeterToken.SemiC },
 		};
 	}
 }

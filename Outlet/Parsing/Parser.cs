@@ -35,12 +35,12 @@ namespace Outlet.Parsing {
 		}
 
 		private static bool IsBinary(Token last) => 
-			last is TokenLiteral || last == Delimeter.RightParen || last == Delimeter.RightBrace;
+			last is TokenLiteral || last is Identifier || last == DelimeterToken.RightParen || last == DelimeterToken.RightBrace;
 		private static bool IsPreUnary(Token? last) => 
-			last is null || last is Operator || last == Delimeter.LeftParen || last == Delimeter.LeftBrace || last == Delimeter.Comma;
+			last is null || last is OperatorToken || last == DelimeterToken.LeftParen || last == DelimeterToken.LeftBrace || last == DelimeterToken.Comma;
 		private static bool IsPostUnary(Token next) =>
-			next is null || next is Operator || next == Delimeter.RightParen ||
-			next == Delimeter.Comma || next == Delimeter.RightBrace || next == Delimeter.SemiC;
+			next is null || next is OperatorToken || next == DelimeterToken.RightParen ||
+			next == DelimeterToken.Comma || next == DelimeterToken.RightBrace || next == DelimeterToken.SemiC;
 
 		public IASTNode Parse() {
 			var block = ParseBlock();
@@ -54,7 +54,7 @@ namespace Outlet.Parsing {
             List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
             List<ClassDeclaration> classes = new List<ClassDeclaration>();
             List<OperatorOverloadDeclaration> overloads = new List<OperatorOverloadDeclaration>();
-            while (Tokens.Count > 0 && Tokens.First() != Delimeter.RightCurly)
+            while (Tokens.Count > 0 && Tokens.First() != DelimeterToken.RightCurly)
             {
                 var nextdecl = NextDeclaration();
                 if (nextdecl is FunctionDeclaration fd) funcs.Add(fd);
