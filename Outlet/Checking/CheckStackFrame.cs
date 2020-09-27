@@ -11,17 +11,17 @@ namespace Outlet.Checking
 {
     public class CheckStackFrame : IStackFrame<Type>
     {
-        public static CheckStackFrame Global(Action<Error> errorHandler) => new CheckStackFrame(errorHandler);
+        public static CheckStackFrame Global(Func<string, Error> errorHandler) => new CheckStackFrame(errorHandler);
 
         private readonly CheckStackFrame? Parent;
         private readonly Stack<SymbolTable> Scopes = new Stack<SymbolTable>();
         public uint Count { get; private set; }
-        private readonly Action<Error> CheckingError;
+        private readonly Func<string, Error> CheckingError;
 
         public void EnterScope() => Scopes.Push(new Dictionary<string, (Type type, uint id)>());
         public void ExitScope() => Scopes.Pop();
 
-        private CheckStackFrame(Action<Error> errorHandler) : this(null, errorHandler)
+        private CheckStackFrame(Func<string, Error> errorHandler) : this(null, errorHandler)
         {
             foreach (string s in NativeOutletTypes.NativeTypes.Keys)
             {
@@ -30,7 +30,7 @@ namespace Outlet.Checking
             }
         }
 
-        public CheckStackFrame(CheckStackFrame? parent, Action<Error> errorHandler)
+        public CheckStackFrame(CheckStackFrame? parent, Func<string, Error> errorHandler)
         {
             Count = 0;
             Parent = parent;
@@ -51,10 +51,10 @@ namespace Outlet.Checking
                 }
                 else if (existing is MethodGroupType existingMethodGroup && type is FunctionType added)
                 {
-                    existingMethodGroup.Methods.Add((added, newId));
+                    existingMethodGroup.AddMethod(added, newId);
                     decl.Bind(newId, 0);
                 }
-                else new Error("variable " + decl.Identifier + " already defined in this scope", CheckingError);
+                else CheckingError("variable " + decl.Identifier + " already defined in this scope");
             }
             else
             {
@@ -87,7 +87,7 @@ namespace Outlet.Checking
                 return found;
             }
             // Not found
-            type = new Error($"variable {variable.Identifier} could not be resolved", CheckingError);
+            type = CheckingError($"variable {variable.Identifier} could not be resolved");
             (resolveLevel, localId) = (0, 0);
             return false;
         }
@@ -101,17 +101,17 @@ namespace Outlet.Checking
         public Type Get(IBindable variable, uint level = 0)
         {
             string id = variable.Identifier;
-            if (variable.ResolveLevel < 0) return new Error($"variable {id} has not been resolved", CheckingError);
+            if (variable.ResolveLevel < 0) return CheckingError($"variable {id} has not been resolved");
             if(level == variable.ResolveLevel)
             {
                 foreach(var scope in Scopes)
                 {
                     if (scope.ContainsKey(id)) return scope[id].Type;
                 }
-                return new Error($"could not get type of {id}", CheckingError);
+                return CheckingError($"could not get type of {id}");
             }
             if (level < variable.ResolveLevel && Parent != null) return Parent.Get(variable, level + 1);
-            return new Error($"variable {id} is defined at a stack frame that could not be found", CheckingError);
+            return CheckingError($"variable {id} is defined at a stack frame that could not be found");
         }
     }
 }

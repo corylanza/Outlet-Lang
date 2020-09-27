@@ -9,7 +9,7 @@ namespace Outlet.Types {
 		public static readonly Primitive Void = new Primitive("void", null);
 		public static readonly Primitive Object = new Primitive("object", null);
 		public static readonly Primitive Float = new Primitive("float", Object, () => Value.Float(0.0f));
-		public static readonly Primitive Int = new Primitive("int", Float, () => Value.Int(0));
+		public static readonly Primitive Int = new Primitive("int", Object, () => Value.Int(0));
 		public static readonly Primitive Bool = new Primitive("bool", Object, () => Value.Bool(false));
 		public static readonly Primitive String = new Primitive("string", Object, () => new String(""));
 

@@ -18,6 +18,6 @@ namespace Outlet.AST
 
 		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => $"operator {Operator} {Decl.Identifier} ()";
+		public override string ToString() => $"operator {Operator} ()";
 	}
 }

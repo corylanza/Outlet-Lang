@@ -66,7 +66,7 @@ namespace Outlet.Lexing {
 			commentesc.SetTransition(CharType.ForwardSlash, commentend);
 			// Ints and floats
 			number.SetTransition(CharType.Number, number);
-            //number.SetTransition(CharType.Dot, floatdot);
+            number.SetTransition(CharType.Dot, floatdot);
             floatdot.SetTransition(CharType.Number, sfloat);
 			sfloat.SetTransition(CharType.Number, sfloat);
             // Strings

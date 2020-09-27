@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Outlet.AST;
 using Outlet.Operands;
@@ -23,10 +24,10 @@ namespace Outlet.Checking
 
         public Checker()
         {
-            StackFrames.Push(CheckStackFrame.Global(ErrorHandler));
+            StackFrames.Push(CheckStackFrame.Global(Error));
         }
 
-        public void ErrorHandler(Error error)
+        private void ErrorHandler(Error error)
         {
             CheckingErrors.Add(error);
         }
@@ -40,7 +41,7 @@ namespace Outlet.Checking
         public void Check(IASTNode program)
         {
             CheckingErrors.Clear();
-            if (program is FunctionDeclaration || program is ClassDeclaration)
+            if (program is FunctionDeclaration || program is ClassDeclaration || program is OperatorOverloadDeclaration)
             {
                 DoImpl.Push(false);
                 program.Accept(this);
@@ -70,7 +71,7 @@ namespace Outlet.Checking
         public CheckStackFrame EnterStackFrame(CheckStackFrame? toPush = null) {
             if (toPush is null)
             {
-                var newFrame = new CheckStackFrame(CurrentStackFrame, ErrorHandler);
+                var newFrame = new CheckStackFrame(CurrentStackFrame, Error);
                 StackFrames.Push(newFrame);
                 return newFrame;
             }
@@ -80,13 +81,6 @@ namespace Outlet.Checking
         }
 
         public void ExitStackFrame() => StackFrames.Pop();
-
-        //public static Type Error(string message)
-        //{
-        //    ErrorCount++;
-        //    if (message != "") Program.ThrowException(message);
-        //    return ErrorType;
-        //}
 
         public Type Cast(Type from, Type to, string message = "cannot convert type {0} to type {1}")
         {
@@ -104,8 +98,8 @@ namespace Outlet.Checking
         {
             if (!DoImpl.Peek())
             {
-                CheckStackFrame statics = new CheckStackFrame(CurrentStackFrame, ErrorHandler);
-                CheckStackFrame instances = new CheckStackFrame(statics, ErrorHandler);
+                CheckStackFrame statics = new CheckStackFrame(CurrentStackFrame, Error);
+                CheckStackFrame instances = new CheckStackFrame(statics, Error);
                 Class parent = Primitive.Object;
                 if (c.SuperClass != null)
                 {
@@ -115,7 +109,7 @@ namespace Outlet.Checking
                     } else Error("cannot extend anything other than a class");
                 }
 
-                ProtoClass proto = new ProtoClass(c.Name, ErrorHandler, parent, statics, instances);
+                ProtoClass proto = new ProtoClass(c.Name, Error, parent, statics, instances);
                 Define(new MetaType(proto), c.Decl);
                 EnterStackFrame(statics);
                 //foreach (var (id, classConstraint) in c.GenericParameters)
@@ -197,19 +191,26 @@ namespace Outlet.Checking
 
         public Type Visit(OperatorOverloadDeclaration o)
         {
-            switch (o.Operator) {
-                case BinaryOperator b:
-                    if (o.Args.Count != 2) return Error($"Binary operator {b.Name} requires two parameters to overload");
-                    var bb = new UserDefinedBinaryOperation(null, o.Args[0].Accept(this), o.Args[1].Accept(this), o.Decl.Accept(this));
-                    b.Overloads.Add(bb);
-                    return bb.GetResultType();
-                case UnaryOperator u:
-                    if (o.Args.Count != 2) return Error($"Unary operator {u.Name} requires two parameters to overload");
-                    var uu = new UserDefinedUnaryOperation(null, o.Args[0].Accept(this), o.Decl.Accept(this));
-                    u.Overloads.Add(uu);
-                    return uu.GetResultType();
-                default:
-                    return Error("");
+            if (!DoImpl.Peek())
+            {
+                throw new NotImplementedException("In development");
+                switch (o.Operator)
+                {
+                    case BinaryOperator b:
+                        if (o.Args.Count != 2) return Error($"Binary operator {b.Name} requires two parameters to overload");
+                        break;
+                    case UnaryOperator u:
+                        if (o.Args.Count != 1) return Error($"Unary operator {u.Name} requires one parameter to overload");
+                        break;
+                    default:
+                        throw new UnexpectedException("No other operator types");
+                }
+                var res = Visit(o as FunctionDeclaration);
+                return res;
+            }
+            else
+            {
+                return Visit(o as FunctionDeclaration);
             }
         }
 
@@ -225,9 +226,13 @@ namespace Outlet.Checking
             else
             {
                 Type decl = v.Decl.Accept(this);
-                if (init != null) Cast(init, decl);
-                if (init is MetaType meta) Define(meta, v.Decl);
-                else Define(decl, v.Decl);
+                if (init != null)
+                {
+                    var casted = Cast(init, decl);
+                    if (casted is Error e) return e;
+                    if (casted is MetaType meta) Define(meta, v.Decl);
+                    else Define(casted, v.Decl);
+                }
             }
             return Primitive.Void;
         }
@@ -282,11 +287,12 @@ namespace Outlet.Checking
             (Error e, _) => e,
             (_, Error e) => e,
             (Type left, Type right) => 
-                b.Overloads.FindBestMatch(left, right) switch
-                {
-                    null => Error($"binary operator not defined for {left} {b.Op} {right}"),
-                    BinOp op => (b.Oper = op).GetResultType()
-                }
+                // Try to find built in operator first
+                (b.Oper = b.Overloads.FindBestMatch(left, right))?.GetResultType() ??
+                (GlobalScope.Has(b.Op) ? 
+                    // If it's user defined it can be found in global scope
+                    GlobalScope.Get(b.Op.ToVariable()) : 
+                    Error($"binary operator not defined for {left} {b.Op} {right}"))
         };
 
         public Type Visit(Call c)
@@ -395,7 +401,7 @@ namespace Outlet.Checking
 
         public Type Visit(TupleLiteral t)
         {
-            if (t.Args.Length == 1) return t.Args[0].Accept(this);
+            if (t.Args.Length == 1) return t.Args.First().Accept(this);
             var types = t.Args.Select(arg => arg.Accept(this)).ToArray();
             if (types.All(type => type is MetaType)) return new MetaType(new TupleType(types));
             else return new TupleType(types);
@@ -437,6 +443,10 @@ namespace Outlet.Checking
             foreach (FunctionDeclaration fd in b.Functions)
             {
                 fd.Accept(this);
+            }
+            foreach (var overload in b.OverloadedOperators)
+            {
+                overload.Accept(this);
             }
             DoImpl.Pop();
             DoImpl.Push(true);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Outlet.Operators;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,6 +38,8 @@ namespace Outlet.AST {
             if (level != 0) throw new UnexpectedException("Cannot bind decl to resolve level other than 0");
             ResolveLevel = 0;
         }
+
+        public Declarator CreateOperatorBinding(Operator op) => new Declarator(Type, op.ToString());
 
 		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 

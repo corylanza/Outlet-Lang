@@ -29,7 +29,7 @@ namespace Outlet
             System = sys;
 
             Checker = new Checker();
-            new NativeInitializer(sys).Register(AppDomain.CurrentDomain.Load("Outlet.StandardLib"), Checker.GlobalScope, Checker.ErrorHandler);
+            new NativeInitializer(sys).Register(AppDomain.CurrentDomain.Load("Outlet.StandardLib"), Checker.GlobalScope, Checker.Error);
 
             Interpreter = new Interpreter();
         }

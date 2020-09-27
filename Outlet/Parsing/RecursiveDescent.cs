@@ -101,13 +101,12 @@ namespace Outlet.Parsing {
 			}
 			if(Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement();
-
 			if(next is Declarator d) {
 				if(d.IsOperatorOverload)
                 {
 					var op = ConsumeType<OperatorToken>("Expected operator following overload");
 					Consume(DelimeterToken.LeftParen, "Expected ( before operator overload args");
-					return OperatorOverloadDef(d, op);
+					return OperatorOverloadDef(new Declarator(d.Type, op.ToString()), op);
                 }
 				if(Match(DelimeterToken.LeftParen)) return FunctionDef(d);
 				else return VarDeclaration(d);

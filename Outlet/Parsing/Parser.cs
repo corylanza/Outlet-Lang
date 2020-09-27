@@ -51,24 +51,12 @@ namespace Outlet.Parsing {
         private Block ParseBlock()
         {
             List<IASTNode> lines = new List<IASTNode>();
-            List<FunctionDeclaration> funcs = new List<FunctionDeclaration>();
-            List<ClassDeclaration> classes = new List<ClassDeclaration>();
-            List<OperatorOverloadDeclaration> overloads = new List<OperatorOverloadDeclaration>();
             while (Tokens.Count > 0 && Tokens.First() != DelimeterToken.RightCurly)
             {
                 var nextdecl = NextDeclaration();
-                if (nextdecl is FunctionDeclaration fd) funcs.Add(fd);
-                if (nextdecl is ClassDeclaration cd)
-                {
-                    if (cd.SuperClass == null) classes.Insert(0, cd);
-                    else classes.Add(cd);
-                }
-                if (nextdecl is OperatorOverloadDeclaration o) overloads.Add(o);
                 lines.Add(nextdecl);
             }
-            return new Block(lines, funcs, classes, overloads);
+            return new Block(lines);
         }
-
-
 	}
 }

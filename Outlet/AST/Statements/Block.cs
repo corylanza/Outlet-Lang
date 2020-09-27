@@ -7,19 +7,17 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Block : Statement {
 
-		public readonly List<ClassDeclaration> Classes = new List<ClassDeclaration>();
-		public readonly List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
-		public readonly List<OperatorOverloadDeclaration> OverloadedOperators = new List<OperatorOverloadDeclaration>();
-        public readonly List<IASTNode> Lines = new List<IASTNode>();
+		public List<ClassDeclaration> Classes => Lines.OfType<ClassDeclaration>().OrderBy(c => c.SuperClass != null).ToList();
+		public List<FunctionDeclaration> Functions => Lines.OfType<FunctionDeclaration>().ToList();
+		public List<OperatorOverloadDeclaration> OverloadedOperators => Lines.OfType<OperatorOverloadDeclaration>().ToList();
 
-		public Block(List<IASTNode> lines, List<FunctionDeclaration> funcs, List<ClassDeclaration> classes, List<OperatorOverloadDeclaration> opOverloads) {
+		public List<IASTNode> Lines { get; private set; }
+
+		public Block(List<IASTNode> lines) {
 			Lines = lines;
-			Functions = funcs;
-			Classes = classes;
-			OverloadedOperators = opOverloads;
 		}
 
-		public static Block Empty() => new Block(new List<IASTNode>(), new List<FunctionDeclaration>(), new List<ClassDeclaration>(), new List<OperatorOverloadDeclaration>());
+		public static Block Empty() => new Block(new List<IASTNode>());
 
 		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 

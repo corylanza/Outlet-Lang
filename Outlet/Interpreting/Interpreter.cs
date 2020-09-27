@@ -317,7 +317,7 @@ namespace Outlet.Interpreting {
 			IEnumerable<Operand> evaled = t.Args.Select(arg => arg.Accept(this));
 			if(evaled.All(elem => elem is TypeObject)) 
                 return new TypeObject(new TupleType(evaled.Select(elem => Cast<TypeObject>(elem).Encapsulated).ToArray()));
-			if(t.Args.Length == 1) return t.Args[0].Accept(this);
+			if(t.Args.Length == 1) return t.Args.First().Accept(this);
 			else return new OTuple(evaled.ToArray());
 		}
 

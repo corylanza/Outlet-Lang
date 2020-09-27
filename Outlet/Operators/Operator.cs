@@ -103,7 +103,6 @@ namespace Outlet.Operators
 
     public class BinaryOperator : Operator
     {
-
         public readonly Overload<BinOp> Overloads;
 
         public BinaryOperator(string name, int p, Side a, params BinOp[] defaultoverloads) : base(name, p, a)
@@ -134,7 +133,6 @@ namespace Outlet.Operators
 
     public class UnaryOperator : Operator
     {
-
         public readonly Overload<UnOp> Overloads;
 
         public UnaryOperator(string name, int p, Side a, params UnOp[] overloads) : base(name, p, a)

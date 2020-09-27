@@ -58,9 +58,9 @@ namespace Outlet.Types {
 
         public readonly CheckStackFrame InstanceMembers;
         public readonly CheckStackFrame StaticMembers;
-        private readonly Action<Error> CheckingError;
+        private readonly Func<string, Error> CheckingError;
 
-        public ProtoClass(string name, Action<Error> checkErrorHandler, Class? parent, CheckStackFrame statics, CheckStackFrame instances) : base(name, parent) {
+        public ProtoClass(string name, Func<string, Error> checkErrorHandler, Class? parent, CheckStackFrame statics, CheckStackFrame instances) : base(name, parent) {
             InstanceMembers = instances;
             StaticMembers = statics;
             CheckingError = checkErrorHandler;
@@ -73,20 +73,20 @@ namespace Outlet.Types {
                 variable.Bind(id, resolveLevel);
                 return type;
             }
-            else if (variable.Identifier == "") return new Error("type " + this + " is not instantiable", CheckingError);
-            else return new Error(this + " does not contain static field: " + variable.Identifier, CheckingError);
+            else if (variable.Identifier == "") return CheckingError("type " + this + " is not instantiable");
+            else return CheckingError(this + " does not contain static field: " + variable.Identifier);
         }
         public IEnumerable<(string id, Type type)> GetStaticMemberTypes() => StaticMembers.List().Select(member => (member.Id, member.Value as Type));
 
         public Type GetInstanceMemberType(IBindable variable)
         {
-            if (variable.Identifier == "this") return new Error("may not access property \"this\"", CheckingError);
+            if (variable.Identifier == "this") return CheckingError("may not access property \"this\"");
             if (InstanceMembers.Resolve(variable, out Type type, out uint resolveLevel, out uint id))
             {
                 variable.Bind(id, resolveLevel);
                 return type;
             }
-            return new Error(this + " does not contain instance field: " + variable.Identifier, CheckingError);
+            return CheckingError(this + " does not contain instance field: " + variable.Identifier);
         }
         public IEnumerable<(string id, Type type)> GetIntanceMemberTypes() => InstanceMembers.List().Select(member => (member.Id, member.Value as Type));
     }

@@ -2,7 +2,7 @@
 
 namespace Outlet.Operands {
 
-    public abstract class Function : Operand<FunctionType>, ICallable, IOverloadable
+    public abstract class Function : Operand<FunctionType>, ICallable
     {
         public readonly string Name;
         public override FunctionType RuntimeType { get; }

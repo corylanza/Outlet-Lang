@@ -61,5 +61,23 @@ namespace Outlet.Tests
             errors.Clear();
             Assert.AreEqual("3", RunCode("p.Id = 3;"));
         }
+
+        [Test]
+        public void TestOperators()
+        {
+            List<string> errors = new List<string>();
+            ReplOutletProgram program = new ReplOutletProgram(Program.ConsoleInterface(OnException));
+            string RunCode(string code) => program.Run(Encoding.ASCII.GetBytes(code)).ToString();
+            void OnException(Exception ex)
+            {
+                errors.Add(ex.Message);
+            }
+            Assert.AreEqual("7", RunCode("5+2"));
+            Assert.AreEqual("10", RunCode("5*2"));
+            Assert.AreEqual("5", RunCode("11 / 2"));
+            Assert.AreEqual("10", RunCode("5 - -5"));
+            Assert.AreEqual("10", RunCode("5 - -5"));
+            Assert.AreEqual(0, errors.Count, errors.Count > 0 ? errors.Last() : null);
+        }
     }
 }

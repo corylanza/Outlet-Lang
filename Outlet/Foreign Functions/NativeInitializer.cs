@@ -176,7 +176,7 @@ namespace Outlet.FFI
 
         #endregion
 
-        public void Register(Assembly assembly, CheckStackFrame globalScope, Action<Error> checkingError)
+        public void Register(Assembly assembly, CheckStackFrame globalScope, Func<string, Error> checkingError)
         {
             var classes = GetForeignClasses(assembly);
             foreach (var type in classes)
