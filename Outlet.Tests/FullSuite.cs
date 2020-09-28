@@ -79,5 +79,21 @@ namespace Outlet.Tests
             Assert.AreEqual("10", RunCode("5 - -5"));
             Assert.AreEqual(0, errors.Count, errors.Count > 0 ? errors.Last() : null);
         }
+
+        [Test]
+        public void TestGenerics()
+        {
+            List<string> errors = new List<string>();
+            ReplOutletProgram program = new ReplOutletProgram(Program.ConsoleInterface(OnException));
+            string RunCode(string code) => program.Run(Encoding.ASCII.GetBytes(code)).ToString();
+            void OnException(Exception ex)
+            {
+                errors.Add(ex.Message);
+            }
+            RunCode("T noop[T](T t) => t;");
+            Assert.AreEqual(0, errors.Count, errors.Count > 0 ? errors.Last() : null);
+            Assert.AreEqual("5", RunCode("noop(5)"));
+            Assert.AreEqual("true", RunCode("noop(true)"));
+        }
     }
 }

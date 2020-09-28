@@ -1,4 +1,5 @@
 ﻿using Outlet.Types;
+using System.Collections.Generic;
 
 namespace Outlet.Operands {
 
@@ -9,7 +10,7 @@ namespace Outlet.Operands {
 
         protected Function(string name, FunctionType type) => (Name, RuntimeType) = (name, type);
 
-        public abstract Operand Call(Operand? caller, params Operand[] args);
+        public abstract Operand Call(Operand? caller, List<Type> typeArgs, params Operand[] args);
 
         public override bool Equals(Operand b) => ReferenceEquals(this, b);
 
@@ -31,7 +32,7 @@ namespace Outlet.Operands {
 			Hidden = act;
 		}
 
-		public override Operand Call(Operand? caller, params Operand[] args) => Hidden(args);
+		public override Operand Call(Operand? caller, List<Type> typeArgs, params Operand[] args) => Hidden(args);
 	}
 
 

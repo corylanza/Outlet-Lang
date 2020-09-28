@@ -18,7 +18,7 @@ namespace Outlet.FFI.Natives
             System = system;
         }
 
-        public override Operand Call(Operand? caller, params Operand[] _args) {
+        public override Operand Call(Operand? caller, List<Type> typeArgs, params Operand[] _args) {
             // null if the method is static
             object? instance = caller is NativeInstance ni ? ni.Underlying : null;
             var enumerator = _args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).GetEnumerator();
@@ -51,7 +51,7 @@ namespace Outlet.FFI.Natives
             System = system;
         }
 
-        public override Operand Call(Operand? caller, params Operand[] args) =>
+        public override Operand Call(Operand? caller, List<Type> typeArgs, params Operand[] args) =>
             new NativeInitializer(System).ToOutletInstance(RuntimeType.ReturnType is NativeClass nc ? nc : throw new UnexpectedException("Expected Native Class"),
             Underlying.Invoke(args.Select(arg => NativeInitializer.ToCSharpOperand(arg)).ToArray()));
     }

@@ -11,7 +11,24 @@ namespace Outlet.Parsing {
 
 		private IASTNode NextDeclaration() {
 			#region helper
-			(List<Declarator>, Statement) ProtoType() {
+			List<TypeParameter> ParseGenericParameters()
+            {
+				List<TypeParameter> parameters = new List<TypeParameter>();
+				if (Match(DelimeterToken.LeftBrace))
+				{
+					do
+					{
+						string genericId = ConsumeType<Identifier>("Expected generic parameter identifier").Name;
+						Expression? genericConstraint = Match(Keyword.Extends) ? NextExpression() : null;
+						parameters.Add(new TypeParameter(genericConstraint, genericId));
+					} while (Match(DelimeterToken.Comma));
+					Consume(DelimeterToken.RightBrace, "expected ] to close generic type definition");
+				}
+				return parameters;
+			}
+			(List<Declarator>, List<TypeParameter>, Statement) ProtoType() {
+				var genericParameters = ParseGenericParameters();
+				Consume(DelimeterToken.LeftParen, $"expected ( after generic parameters");
 				List<Declarator> argnames = new List<Declarator>();
 				while(Tokens.Count > 0 && Tokens.First() != DelimeterToken.RightParen) {
 					do {
@@ -27,7 +44,7 @@ namespace Outlet.Parsing {
 					if(Tokens.Count != 0)
 						Consume(DelimeterToken.SemiC, "expected ; after inline function");
 				} else body = NextStatement();
-				return (argnames, body);
+				return (argnames, genericParameters, body);
 			}
 			#endregion
 			VariableDeclaration VarDeclaration(Declarator decl) {
@@ -38,42 +55,25 @@ namespace Outlet.Parsing {
 				return new VariableDeclaration(decl, initializer);
 			}
 			FunctionDeclaration FunctionDef(Declarator decl) {
-				(List<Declarator> argnames, Statement body) = ProtoType();
-				return new FunctionDeclaration(decl, argnames, body);
+				(List<Declarator> parameters, List<TypeParameter> typeParams, Statement body) = ProtoType();
+				return new FunctionDeclaration(decl, parameters, typeParams, body);
 			}
 			ConstructorDeclaration ConstructDef(Declarator decl) {
-				(List<Declarator> argnames, Statement body) = ProtoType();
-				return new ConstructorDeclaration(decl, argnames, body);
+				(List<Declarator> parameters, List<TypeParameter> typeParams, Statement body) = ProtoType();
+				return new ConstructorDeclaration(decl, parameters, typeParams, body);
 			}
 			OperatorOverloadDeclaration OperatorOverloadDef(Declarator decl, OperatorToken op)
 			{
-				(List<Declarator> argnames, Statement body) = ProtoType();
-				return new OperatorOverloadDeclaration(decl, op, argnames, body);
+				(List<Declarator> parameters, List<TypeParameter> typeParams, Statement body) = ProtoType();
+				return new OperatorOverloadDeclaration(decl, op, parameters, typeParams, body);
             }
 			ClassDeclaration ClassDef() {
-                List<(string id, Variable? constraint)> genericParameters = new List<(string, Variable?)>();
                 List<Declaration> instance = new List<Declaration>();
 				List<Declaration> statics = new List<Declaration>();
 				List<ConstructorDeclaration> constructors = new List<ConstructorDeclaration>();
 				Variable? superclass = null;
                 Identifier name = ConsumeType<Identifier>("Expected class identifier");
-                if (Match(DelimeterToken.LeftBrace))
-                {
-                    string genericId = ConsumeType<Identifier>("Generic class must have at least one identifier as a generic parameter").Name;
-                    if (Match(Keyword.Extends)) genericParameters.Add((genericId, 
-                        new Variable(ConsumeType<Identifier>("expected class constraint on generic parameter " + genericId).Name)));
-                    else genericParameters.Add((genericId, null));
-                    while(Tokens.Count > 0 && Tokens.First() != DelimeterToken.RightBrace)
-                    {
-                        Consume(DelimeterToken.Comma, "commas must be used between generic parameters");
-                        genericId = ConsumeType<Identifier>("Generic class parameters must be identifiers").Name;
-
-                        if (Match(Keyword.Extends)) genericParameters.Add((genericId,
-                        new Variable(ConsumeType<Identifier>("expected class constraint on generic parameter " + genericId).Name)));
-                        else genericParameters.Add((genericId, null));
-                    }
-                    Consume(DelimeterToken.RightBrace, "expected ] to close generic type definition");
-                }
+				var genericParameters = ParseGenericParameters();
                 if (Match(Keyword.Extends)) {
 					 superclass = new Variable(ConsumeType<Identifier>("expected name of super class after extends keyword").Name);
 				}
@@ -96,7 +96,7 @@ namespace Outlet.Parsing {
 						} else throw new OutletException("statement: " + nextfield.ToString() + " must be inside a function body");
 					}
 				}
-				if(constructors.Count == 0) constructors.Add(new ConstructorDeclaration(new Declarator(new Variable(name.Name), ""), new List<Declarator>(), Block.Empty()));
+				if(constructors.Count == 0) constructors.Add(new ConstructorDeclaration(new Declarator(new Variable(name.Name), ""), new List<Declarator>(), new List<TypeParameter>(), Block.Empty()));
 				return new ClassDeclaration(name.Name, superclass, genericParameters, constructors, instance, statics);
 			}
 			if(Match(Keyword.Class)) return ClassDef();
@@ -108,7 +108,7 @@ namespace Outlet.Parsing {
 					Consume(DelimeterToken.LeftParen, "Expected ( before operator overload args");
 					return OperatorOverloadDef(new Declarator(d.Type, op.ToString()), op);
                 }
-				if(Match(DelimeterToken.LeftParen)) return FunctionDef(d);
+				if(PeekMatch(DelimeterToken.LeftParen) || PeekMatch(DelimeterToken.LeftBrace)) return FunctionDef(d);
 				else return VarDeclaration(d);
 			}
 			return next;

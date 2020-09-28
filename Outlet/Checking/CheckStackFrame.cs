@@ -23,10 +23,9 @@ namespace Outlet.Checking
 
         private CheckStackFrame(Func<string, Error> errorHandler) : this(null, errorHandler)
         {
-            foreach (string s in NativeOutletTypes.NativeTypes.Keys)
+            foreach ((string id, Type type) in NativeOutletTypes.NativeTypes)
             {
-                Type t = NativeOutletTypes.NativeTypes[s];
-                Scopes.Peek()[s] = (new MetaType(t), Count++);
+                Scopes.Peek()[id] = (new MetaType(type), Count++);
             }
         }
 
@@ -71,9 +70,9 @@ namespace Outlet.Checking
             // Local variables
             foreach (var scope in Scopes)
             {
-                if (scope.ContainsKey(variable.Identifier))
+                if (scope.TryGetValue(variable.Identifier, out var v))
                 {
-                    (type, localId) = scope[variable.Identifier];
+                    (type, localId) = v;
                     resolveLevel = 0;
                     return true;
                 }

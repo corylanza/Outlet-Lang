@@ -130,8 +130,8 @@ namespace Outlet.Checking
             }
             else
             {
-                Class? parent;
-                if (c.SuperClass != null) parent = CurrentStackFrame.Get(c.SuperClass) as Class;
+                //ProtoClass? parent = c.SuperClass != null ? CurrentStackFrame.Get(c.SuperClass) as ProtoClass : null;
+
                 var proto = CurrentStackFrame.Get(c.Decl) is MetaType t && t.Stored is ProtoClass p ? p : throw new CheckerException("Expected protoclass");
                 EnterStackFrame(proto.StaticMembers);
                 foreach (Declaration d in c.StaticDecls) d.Accept(this);
@@ -153,8 +153,16 @@ namespace Outlet.Checking
         {
             if (!DoImpl.Peek())
             {
+                f.TypeParameters.ForEach(param =>
+                {
+                    if ((param.Constraint?.Accept(this) ?? new MetaType(Primitive.Object)) is MetaType type)
+                    {
+                        Define(type, param);
+                    }
+                    else Error($"Generic parameter {param.Identifier} constraint was not a valid type");
+                });
                 // Check decl and args first, needed to make function type
-                (Type type, string id)[] args = f.Args.Select(arg =>
+                (Type type, string id)[] args = f.Parameters.Select(arg =>
                 {
                     Type curArg = arg.Accept(this);
                     return (curArg, arg.Identifier);
@@ -170,7 +178,7 @@ namespace Outlet.Checking
                 FunctionType ft = type is FunctionType fnt ? fnt : throw new CheckerException("Expected Function type");
                 // enter the function scope and define the args;
                 EnterStackFrame();
-                ft.Args.Zip(f.Args).ToList().ForEach(arg => Define(arg.Item1.type, arg.Item2));
+                ft.Args.Zip(f.Parameters).ToList().ForEach(arg => Define(arg.Item1.type, arg.Item2));
                 // check the body now that its header and args have been defined
                 Type body = f.Body.Accept(this);
                 if (f is ConstructorDeclaration)
@@ -197,10 +205,10 @@ namespace Outlet.Checking
                 switch (o.Operator)
                 {
                     case BinaryOperator b:
-                        if (o.Args.Count != 2) return Error($"Binary operator {b.Name} requires two parameters to overload");
+                        if (o.Parameters.Count != 2) return Error($"Binary operator {b.Name} requires two parameters to overload");
                         break;
                     case UnaryOperator u:
-                        if (o.Args.Count != 1) return Error($"Unary operator {u.Name} requires one parameter to overload");
+                        if (o.Parameters.Count != 1) return Error($"Unary operator {u.Name} requires one parameter to overload");
                         break;
                     default:
                         throw new UnexpectedException("No other operator types");
@@ -245,8 +253,14 @@ namespace Outlet.Checking
         {
             Type elem = a.Collection.Accept(this);
             Type? idxType = a.Index.Length > 0 ? a.Index[0].Accept(this) : null;
-            if (elem is MetaType meta && meta.Stored is Class c)
+            if (elem is FunctionType ft && idxType is MetaType)
             {
+                // TODO generate FunctionType based on type parameters
+                return ft;
+            }
+            if (elem is MetaType meta && meta.Stored is ProtoClass)
+            {
+                // TODO same here generate ProtoClass based on type parameters
                 if (idxType is MetaType)
                     return Error("Generics not supported yet");
                 // array types are defined with empty braces []

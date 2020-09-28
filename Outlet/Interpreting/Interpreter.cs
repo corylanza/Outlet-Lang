@@ -102,12 +102,12 @@ namespace Outlet.Interpreting {
             CurrentStackFrame.Assign(c.Decl, newType);
 
             // if there are any generic parameters define their value as their class constraint
-            foreach (var (id, classConstraint) in c.GenericParameters)
-            {
+            //foreach (var typeParameter in c.TypeParameters)
+            //{
                 //Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
                 // TODO reimplement
                 //CurrentStackFrame.Initialize(id, new TypeObject(constraint));
-            }
+            //}
 
             int fieldNum = 0;
             CallStack.Push(staticScope);
@@ -139,7 +139,7 @@ namespace Outlet.Interpreting {
                 CallStack.Push(constructorscope);
 				// Add all parameters to constructor scope 
 				for(int i = 0; i < args.Length; i++) {
-                    constructorscope.Assign(c.Args[i], args[i]);
+                    constructorscope.Assign(c.Parameters[i], args[i]);
 				}
 				// Evaluate the body of the constructor
 				c.Body.Accept(this);
@@ -153,7 +153,7 @@ namespace Outlet.Interpreting {
             // at the instance level)
 
 			
-            var funcType = new FunctionType(c.Args.Select(arg =>
+            var funcType = new FunctionType(c.Parameters.Select(arg =>
                 (arg.Accept(this) is TypeObject to ? to.Encapsulated :
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 c.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated :
@@ -169,14 +169,24 @@ namespace Outlet.Interpreting {
                 if (!f.LocalCount.HasValue) throw new UnexpectedException("stack frame size not allocated at check time");
                 StackFrame stackFrame = new StackFrame(closure, f.LocalCount.Value, f.Name);
                 CallStack.Push(stackFrame);
-				for(int i = 0; i < args.Length; i++) {
-                    stackFrame.Assign(f.Args[i], args[i]);
-				}
+                foreach (var (parameter, value) in f.Parameters.Zip(args)) {
+                    stackFrame.Assign(parameter, value);
+                }
                 Operand returnval = f.Body.Accept(this);
                 CallStack.Pop();
 				return returnval;
 			}
-            var funcType = new FunctionType(f.Args.Select(arg =>
+
+            // TODO pass this to caller
+            List<Type> genericParams = f.TypeParameters.Select(param =>
+            {
+                if (!param.ResolveLevel.HasValue) throw new UnexpectedException($"generic parameter {param.Identifier} was not resolved");
+                var type = Primitive.Object;
+                CurrentStackFrame.Assign(param, new TypeObject(type));
+                return type as Type;
+            }).ToList();
+
+            var funcType = new FunctionType(f.Parameters.Select(arg =>
                 (arg.Accept(this) is TypeObject to ? to.Encapsulated : 
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 f.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated : 
@@ -215,7 +225,9 @@ namespace Outlet.Interpreting {
 
         public Operand Visit(Access a) {
 			Operand col = a.Collection.Accept(this);
+            var idxs = a.Index.Select(idx => idx.Accept(this));
 			if(col is TypeObject at && a.Index.Length == 0) return new TypeObject(new ArrayType(at.Encapsulated));
+            if(col is Function f && idxs.All(idx => idx is TypeObject)) return f;
             if(col is Array c)
             {
                 // Index is 0 because all array access is one-dimensional as of now
@@ -225,7 +237,7 @@ namespace Outlet.Interpreting {
                 if (idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
                 return c.Values()[idx];
             }
-            throw new UnexpectedException("cannot acccess this type");
+            throw new UnexpectedException("cannot access this type");
 		}
 
 		public Operand Visit(As a) {

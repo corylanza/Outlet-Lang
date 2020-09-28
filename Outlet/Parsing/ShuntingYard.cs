@@ -22,8 +22,8 @@ namespace Outlet.Parsing {
 				Tokens.Count > 0 && Tokens.First() is Token i &&
 				((i is DelimeterToken d && (d != DelimeterToken.LeftCurly && d != DelimeterToken.RightCurly && d != DelimeterToken.SemiC)) ||
 				i is TokenLiteral || i is OperatorToken || i is Identifier);
-			bool NotExpectingOperand(Token toputback) { if(!expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
-			bool NotExpectingOperator(Token toputback) { if(expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
+			bool ExpectingOperator(Token toputback) { if(!expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
+			bool ExpectingOperand(Token toputback) { if(expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Assoc == Side.Left);
 			#endregion
 
@@ -32,12 +32,12 @@ namespace Outlet.Parsing {
 				cur = Tokens.Dequeue();
 				switch (cur) {
 					case Identifier id:
-						if(NotExpectingOperand(id)) break;
+						if(ExpectingOperator(id)) break;
 						output.Push(new Variable(id.Name));
 						expectOperand = false;
 						break;
 					case TokenLiteral literal:
-						if(NotExpectingOperand(literal)) break;
+						if(ExpectingOperator(literal)) break;
                         output.Push(literal.ToLiteral());
 						expectOperand = false;
 						break;
@@ -52,10 +52,10 @@ namespace Outlet.Parsing {
 							throw new OutletException();
 
 						if(op is UnaryOperator) {
-							if(isPreUnary && NotExpectingOperand(o)) break;
-							if(isPostUnary && NotExpectingOperator(o)) break;
+							if(isPreUnary && ExpectingOperator(o)) break;
+							if(isPostUnary && ExpectingOperand(o)) break;
 						} 
-						if(op is BinaryOperator && NotExpectingOperator(o)) break;
+						if(op is BinaryOperator && ExpectingOperand(o)) break;
 
 						while(lesserPrecedence(op)) {
 							ReduceOperator(output, stack);
@@ -64,7 +64,7 @@ namespace Outlet.Parsing {
 						expectOperand = isBinary || isPreUnary;
 						break;
 					case DelimeterToken colon when colon == DelimeterToken.Colon:
-						if(NotExpectingOperator(colon)) break;
+						if(ExpectingOperand(colon)) break;
 						while(stack.Count > 0 && stack.Peek() != Operator.Question) {
 							ReduceOperator(output, stack);
 						}
@@ -76,8 +76,8 @@ namespace Outlet.Parsing {
 						break;
 					case DelimeterToken d when d == DelimeterToken.LeftParen:
 						bool func = !(last is null || last is OperatorToken || last is DelimeterToken dlp && !(dlp.Name == ")" || dlp.Name == "]"));
-						if(func && NotExpectingOperator(d)) break;
-						if(!func && NotExpectingOperand(d)) break;
+						if(func && ExpectingOperand(d)) break;
+						if(!func && ExpectingOperator(d)) break;
 						while (lesserPrecedence(Operator.Dot)) {
 							ReduceOperator(output, stack);
 						}
@@ -93,8 +93,8 @@ namespace Outlet.Parsing {
 						break;
 					case DelimeterToken lb when lb == DelimeterToken.LeftBrace:
 						bool index = !(last is null || last is OperatorToken || last is DelimeterToken dlb && !(dlb.Name == ")" || dlb.Name == "]"));
-						if(index && NotExpectingOperator(lb)) break;
-						if(!index && NotExpectingOperand(lb)) break;
+						if(index && ExpectingOperand(lb)) break;
+						if(!index && ExpectingOperator(lb)) break;
 						// If this is an index, push a special array index delim to stack, otherwise push [
 						stack.Push(index ? Delimeter.IndexBrace : Delimeter.LeftBrace);
 						if(Tokens.Count > 0 && Tokens.First() == DelimeterToken.RightBrace) {
@@ -106,7 +106,7 @@ namespace Outlet.Parsing {
 						}
 						break;
 					case DelimeterToken comma when comma == DelimeterToken.Comma:
-						if(NotExpectingOperator(comma)) break;
+						if(ExpectingOperand(comma)) break;
 						while (stack.Count > 0 && !(stack.Peek() is Delimeter d && (d.Name == "(" || d.Name == "["))) {
 							ReduceOperator(output, stack);
 						}
@@ -115,7 +115,7 @@ namespace Outlet.Parsing {
 						expectOperand = true;
 						break;
 					case DelimeterToken right when right == DelimeterToken.RightParen:
-						if(NotExpectingOperator(right)) break;
+						if(ExpectingOperand(right)) break;
 						while (stack.Count > 0 && !(stack.Peek() is Delimeter d && d.Name == "(")) {
 							ReduceOperator(output, stack);
 						}
@@ -133,7 +133,7 @@ namespace Outlet.Parsing {
 						expectOperand = false;
 						break;
 					case DelimeterToken rightb when rightb == DelimeterToken.RightBrace:
-						if(NotExpectingOperator(rightb)) break;
+						if(ExpectingOperand(rightb)) break;
 						while (stack.Count > 0 && !(stack.Peek() is Delimeter d && d.Name == "[")) {
 							ReduceOperator(output, stack);
 						}

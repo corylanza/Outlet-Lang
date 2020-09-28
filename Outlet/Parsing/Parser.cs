@@ -16,6 +16,8 @@ namespace Outlet.Parsing {
 			Tokens = tokens;
         }
 
+		private bool PeekMatch(Token s) => Tokens.Count > 0 && s.Equals(Tokens.First());
+
 		private bool Match(Token s)
 		{
 			if (Tokens.Count > 0 && s.Equals(Tokens.First()))
