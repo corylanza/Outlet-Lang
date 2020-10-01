@@ -152,33 +152,45 @@ namespace Outlet.Checking
         public Type Visit(FunctionDeclaration f)
         {
             if (!DoImpl.Peek())
-            {
-                f.TypeParameters.ForEach(param =>
+            {                
+                //f.TypeParameters.ForEach(param =>
+                //{
+                //    if ((param.Constraint?.Accept(this) ?? new MetaType(Primitive.Object)) is MetaType type)
+                //    {
+                //        Define(type, param);
+                //    }
+                //    else Error($"Generic parameter {param.Identifier} constraint was not a valid type");
+                //});
+                if (f.TypeParameters.Any())
                 {
-                    if ((param.Constraint?.Accept(this) ?? new MetaType(Primitive.Object)) is MetaType type)
+                    FunctionType FillInGenericArgs(List<Type> typeArgs)
                     {
-                        Define(type, param);
+                        var valid = typeArgs.SameLengthAndAll(f.TypeParameters, 
+                            (type, typeParam) => typeParam.Constraint is null || !(Cast(type, typeParam.Constraint.Accept(this)) is Error));
+                        //var types = f.TypeParameters.Zip(typeArgs).ToList().Select((param, type) => null);
+                        //return new FunctionType(new (Type, string)[] { (Primitive.Int, "t") }, Primitive.Int);
+                        throw new NotImplementedException();
                     }
-                    else Error($"Generic parameter {param.Identifier} constraint was not a valid type");
-                });
-                // Check decl and args first, needed to make function type
-                (Type type, string id)[] args = f.Parameters.Select(arg =>
+                    var gen = new GenericFunctionType(FillInGenericArgs);
+                    Define(gen, f.Decl);
+                    return gen;
+                } else
                 {
-                    Type curArg = arg.Accept(this);
-                    return (curArg, arg.Identifier);
-                }).ToArray();
-                Type returnType = f.Decl.Accept(this) is Type t ? t : throw new CheckerException("Expected Type");
-                FunctionType ft = new FunctionType(args, returnType);
-                // define the header using the function type from above
-                Define(ft, f.Decl);
-                return ft;
+                    // Check decl and args first, needed to make function type
+                    (Type type, string id)[] parameterTypes = f.Parameters.Select(arg => (arg.Accept(this), arg.Identifier)).ToArray();
+                    Type returnType = f.Decl.Accept(this) is Type t ? t : throw new CheckerException("Expected Type");
+                    FunctionType ft = new FunctionType(parameterTypes, returnType);
+                    // define the header using the function type from above
+                    Define(ft, f.Decl);
+                    return ft;
+                }
             }
             else if (CurrentStackFrame.Resolve(f.Decl, out Type type, out uint _, out uint _))
             {
                 FunctionType ft = type is FunctionType fnt ? fnt : throw new CheckerException("Expected Function type");
                 // enter the function scope and define the args;
                 EnterStackFrame();
-                ft.Args.Zip(f.Parameters).ToList().ForEach(arg => Define(arg.Item1.type, arg.Item2));
+                ft.Parameters.Zip(f.Parameters).ToList().ForEach(arg => Define(arg.Item1.type, arg.Item2));
                 // check the body now that its header and args have been defined
                 Type body = f.Body.Accept(this);
                 if (f is ConstructorDeclaration)
@@ -252,26 +264,26 @@ namespace Outlet.Checking
         public Type Visit(Access a)
         {
             Type elem = a.Collection.Accept(this);
-            Type? idxType = a.Index.Length > 0 ? a.Index[0].Accept(this) : null;
-            if (elem is FunctionType ft && idxType is MetaType)
+            var idxTypes = a.Index.Select(idx => idx.Accept(this));
+            // array types are defined with empty braces []
+            if (elem is MetaType m && !idxTypes.Any()) return new MetaType(new ArrayType(m.Stored));
+            if (elem is IGenericType gt && idxTypes.All(type => type is MetaType))
             {
-                // TODO generate FunctionType based on type parameters
-                return ft;
+                var unwrappedTypes = idxTypes.OfType<MetaType>().Select(m => m.Stored);
+                return gt.WithTypeArguments(unwrappedTypes);
             }
-            if (elem is MetaType meta && meta.Stored is ProtoClass)
+            //if (elem is GenericClass gt && idxTypes.All(type => type is MetaType))
+            //{
+            //    // TODO same here generate ProtoClass based on type parameters
+            //    return Error("Generics not supported yet");
+            //}
+            if (elem is ArrayType at)
             {
-                // TODO same here generate ProtoClass based on type parameters
-                if (idxType is MetaType)
-                    return Error("Generics not supported yet");
-                // array types are defined with empty braces []
-                if (idxType == null)
-                    return new MetaType(new ArrayType(meta.Stored));
+                if (a.Index.Length != 1)
+                    return Error("array access requires exactly 1 index");
+                if (idxTypes.Count() != 1 || idxTypes.First() != Primitive.Int) return Error("only ints can be used to index into an array, found: " + idxTypes?.ToList().ToListString() ?? "empty");
+                else return at.ElementType;
             }
-            if (a.Index.Length != 1)
-                return Error("array access requires exactly 1 index");
-            if (idxType != Primitive.Int)
-                return Error("only ints can be used to index into an array, found: " + idxType?.ToString());
-            if (elem is ArrayType at) return at.ElementType;
             return Error("type " + elem.ToString() + " is not accessable by array access operator []");
         }
 
@@ -324,27 +336,23 @@ namespace Outlet.Checking
             Type[] argtypes = c.Args.Select(x => x.Accept(this)).ToArray();
             if (calltype is FunctionType functype)
             {
-                var funcargs = functype.Args.ToArray();
-                bool argsMatch = funcargs.SameLengthAndAll(argtypes, (arg, argType) => !(Cast(argType, arg.type, "Could not cast {0} to {1}") is Error));
-                return argsMatch ? functype.ReturnType :
-                    Error(c.Caller + " expects " + "(" + funcargs.Select(x => x.type).ToList().ToListString() + ") found: (" + argtypes.ToList().ToListString() + ")");
+                return functype.Valid(out uint _, argtypes) ?
+                    functype.ReturnType :
+                    Error($"{c.Caller} expects ({functype.Parameters.Select(x => x.type).ToList().ToListString()}) found: ({argtypes.ToList().ToListString()})");
             }
             if (calltype is MethodGroupType mgt)
             {
                 (FunctionType? bestMatch, uint? id) = mgt.FindBestMatch(argtypes);
                 if(bestMatch is null || id is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
-                if (c.Caller is Variable v && v.ResolveLevel.HasValue)
+                IBindable caller = c.Caller is Variable v ? v : c.Caller is MemberAccess ma ? ma.Member : throw new UnexpectedException("Caller is not able to be overloaded");
+                if(caller.ResolveLevel.HasValue)
                 {
-                    v.Bind(id.Value, v.ResolveLevel.Value);
+                    caller.Bind(id.Value, caller.ResolveLevel.Value);
                 }
-                else if (c.Caller is MemberAccess ma && ma.Member.ResolveLevel.HasValue)
-                {
-                    ma.Member.Bind(id.Value, ma.Member.ResolveLevel.Value);
-                }
-                else throw new UnexpectedException("Caller is not able to be overloaded");
+                else throw new UnexpectedException("Unresolved caller");
                 return bestMatch.ReturnType;
             }
-            return Error("type " + calltype + " is not callable");
+            return Error($"type {calltype} is not callable");
         }
 
         public Type Visit(Declarator d) => d.Type?.Accept(this) switch
