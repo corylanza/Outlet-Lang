@@ -9,13 +9,9 @@ namespace Outlet.AST {
 
 		public readonly Expression Expr;
 
-		public ReturnStatement(Expression e) {
-			Expr = e;
-		}
+		public ReturnStatement(Expression e) => Expr = e;
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() => "return " + Expr.ToString();
 	}

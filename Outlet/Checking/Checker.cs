@@ -197,7 +197,7 @@ namespace Outlet.Checking
                 {
                     if (body != Primitive.Void) return Error("constructor cannot return value");
                 }
-                else if (body == null || body == Primitive.Void)
+                else if (body == Primitive.Void)
                 {
                     if (ft.ReturnType != Primitive.Void) return Error("function " + f.Decl.Identifier + "not all code paths return a value");
                 }
