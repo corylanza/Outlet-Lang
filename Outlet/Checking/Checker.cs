@@ -19,7 +19,6 @@ namespace Outlet.Checking
         public readonly Stack<CheckStackFrame> StackFrames = new Stack<CheckStackFrame>();
         public CheckStackFrame CurrentStackFrame => StackFrames.Peek();
 
-        //private static readonly Type ErrorType = new ProtoClass("error", null, null, null);
         private readonly List<Error> CheckingErrors = new List<Error>();
 
         public Checker()
@@ -41,16 +40,7 @@ namespace Outlet.Checking
         public void Check(IASTNode program)
         {
             CheckingErrors.Clear();
-            if (program is FunctionDeclaration || program is ClassDeclaration || program is OperatorOverloadDeclaration)
-            {
-                DoImpl.Push(false);
-                program.Accept(this);
-                DoImpl.Pop();
-                DoImpl.Push(true);
-                program.Accept(this);
-                DoImpl.Pop();
-            }
-            else program.Accept(this);
+            program.Accept(this);
 
             if (CheckingErrors.Count > 0)
             {
@@ -149,48 +139,52 @@ namespace Outlet.Checking
 
         public Type Visit(ConstructorDeclaration c) => Visit(c as FunctionDeclaration);
 
+        public void DeclareFunction(FunctionDeclaration f)
+        {
+            if (f.TypeParameters.Any())
+            {
+                FunctionType FillInGenericArgs(List<Type> typeArgs)
+                {
+                    var valid = typeArgs.SameLengthAndAll(f.TypeParameters,
+                        (type, typeParam) => typeParam.Constraint is null || !(Cast(type, typeParam.Constraint.Accept(this)) is Error));
+                    //var types = f.TypeParameters.Zip(typeArgs).ToList().Select((param, type) => null);
+                    return new FunctionType(new (Type, string)[] { (Primitive.Int, "t") }, Primitive.Int);
+                    //throw new NotImplementedException();
+                }
+                var gen = new GenericFunctionType(FillInGenericArgs);
+                Define(gen, f.Decl);
+            }
+            else
+            {
+                // Check decl and args first, needed to make function type
+                (Type type, string id)[] parameterTypes = f.Parameters.Select(arg => (arg.Accept(this), arg.Identifier)).ToArray();
+                Type returnType = f.Decl.Accept(this) is Type t ? t : throw new CheckerException("Expected Type");
+                FunctionType ft = new FunctionType(parameterTypes, returnType);
+                // define the header using the function type from above
+                Define(ft, f.Decl);
+            }
+        }
+
         public Type Visit(FunctionDeclaration f)
         {
-            if (!DoImpl.Peek())
-            {                
-                //f.TypeParameters.ForEach(param =>
-                //{
-                //    if ((param.Constraint?.Accept(this) ?? new MetaType(Primitive.Object)) is MetaType type)
-                //    {
-                //        Define(type, param);
-                //    }
-                //    else Error($"Generic parameter {param.Identifier} constraint was not a valid type");
-                //});
-                if (f.TypeParameters.Any())
-                {
-                    FunctionType FillInGenericArgs(List<Type> typeArgs)
-                    {
-                        var valid = typeArgs.SameLengthAndAll(f.TypeParameters, 
-                            (type, typeParam) => typeParam.Constraint is null || !(Cast(type, typeParam.Constraint.Accept(this)) is Error));
-                        //var types = f.TypeParameters.Zip(typeArgs).ToList().Select((param, type) => null);
-                        //return new FunctionType(new (Type, string)[] { (Primitive.Int, "t") }, Primitive.Int);
-                        throw new NotImplementedException();
-                    }
-                    var gen = new GenericFunctionType(FillInGenericArgs);
-                    Define(gen, f.Decl);
-                    return gen;
-                } else
-                {
-                    // Check decl and args first, needed to make function type
-                    (Type type, string id)[] parameterTypes = f.Parameters.Select(arg => (arg.Accept(this), arg.Identifier)).ToArray();
-                    Type returnType = f.Decl.Accept(this) is Type t ? t : throw new CheckerException("Expected Type");
-                    FunctionType ft = new FunctionType(parameterTypes, returnType);
-                    // define the header using the function type from above
-                    Define(ft, f.Decl);
-                    return ft;
-                }
-            }
-            else if (CurrentStackFrame.Resolve(f.Decl, out Type type, out uint _, out uint _))
+            if (CurrentStackFrame.Resolve(f.Decl, out Type type, out uint _, out uint _))
             {
-                FunctionType ft = type is FunctionType fnt ? fnt : throw new CheckerException("Expected Function type");
-                // enter the function scope and define the args;
+                // enter the function scope and define the args and type args
                 EnterStackFrame();
-                ft.Parameters.Zip(f.Parameters).ToList().ForEach(arg => Define(arg.Item1.type, arg.Item2));
+                if(f.TypeParameters.Any() && type is GenericFunctionType generic)
+                {
+                    foreach (var typeParam in f.TypeParameters)
+                    {
+                        if ((typeParam.Constraint?.Accept(this) ?? new MetaType(Primitive.Object)) is MetaType constraintType)
+                        {
+                            Define(constraintType, typeParam);
+                        }
+                        else Error($"Generic parameter {typeParam.Identifier} constraint was not a valid type");
+                    }
+                }
+                FunctionType ft = type is FunctionType fnt ? fnt : throw new CheckerException("Expected Function type");
+
+                foreach (var ((argType, _), argDecl) in ft.Parameters.Zip(f.Parameters)) Define(argType, argDecl);
                 // check the body now that its header and args have been defined
                 Type body = f.Body.Accept(this);
                 if (f is ConstructorDeclaration)
@@ -462,10 +456,7 @@ namespace Outlet.Checking
                 cd.Accept(this);
             }
             // Forward Declaration of Functions
-            foreach (FunctionDeclaration fd in b.Functions)
-            {
-                fd.Accept(this);
-            }
+            foreach (FunctionDeclaration func in b.Functions) DeclareFunction(func);
             foreach (var overload in b.OverloadedOperators)
             {
                 overload.Accept(this);
@@ -477,7 +468,7 @@ namespace Outlet.Checking
             {
                 Type temp = d.Accept(this);
                 if (ret != null) return Error("unreachable code detected");
-                if (d is Statement && !(d is Expression) && temp != null)
+                if (d is Statement and not Expression && temp != null)
                 {
                     ret = temp;
                 }
@@ -498,7 +489,7 @@ namespace Outlet.Checking
                 Define(loopvar, f.LoopVar);
                 Type body = f.Body.Accept(this);
                 ExitScope();
-                if (f.Body is Statement && !(f.Body is Expression) && body != null) return body;
+                if (f.Body is Statement and not Expression && body != null) return body;
                 return Primitive.Void;
             }
             return Error("only array types are iterable, found:" + collection.ToString());
@@ -510,9 +501,9 @@ namespace Outlet.Checking
             Cast(cond, Primitive.Bool, "if statement condition requires a boolean, found a {0}");
             Type iftrue = i.Iftrue.Accept(this);
             Type? iffalse = i.Iffalse?.Accept(this);
-            if (i.Iftrue is Statement && !(i.Iftrue is Expression) && iftrue != null)
+            if (i.Iftrue is Statement and not Expression && iftrue != null)
             {
-                if (i.Iffalse is Statement && !(i.Iffalse is Expression) && iffalse != null)
+                if (i.Iffalse is Statement and not Expression && iffalse != null)
                 {
                     // TODO should return common ancestor
                     return iftrue;
@@ -531,7 +522,7 @@ namespace Outlet.Checking
             Type cond = w.Condition.Accept(this);
             Cast(cond, Primitive.Bool, "while loop condition requires a boolean, found a {0}");
             Type body = w.Body.Accept(this);
-            if (w.Body is Statement && !(w.Body is Expression) && body != null) return body;
+            if (w.Body is Statement and not Expression && body != null) return body;
             return Primitive.Void;
         }
 

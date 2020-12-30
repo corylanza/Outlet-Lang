@@ -46,13 +46,14 @@ namespace Outlet.Parsing {
 
 		public IASTNode Parse() {
 			var block = ParseBlock();
-			if (block.Lines.Count == 1) return block.Lines.First();
+			if (block.Lines.Count == 1 && block.Lines.First() is Expression expr) return expr;
+			if (block.Lines.Count == 1 && block.Lines.First() is Declaration decl) return decl;
 			return block;
 		}
 
         private Block ParseBlock()
         {
-            List<IASTNode> lines = new List<IASTNode>();
+			List<IASTNode> lines = new List<IASTNode>();
             while (Tokens.Count > 0 && Tokens.First() != DelimeterToken.RightCurly)
             {
                 var nextdecl = NextDeclaration();

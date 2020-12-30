@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ClassDeclaration : Declaration {
 
-		public Expression? SuperClass { get; private set; }
-		public List<Declaration> InstanceDecls { get; private set; }
-		public List<Declaration> StaticDecls { get; private set; }
-		public List<TypeParameter> TypeParameters { get; private set; }
-        public List<ConstructorDeclaration> Constructors { get; private set; }
+		public Expression? SuperClass { get; private init; }
+		public List<Declaration> InstanceDecls { get; private init; }
+		public List<Declaration> StaticDecls { get; private init; }
+		public List<TypeParameter> TypeParameters { get; private init; }
+        public List<ConstructorDeclaration> Constructors { get; private init; }
 
 		public ClassDeclaration(
 			string name, 

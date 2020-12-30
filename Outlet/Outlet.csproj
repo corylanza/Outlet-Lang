@@ -1,27 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.0;netstandard2.1</TargetFrameworks>
-    <RootNamespace>Outlet</RootNamespace>
-    <AssemblyName>Outlet</AssemblyName>
-    <StartupObject>Outlet.Program</StartupObject>
+    <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <ApplicationIcon />
-    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="NETStandard.Library" Version="2.0.3" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Outlet.ForeignFunctions\Outlet.ForeignFunctions.csproj" />

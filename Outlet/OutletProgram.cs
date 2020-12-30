@@ -29,7 +29,8 @@ namespace Outlet
             System = sys;
 
             Checker = new Checker();
-            new NativeInitializer(sys).Register(AppDomain.CurrentDomain.Load("Outlet.StandardLib"), Checker.GlobalScope, Checker.Error);
+            var stdlib = AppDomain.CurrentDomain.Load("Outlet.StandardLib");
+            new NativeInitializer(sys).Register(stdlib, Checker.GlobalScope, Checker.Error);
 
             Interpreter = new Interpreter();
         }
