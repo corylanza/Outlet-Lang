@@ -49,8 +49,8 @@ namespace Outlet.Web.Pages
 
         public void ShowOutput(string output)
         {
-            var last = History.Last();
-            last.consoleOutput.Add(output);
+            var (code, consoleOutput, result) = History.Last();
+            consoleOutput.Add(output);
         }
 
         public string GetInput()

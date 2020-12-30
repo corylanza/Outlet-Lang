@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Outlet.CLI</RootNamespace>
+    <AssemblyName>Outlet.CLI</AssemblyName>
+    <StartupObject>Outlet.CLI.Program</StartupObject>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon />
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Outlet.StandardLib\Outlet.StandardLib.csproj" />
+    <ProjectReference Include="..\Outlet\Outlet.csproj" />
+  </ItemGroup>
+
+</Project>
