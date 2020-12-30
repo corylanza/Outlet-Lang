@@ -28,7 +28,7 @@ namespace Outlet {
 		}
 
 		public static SystemInterface ConsoleInterface(StandardError stderror) => new SystemInterface(
-			stdin: () => Console.ReadLine(),
+			stdin: () => Console.ReadLine() ?? "",
 			stdout: text => Console.WriteLine(text),
 			stderr: stderror
 		);
