@@ -42,7 +42,7 @@ namespace Outlet
                 LinkedList<Lexeme> lexout = Lexer.Scan(bytes, System.StdErr);
                 IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
-                Checker.Check(program, keep: true);
+                Checker.Check(program);
                 Operand res = Interpreter.Interpret(program);
                 return res;
             }
@@ -60,7 +60,7 @@ namespace Outlet
                 LinkedList<Lexeme> lexout = Lexer.Scan(bytes, System.StdErr);
                 IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
-                Checker.Check(program, keep: false);
+                Checker.Check(program);
             }
             catch (Exception e)
             {

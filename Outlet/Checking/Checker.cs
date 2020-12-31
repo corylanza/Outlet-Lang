@@ -37,15 +37,10 @@ namespace Outlet.Checking
 
         private void Define(Type type, IBindable decl) => CurrentStackFrame.Assign(decl, type);
 
-        public void Check(IASTNode program, bool keep)
+        public void Check(IASTNode program)
         {
             CheckingErrors.Clear();
             program.Accept(this);
-            if(!keep)
-            {
-                StackFrames.Clear();
-                StackFrames.Push(CheckStackFrame.Global(Error));
-            }
 
             if (CheckingErrors.Count > 0)
             {
@@ -453,7 +448,7 @@ namespace Outlet.Checking
 
         public Type Visit(Block b)
         {
-            EnterScope();
+            if(!b.IsProgram) EnterScope();
             DoImpl.Push(false);
             // Forward Declaration of Classes
             foreach (ClassDeclaration cd in b.Classes)
@@ -479,7 +474,7 @@ namespace Outlet.Checking
                 }
             }
             DoImpl.Pop();
-            ExitScope();
+            if(!b.IsProgram) ExitScope();
             return ret is null ? Primitive.Void : ret;
         }
 

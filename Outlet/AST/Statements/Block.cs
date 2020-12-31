@@ -12,9 +12,11 @@ namespace Outlet.AST {
 		public List<OperatorOverloadDeclaration> OverloadedOperators => Lines.OfType<OperatorOverloadDeclaration>().ToList();
 
 		public List<IASTNode> Lines { get; private set; }
+		public bool IsProgram { get; private init; }
 
-		public Block(List<IASTNode> lines) {
+		public Block(List<IASTNode> lines, bool program = false) {
 			Lines = lines;
+			IsProgram = program;
 		}
 
 		public static Block Empty() => new Block(new List<IASTNode>());

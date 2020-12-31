@@ -69,13 +69,12 @@ namespace Outlet.Parsing {
 			next == DelimeterToken.Comma || next == DelimeterToken.RightBrace || next == DelimeterToken.SemiC;
 
 		public IASTNode Parse() {
-			var block = ParseBlock();
+			var block = ParseBlock(isProgram: true);
 			if (block.Lines.Count == 1 && block.Lines.First() is Expression expr) return expr;
-			if (block.Lines.Count == 1 && block.Lines.First() is Declaration decl) return decl;
 			return block;
 		}
 
-        private Block ParseBlock()
+        private Block ParseBlock(bool isProgram = false)
         {
 			List<IASTNode> lines = new List<IASTNode>();
             while (PeekNextTokenExistsAndIsnt(DelimeterToken.RightCurly))
@@ -83,7 +82,7 @@ namespace Outlet.Parsing {
                 var nextdecl = NextDeclaration();
                 lines.Add(nextdecl);
             }
-            return new Block(lines);
+            return new Block(lines, isProgram);
         }
 	}
 }

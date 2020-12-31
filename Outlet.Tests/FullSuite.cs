@@ -82,6 +82,21 @@ namespace Outlet.Tests
         }
 
         [Test]
+        public void TestFunctions()
+        {
+            List<string> errors = new List<string>();
+            ReplOutletProgram program = new ReplOutletProgram(Program.ConsoleInterface(OnException));
+            string RunCode(string code) => program.Run(Encoding.ASCII.GetBytes(code)).ToString();
+            void OnException(Exception ex)
+            {
+                errors.Add(ex.Message);
+            }
+            RunCode("int fac(int n) => n == 1 ? 1 : n * fac(n-1);");
+            Assert.AreEqual(0, errors.Count, errors.Count > 0 ? errors.Last() : null);
+            Assert.AreEqual("120", RunCode("fac(5)"));
+        }
+
+        [Test]
         public void TestGenerics()
         {
             List<string> errors = new List<string>();
