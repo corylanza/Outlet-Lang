@@ -12,14 +12,18 @@ namespace Outlet.Parsing {
 
 		private LinkedList<Lexeme> Tokens { get; set; }
 
+		// Store this for errors where unexpected EOF
+		private int TotalLines { get; init; }
+
 		public Parser(LinkedList<Lexeme> tokens)
         {
 			Tokens = tokens;
+			TotalLines = tokens.Last().Line;
         }
 
-		private bool PeekMatch(Token s) => Tokens.Count > 0 && s == Tokens.First().InnerToken;
+		private bool PeekMatch(Token s) => Tokens.Count > 0 && s.Equals(Tokens.First().InnerToken);
 
-		private bool PeekNextTokenExistsAndIsnt(Token s) => Tokens.Count > 0 && s != Tokens.First().InnerToken;
+		private bool PeekNextTokenExistsAndIsnt(Token s) => Tokens.Count > 0 && !s.Equals(Tokens.First().InnerToken);
 
 		private bool PeekMatchType<T>([NotNullWhen(true)] out T? i) where T : Token
 		{
@@ -34,7 +38,7 @@ namespace Outlet.Parsing {
 
 		private bool Match(Token s)
 		{
-			if (Tokens.Count > 0 && s == Tokens.First().InnerToken)
+			if (Tokens.Count > 0 && s.Equals(Tokens.First().InnerToken))
 			{
 				Tokens.RemoveFirst(); return true;
 			}
@@ -44,20 +48,24 @@ namespace Outlet.Parsing {
 		private void Consume(Token s, string error)
 		{
 			Lexeme? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
-			if (found is null) throw new OutletException($"Syntax Error: {error}, found: no more tokens");
-			if (found.InnerToken != s) throw new OutletException($"Syntax Error at line {found.Line}: {error}, found: {found.InnerToken}");
+			if (found is null) throw new OutletException($"Syntax Error at line {TotalLines} : {error}, found: no more tokens");
+			if (!s.Equals(found.InnerToken)) throw new OutletException($"Syntax Error at line {found.Line}: {error}, found: {found.InnerToken}");
 		}
 
 		private Lexeme ConsumeTypeGetLexeme<T>(string error) where T : Token
 		{
-			if (Tokens.Count > 0 && Tokens.Dequeue() is Lexeme l && l.InnerToken is T) return l;
-			else throw new OutletException("Syntax Error: " + error);
+			Lexeme? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
+			if (found is null) throw new OutletException($"Syntax Error {error} at line {TotalLines}, found: no more tokens");
+			if (found.InnerToken is T) return found;
+			else throw new OutletException($"Syntax Error at line {found.Line}: {error}, found: {found.InnerToken}");
 		}
 
 		private T ConsumeType<T>(string error) where T : Token 
 		{
-			if (Tokens.Count > 0 && Tokens.Dequeue().InnerToken is T t) return t;
-			else throw new OutletException("Syntax Error: " + error);
+			Lexeme? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
+			if (found is null) throw new OutletException($"Syntax Error {error} at line {TotalLines}, found: no more tokens");
+			if (found.InnerToken is T t) return t;
+			else throw new OutletException($"Syntax Error at line {found.Line}: {error}, found: {found.InnerToken}");
 		}
 
 		private static bool IsBinary(Token last) => 

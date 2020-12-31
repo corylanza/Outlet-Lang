@@ -11,8 +11,8 @@ using Outlet.StandardLib;
 namespace Outlet.Lexing {
     public static partial class Lexer {
 
-		private static int LinePos = 0;
-		private static int CharPos = 0;
+		private static int LinePos = 1;
+		private static int CharPos = 1;
 		private static int ErrorCount = 0;
         
         static Lexer() {
@@ -25,6 +25,8 @@ namespace Outlet.Lexing {
 		}
 
         public static LinkedList<Lexeme> Scan(byte[] charStream, StandardError errorHandler) {
+			LinePos = 1;
+			CharPos = 1;
 			ErrorCount = 0;
 			machine.Cur = start; 
 			string buffer = "";

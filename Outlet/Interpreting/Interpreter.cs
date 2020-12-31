@@ -252,11 +252,21 @@ namespace Outlet.Interpreting {
 			if(a.Left is Variable v) {
                 CurrentStackFrame.Assign(v, val);
 				return val;
-			} else if(a.Left is MemberAccess m && m.Left.Accept(this) is IDereferenceable dereferenced) {
-                dereferenced.SetMember(m.Member, val);
-                return val;
+			} 
+            else if(a.Left is MemberAccess m) {
+                var memberLeft = m.Left.Accept(this);
+                if(memberLeft is IDereferenceable dereferenced)
+                {
+                    dereferenced.SetMember(m.Member, val);
+                    return val;
+                }
+                else if(memberLeft is TypeObject to && to.Encapsulated is IDereferenceable staticAccess)
+                {
+                    staticAccess.SetMember(m.Member, val);
+                    return val;
+                }
 			}
-			throw new UnexpectedException("cannot assign to the left side of this expression");
+            throw new UnexpectedException("cannot assign to the left side of this expression");
 		}
 
 		public Operand Visit(Binary b) => b.Oper is BinOp bo ? bo.Perform(b.Left.Accept(this), b.Right.Accept(this)) : 

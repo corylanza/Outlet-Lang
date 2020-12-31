@@ -15,7 +15,7 @@ namespace Outlet.Checking
 
         #region Helpers
 
-        public readonly Stack<bool> DoImpl = new Stack<bool>();
+        //public readonly Stack<bool> DoImpl = new Stack<bool>();
         public readonly Stack<CheckStackFrame> StackFrames = new Stack<CheckStackFrame>();
         public CheckStackFrame CurrentStackFrame => StackFrames.Peek();
 
@@ -31,7 +31,7 @@ namespace Outlet.Checking
             CheckingErrors.Add(error);
         }
 
-        public CheckStackFrame GlobalScope => StackFrames.First();
+        public CheckStackFrame GlobalScope => StackFrames.Last();
 
         public Error Error(string message) => new Error(message, ErrorHandler);
 
@@ -84,56 +84,56 @@ namespace Outlet.Checking
 
         #region Declarations
 
+        public void DeclareClass(ClassDeclaration c)
+        {
+            CheckStackFrame statics = new CheckStackFrame(CurrentStackFrame, Error);
+            CheckStackFrame instances = new CheckStackFrame(statics, Error);
+            Class parent = Primitive.Object;
+            if (c.SuperClass != null)
+            {
+                if (c.SuperClass.Accept(this) is MetaType to && to.Stored is Class super)
+                {
+                    parent = super;
+                }
+                else Error("cannot extend anything other than a class");
+            }
+
+            ProtoClass proto = new ProtoClass(c.Name, Error, parent, statics, instances);
+            Define(new MetaType(proto), c.Decl);
+            EnterStackFrame(statics);
+            //foreach (var (id, classConstraint) in c.GenericParameters)
+            //{
+            //    Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
+            //    CurrentScope.Define(new TypeObject(constraint), id);
+            //}
+
+            foreach (Declaration d in c.StaticDecls) if (d is FunctionDeclaration f) DeclareFunction(f);
+            foreach (var constructor in c.Constructors) DeclareFunction(constructor);
+
+            EnterStackFrame(instances);
+            Define(proto, "this".ToVariable());
+            foreach (Declaration d in c.InstanceDecls) if (d is FunctionDeclaration f) DeclareFunction(f);
+
+            ExitStackFrame();
+            ExitStackFrame();
+        }
+
         public Type Visit(ClassDeclaration c)
         {
-            if (!DoImpl.Peek())
-            {
-                CheckStackFrame statics = new CheckStackFrame(CurrentStackFrame, Error);
-                CheckStackFrame instances = new CheckStackFrame(statics, Error);
-                Class parent = Primitive.Object;
-                if (c.SuperClass != null)
-                {
-                    if (c.SuperClass.Accept(this) is MetaType to && to.Stored is Class super)
-                    {
-                        parent = super;
-                    } else Error("cannot extend anything other than a class");
-                }
+            //ProtoClass? parent = c.SuperClass != null ? CurrentStackFrame.Get(c.SuperClass) as ProtoClass : null;
 
-                ProtoClass proto = new ProtoClass(c.Name, Error, parent, statics, instances);
-                Define(new MetaType(proto), c.Decl);
-                EnterStackFrame(statics);
-                //foreach (var (id, classConstraint) in c.GenericParameters)
-                //{
-                //    Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
-                //    CurrentScope.Define(new TypeObject(constraint), id);
-                //}
+            var proto = CurrentStackFrame.Get(c.Decl) is MetaType t && t.Stored is ProtoClass p ? p : throw new CheckerException("Expected protoclass");
+            EnterStackFrame(proto.StaticMembers);
+            foreach (Declaration d in c.StaticDecls) d.Accept(this);
 
-                foreach (Declaration d in c.StaticDecls) if (d is FunctionDeclaration) d.Accept(this);
-                foreach (var constructor in c.Constructors) constructor.Accept(this);
+            EnterStackFrame(proto.InstanceMembers);
+            foreach (Declaration d in c.InstanceDecls) d.Accept(this);
 
-                EnterStackFrame(instances);
-                Define(proto, "this".ToVariable());
-                foreach (Declaration d in c.InstanceDecls) if (d is FunctionDeclaration) d.Accept(this);
+            //if (parent != null) foreach ((string id, Type type) in parent.InstanceMembers) CurrentScope.Define(type, id);
+            foreach (var constructor in c.Constructors) constructor.Accept(this);
+            ExitStackFrame();
+            ExitStackFrame();
 
-                ExitStackFrame();
-                ExitStackFrame();
-            }
-            else
-            {
-                //ProtoClass? parent = c.SuperClass != null ? CurrentStackFrame.Get(c.SuperClass) as ProtoClass : null;
-
-                var proto = CurrentStackFrame.Get(c.Decl) is MetaType t && t.Stored is ProtoClass p ? p : throw new CheckerException("Expected protoclass");
-                EnterStackFrame(proto.StaticMembers);
-                foreach (Declaration d in c.StaticDecls) d.Accept(this);
-
-                EnterStackFrame(proto.InstanceMembers);
-                foreach (Declaration d in c.InstanceDecls) d.Accept(this);
-
-                //if (parent != null) foreach ((string id, Type type) in parent.InstanceMembers) CurrentScope.Define(type, id);
-                foreach (var constructor in c.Constructors) constructor.Accept(this);
-                ExitStackFrame();
-                ExitStackFrame();
-            }
             return Primitive.Void;
         }
 
@@ -205,27 +205,27 @@ namespace Outlet.Checking
 
         public Type Visit(OperatorOverloadDeclaration o)
         {
-            if (!DoImpl.Peek())
-            {
-                throw new NotImplementedException("In development");
-                switch (o.Operator)
-                {
-                    case BinaryOperator b:
-                        if (o.Parameters.Count != 2) return Error($"Binary operator {b.Name} requires two parameters to overload");
-                        break;
-                    case UnaryOperator u:
-                        if (o.Parameters.Count != 1) return Error($"Unary operator {u.Name} requires one parameter to overload");
-                        break;
-                    default:
-                        throw new UnexpectedException("No other operator types");
-                }
-                var res = Visit(o as FunctionDeclaration);
-                return res;
-            }
-            else
-            {
-                return Visit(o as FunctionDeclaration);
-            }
+            throw new NotImplementedException("In development");
+            //if (!DoImpl.Peek())
+            //{
+            //    switch (o.Operator)
+            //    {
+            //        case BinaryOperator b:
+            //            if (o.Parameters.Count != 2) return Error($"Binary operator {b.Name} requires two parameters to overload");
+            //            break;
+            //        case UnaryOperator u:
+            //            if (o.Parameters.Count != 1) return Error($"Unary operator {u.Name} requires one parameter to overload");
+            //            break;
+            //        default:
+            //            throw new UnexpectedException("No other operator types");
+            //    }
+            //    var res = Visit(o as FunctionDeclaration);
+            //    return res;
+            //}
+            //else
+            //{
+            //    return Visit(o as FunctionDeclaration);
+            //}
         }
 
         public Type Visit(VariableDeclaration v)
@@ -449,20 +449,14 @@ namespace Outlet.Checking
         public Type Visit(Block b)
         {
             if(!b.IsProgram) EnterScope();
-            DoImpl.Push(false);
             // Forward Declaration of Classes
-            foreach (ClassDeclaration cd in b.Classes)
-            {
-                cd.Accept(this);
-            }
+            foreach (ClassDeclaration cd in b.Classes) DeclareClass(cd);
             // Forward Declaration of Functions
             foreach (FunctionDeclaration func in b.Functions) DeclareFunction(func);
             foreach (var overload in b.OverloadedOperators)
             {
                 overload.Accept(this);
             }
-            DoImpl.Pop();
-            DoImpl.Push(true);
             Type? ret = null;
             foreach (IASTNode d in b.Lines)
             {
@@ -473,7 +467,6 @@ namespace Outlet.Checking
                     ret = temp;
                 }
             }
-            DoImpl.Pop();
             if(!b.IsProgram) ExitScope();
             return ret is null ? Primitive.Void : ret;
         }

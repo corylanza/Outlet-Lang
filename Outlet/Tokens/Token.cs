@@ -12,7 +12,6 @@ namespace Outlet.Tokens {
 		public static bool ContainsKey(string text) => Tokens.ContainsKey(text);
 		public static Token Get(string text) => Tokens[text];
 
-
 		private static readonly Dictionary<string, Token> Tokens = new Dictionary<string, Token>() {
 			// Keywords
 			{"class", Keyword.Class },

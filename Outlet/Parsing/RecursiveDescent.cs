@@ -83,7 +83,7 @@ namespace Outlet.Parsing {
 						if(Match(DelimeterToken.RightCurly)) break;
 						if(Tokens.Count == 0) throw new OutletException("expected } after class definition");
 						if(Match(name)) {
-							if(Match(DelimeterToken.LeftParen)) {
+							if(PeekMatch(DelimeterToken.LeftParen) || PeekMatch(DelimeterToken.LeftBrace)) {
 								Declarator constr = new Declarator(new Variable(name.Name), "");
 								constructors.Add(ConstructDef(constr));
 								continue;
@@ -92,7 +92,7 @@ namespace Outlet.Parsing {
 						bool isstatic = Match(Keyword.Static);
 						Statement nextfield = NextStatement();
 						if(nextfield is Declarator df) {
-							Declaration curdecl = Match(DelimeterToken.LeftParen) ? FunctionDef(df) as Declaration : VarDeclaration(df);
+							Declaration curdecl = PeekMatch(DelimeterToken.LeftParen) || PeekMatch(DelimeterToken.LeftBrace) ? FunctionDef(df) as Declaration : VarDeclaration(df);
 							(isstatic ? statics : instance).Add(curdecl);
 						} else throw new OutletException("statement: " + nextfield.ToString() + " must be inside a function body");
 					}
@@ -106,6 +106,7 @@ namespace Outlet.Parsing {
 				if(d.IsOperatorOverload)
                 {
 					var op = ConsumeType<OperatorToken>("Expected operator following overload");
+					// TODO this should probably be a PeekMatch and also check for LeftBrace for generic case
 					Consume(DelimeterToken.LeftParen, "Expected ( before operator overload args");
 					return OperatorOverloadDef(new Declarator(d.Type, op.ToString()), op);
                 }
