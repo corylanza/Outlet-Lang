@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Outlet.CLI;
 using System;
 using System.Collections.Generic;
 using System.IO;

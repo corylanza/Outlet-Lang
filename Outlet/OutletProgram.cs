@@ -39,7 +39,7 @@ namespace Outlet
         {
             try
             {
-                LinkedList<Token> lexout = Lexer.Scan(bytes, System.StdErr);
+                LinkedList<Lexeme> lexout = Lexer.Scan(bytes, System.StdErr);
                 IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
                 Checker.Check(program, keep: true);
@@ -57,7 +57,7 @@ namespace Outlet
         {
             try
             {
-                LinkedList<Token> lexout = Lexer.Scan(bytes, System.StdErr);
+                LinkedList<Lexeme> lexout = Lexer.Scan(bytes, System.StdErr);
                 IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
                 Checker.Check(program, keep: false);

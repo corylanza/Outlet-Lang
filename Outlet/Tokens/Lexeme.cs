@@ -1,20 +1,12 @@
 ﻿namespace Outlet.Tokens
 {
-    public abstract class Lexeme
+    public class Lexeme
     {
-        public int Line { get; init; }
-        public int Character { get; init; }
+        public int Line { get; private init; }
+        public int Character { get; private init; }
+        public Token InnerToken { get; private init; }
 
-        public abstract Token InnerToken { get; }
-    }
-
-
-    public class Lexeme<T> : Lexeme where T : Token
-    {
-
-        public override T InnerToken { get; }
-
-        public Lexeme(T token, int line, int character)
+        public Lexeme(Token token, int line, int character)
         {
             InnerToken = token;
             Line = line;

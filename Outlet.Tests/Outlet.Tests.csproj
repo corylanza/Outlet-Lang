@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Outlet.CLI\Outlet.CLI.csproj" />
     <ProjectReference Include="..\Outlet\Outlet.csproj" />
   </ItemGroup>
 

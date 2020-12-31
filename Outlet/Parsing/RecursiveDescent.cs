@@ -30,7 +30,7 @@ namespace Outlet.Parsing {
 				var genericParameters = ParseGenericParameters();
 				Consume(DelimeterToken.LeftParen, $"expected ( after generic parameters");
 				List<Declarator> argnames = new List<Declarator>();
-				while(Tokens.Count > 0 && Tokens.First() != DelimeterToken.RightParen) {
+				while(PeekNextTokenExistsAndIsnt(DelimeterToken.RightParen)) {
 					do {
 						if(NextStatement() is Declarator paramdecl) {
 							argnames.Add(paramdecl);
@@ -72,7 +72,8 @@ namespace Outlet.Parsing {
 				List<Declaration> statics = new List<Declaration>();
 				List<ConstructorDeclaration> constructors = new List<ConstructorDeclaration>();
 				Variable? superclass = null;
-                Identifier name = ConsumeType<Identifier>("Expected class identifier");
+                Lexeme nameLexeme = ConsumeTypeGetLexeme<Identifier>("Expected class identifier");
+				Identifier name = nameLexeme.InnerToken as Identifier;
 				var genericParameters = ParseGenericParameters();
                 if (Match(Keyword.Extends)) {
 					 superclass = new Variable(ConsumeType<Identifier>("expected name of super class after extends keyword").Name);
@@ -86,7 +87,7 @@ namespace Outlet.Parsing {
 								Declarator constr = new Declarator(new Variable(name.Name), "");
 								constructors.Add(ConstructDef(constr));
 								continue;
-							} else Tokens.AddFirst(name);
+							} else Tokens.AddFirst(nameLexeme);
 						}
 						bool isstatic = Match(Keyword.Static);
 						Statement nextfield = NextStatement();
