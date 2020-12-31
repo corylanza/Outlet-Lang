@@ -8,26 +8,19 @@ namespace Outlet.Web.Shared
 {
     public partial class OutletEditor
     {
-        private const bool useCodeEditor = false;
 
         [Parameter]
-        public string Text { get; set; } = "";
-
-        [Parameter]
-        public EventCallback<string> TextChanged { get; set; }
-
-        private async Task OnTextChanged(ChangeEventArgs e)
-        {
-            Text = useCodeEditor ? await JSRuntime.InvokeAsync<string>("getCodeEditorValue", Array.Empty<object>()) : e.Value.ToString();
-            await TextChanged.InvokeAsync(Text);
-        }
+        public string? ID { get; init; }
+        public async Task<string> GetValue() => await JSRuntime.InvokeAsync<string>("getCodeEditorValue", new object[] { ID ?? "editor" });
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (useCodeEditor && firstRender)
+            if(firstRender)
             {
-                await JSRuntime.InvokeAsync<string>("initCodeEditor", Array.Empty<object>());
+                await JSRuntime.InvokeAsync<string>("highlightCode", new object[] { ID ?? "editor" });
             }
         }
+
+
     }
 }

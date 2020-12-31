@@ -37,10 +37,15 @@ namespace Outlet.Checking
 
         private void Define(Type type, IBindable decl) => CurrentStackFrame.Assign(decl, type);
 
-        public void Check(IASTNode program)
+        public void Check(IASTNode program, bool keep)
         {
             CheckingErrors.Clear();
             program.Accept(this);
+            if(!keep)
+            {
+                StackFrames.Clear();
+                StackFrames.Push(CheckStackFrame.Global(Error));
+            }
 
             if (CheckingErrors.Count > 0)
             {

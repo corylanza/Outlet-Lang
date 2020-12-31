@@ -42,7 +42,7 @@ namespace Outlet
                 LinkedList<Token> lexout = Lexer.Scan(bytes, System.StdErr);
                 IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
-                Checker.Check(program);
+                Checker.Check(program, keep: true);
                 Operand res = Interpreter.Interpret(program);
                 return res;
             }
@@ -50,6 +50,21 @@ namespace Outlet
             {
                 System.StdErr(e);
                 return Value.Null;
+            }
+        }
+
+        protected void CheckBytes(byte[] bytes)
+        {
+            try
+            {
+                LinkedList<Token> lexout = Lexer.Scan(bytes, System.StdErr);
+                IASTNode program = new Parser(lexout).Parse();
+                Nodes.Add(program);
+                Checker.Check(program, keep: false);
+            }
+            catch (Exception e)
+            {
+                System.StdErr(e);
             }
         }
 
@@ -70,6 +85,8 @@ namespace Outlet
         public ReplOutletProgram(SystemInterface sys) : base(sys) { }
 
         public Operand Run(byte[] bytes) => RunBytes(bytes);
+
+        public void Check(byte[] bytes) => CheckBytes(bytes);
     }
 
     public class OutletProgramFile : OutletProgram

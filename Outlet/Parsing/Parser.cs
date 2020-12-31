@@ -28,7 +28,8 @@ namespace Outlet.Parsing {
 		}
 		private void Consume(Token s, string error)
 		{
-			if (Tokens.Count == 0 || Tokens.Dequeue() != s) throw new OutletException("Syntax Error: " + error);
+			Token? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
+			if (found != s) throw new OutletException($"Syntax Error: {error}, found: {found?.ToString() ?? "end of file"}");
 		}
 		private T ConsumeType<T>(string error) where T : Token
 		{

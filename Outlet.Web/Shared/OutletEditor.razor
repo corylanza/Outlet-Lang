@@ -1,3 +1,25 @@
 ﻿@inject IJSRuntime JSRuntime;
 
-<textarea id="input" class="w-100" name="code" rows="20" cols="80" value="@Text" @oninput="@OnTextChanged" />
+<style>
+    #editor {
+        min-height: 400px;
+        min-width: 600px;
+    }
+</style>
+
+<div id="@(ID ?? "editor")" class="w-100 h-100">
+class Person {
+    
+    string Name;
+
+    Person(string name) {
+        Name = name;
+    }
+    
+    void Speak() {
+        console.print("My name is " + name);
+    }
+
+    Person("Cory").Speak();
+}
+</div>

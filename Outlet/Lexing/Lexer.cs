@@ -36,7 +36,7 @@ namespace Outlet.Lexing {
 					machine.NextState(c);
 				} else if(machine.Cur.Accepting) {
 					if(machine.Cur.Output != NoToken) {
-						Token? toadd = machine.Cur.Output is Tokenizer t ? t (buffer) : null;
+						Token? toadd = machine.Cur.Output is Tokenizer t ? t(buffer) : null;
 						if(toadd != null) {
 							if(tokens.Count > 1 && toadd is IntLiteral i2 && tokens.Last() == OperatorToken.Dot) {
 								tokens.RemoveLast();
