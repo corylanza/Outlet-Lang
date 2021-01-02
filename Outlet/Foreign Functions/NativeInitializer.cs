@@ -14,7 +14,7 @@ namespace Outlet.FFI
 {
     public class NativeInitializer
     {
-        private static HashSet<string> AlreadyRegistered = new();
+        private readonly static HashSet<string> AlreadyRegistered = new();
 
         private SystemInterface System { get; }
 
@@ -180,11 +180,14 @@ namespace Outlet.FFI
 
         public void Register(Assembly assembly, CheckStackFrame globalScope, Func<string, Error> checkingError)
         {
-            if(assembly.FullName is null || AlreadyRegistered.Contains(assembly.FullName))
+            if (assembly.FullName is null || AlreadyRegistered.Contains(assembly.FullName))
             {
                 // Don't register if the assembly has already been registered
                 return;
             }
+            else AlreadyRegistered.Add(assembly.FullName);
+
+
             var classes = GetForeignClasses(assembly);
             foreach (var type in classes)
             {
