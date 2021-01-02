@@ -4,19 +4,19 @@ using System.Linq;
 namespace Outlet.Types {
 	public class FunctionType : Type {
 
-		public readonly (Type type, string id)[] Args;
+		public readonly (Type type, string id)[] Parameters;
 		public readonly Type ReturnType;
 
 		public FunctionType((Type, string)[] args, Type returntype) {
-			Args = args;
+			Parameters = args;
 			ReturnType = returntype;
 		}
 
 		public override bool Is(Type t, out uint level) {
             level = 0;
-            if (t is FunctionType ft && Args.Length == ft.Args.Length)
+            if (t is FunctionType ft && Parameters.Length == ft.Parameters.Length)
             {
-                foreach (var (arg, argType) in Args.Zip(ft.Args))
+                foreach (var (arg, argType) in Parameters.Zip(ft.Parameters))
                 {
                     if (arg.type.Is(argType.type, out uint elementLevel))
                     {
@@ -39,10 +39,10 @@ namespace Outlet.Types {
         {
             level = 0;
             uint distance = 0;
-            if (args.Length != Args.Length) return false;
+            if (args.Length != Parameters.Length) return false;
             for(int i = 0; i < args.Length; i++)
             {
-                if (!args[i].Is(Args[i].type, out uint levels)) return false;
+                if (!args[i].Is(Parameters[i].type, out uint levels)) return false;
                 else
                 {
                     distance += levels;
@@ -52,7 +52,7 @@ namespace Outlet.Types {
             return true;
         }
 
-		public override string ToString() => "("+Args.Select(arg => arg.type).ToList().ToListString()+")" + " => " + ReturnType.ToString();
+		public override string ToString() => "("+Parameters.Select(arg => arg.type).ToList().ToListString()+")" + " => " + ReturnType.ToString();
 
 	}
 }

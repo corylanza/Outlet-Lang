@@ -5,13 +5,15 @@ using Outlet.Types;
 namespace Outlet.AST {
 	public class FunctionDeclaration : Declaration {
 
-		public readonly List<Declarator> Args;
-		public readonly Statement Body;
+		public List<Declarator> Parameters { get; private set; }
+		public List<TypeParameter> TypeParameters { get; private set; }
+		public Statement Body { get; private set; }
 
         public uint? LocalCount;
 
-		public FunctionDeclaration(Declarator decl, List<Declarator> argnames, Statement body) : base(decl) {
-			Args = argnames;
+		public FunctionDeclaration(Declarator decl, List<Declarator> parameters, List<TypeParameter> typeParameters, Statement body) : base(decl) {
+			TypeParameters = typeParameters;
+			Parameters = parameters;
 			Body = body;
             LocalCount = null;
 		}

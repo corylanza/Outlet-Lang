@@ -32,7 +32,7 @@ namespace Outlet.Operands
                 {
                     s += "    \"" + name + "\": " + value?.ToString() + " \n";
                 }
-                return s + "}";
+                return s + "})";
             }
             else return s + Encapsulated.ToString() + ")";
         }

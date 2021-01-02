@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Operator = Outlet.Tokens.OperatorToken;
 
 namespace Outlet.Tokens {
 
@@ -11,13 +12,12 @@ namespace Outlet.Tokens {
 		public static bool ContainsKey(string text) => Tokens.ContainsKey(text);
 		public static Token Get(string text) => Tokens[text];
 
-
 		private static readonly Dictionary<string, Token> Tokens = new Dictionary<string, Token>() {
 			// Keywords
 			{"class", Keyword.Class },
 			{"static", Keyword.Static },
 			{"extends", Keyword.Extends },
-			{"operator", Keyword.Operator },
+			//{"operator", Keyword.Operator },
 			{"if", Keyword.If },
 			{"then", Keyword.Then },
 			{"else", Keyword.Else },
@@ -68,15 +68,15 @@ namespace Outlet.Tokens {
 			//{"..", Operator.ExcRange},
 			//{"...", Operator.IncRange},
 			// Delimeters
-			{"(", Delimeter.LeftParen },
-			{")", Delimeter.RightParen },
-			{"[", Delimeter.LeftBrace },
-			{"]", Delimeter.RightBrace },
-			{"}", Delimeter.RightCurly },
-			{"{", Delimeter.LeftCurly },
-			{",", Delimeter.Comma },
-			{":", Delimeter.Colon },
-			{";", Delimeter.SemiC },
+			{"(", DelimeterToken.LeftParen },
+			{")", DelimeterToken.RightParen },
+			{"[", DelimeterToken.LeftBrace },
+			{"]", DelimeterToken.RightBrace },
+			{"}", DelimeterToken.RightCurly },
+			{"{", DelimeterToken.LeftCurly },
+			{",", DelimeterToken.Comma },
+			{":", DelimeterToken.Colon },
+			{";", DelimeterToken.SemiC },
 		};
 	}
 }

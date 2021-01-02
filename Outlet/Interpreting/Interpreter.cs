@@ -2,6 +2,7 @@
 using System.Linq;
 using Outlet.AST;
 using Outlet.Operands;
+using Outlet.Operators;
 using Outlet.Types;
 using Type = Outlet.Types.Type;
 
@@ -70,14 +71,14 @@ namespace Outlet.Interpreting {
             StackFrame staticScope = new StackFrame(closure, (uint) staticFields.Length, $"{c.Name} static scope");
 
             // Hidden function for initializing instance variables/methods and defining this
-            (Instance, IStackFrame<Operand>) Init(UserDefinedClass type)
+            (Instance, StackFrame) Init(UserDefinedClass type)
             {
                 // Enter the instance scope
                 // add one to instance count for "this" which is not a member but lives in instance scope
                 StackFrame instancescope = new StackFrame(staticScope, (uint) c.InstanceDecls.Count + 1, "class scope");
                 CallStack.Push(instancescope);
 
-                UserDefinedInstance instance = new UserDefinedInstance(type, instancescope, c.InstanceDecls.Count);
+                UserDefinedInstance instance = new UserDefinedInstance(type, instancescope);
 
                 // Assign the value of "this"
                 instancescope.LocalVariables[Class.This] = ("this", instance);
@@ -96,17 +97,17 @@ namespace Outlet.Interpreting {
 
 
             // Define the class
-            UserDefinedClass newClass = new UserDefinedClass(c.Name, super, staticScope, staticFields, Init);
+            UserDefinedClass newClass = new UserDefinedClass(c.Name, super, staticScope, Init);
             var newType = new TypeObject(newClass);
             CurrentStackFrame.Assign(c.Decl, newType);
 
             // if there are any generic parameters define their value as their class constraint
-            foreach (var (id, classConstraint) in c.GenericParameters)
-            {
+            //foreach (var typeParameter in c.TypeParameters)
+            //{
                 //Class constraint = classConstraint?.Accept(this) is TypeObject to && to.Encapsulated is Class co ? co : Primitive.Object;
                 // TODO reimplement
                 //CurrentStackFrame.Initialize(id, new TypeObject(constraint));
-            }
+            //}
 
             int fieldNum = 0;
             CallStack.Push(staticScope);
@@ -130,7 +131,7 @@ namespace Outlet.Interpreting {
                     && t.Encapsulated is UserDefinedClass udc ? udc : throw new UnexpectedException("Expected udc");
 
                 // Call the constructors hidden init function to initialize instance variables/methods
-                (Instance inst, IStackFrame<Operand> instancescope) = type.Initialize();
+                (Instance inst, StackFrame instancescope) = type.Initialize();
 
                 // Enter the scope of the constructor
                 if (!c.LocalCount.HasValue) throw new System.Exception("stack frame size not allocated at check time");
@@ -138,7 +139,7 @@ namespace Outlet.Interpreting {
                 CallStack.Push(constructorscope);
 				// Add all parameters to constructor scope 
 				for(int i = 0; i < args.Length; i++) {
-                    constructorscope.Assign(c.Args[i], args[i]);
+                    constructorscope.Assign(c.Parameters[i], args[i]);
 				}
 				// Evaluate the body of the constructor
 				c.Body.Accept(this);
@@ -152,8 +153,8 @@ namespace Outlet.Interpreting {
             // at the instance level)
 
 			
-            var funcType = new FunctionType(c.Args.Select(arg =>
-                (arg.Accept(this) is TypeObject to ? to.Encapsulated as Type :
+            var funcType = new FunctionType(c.Parameters.Select(arg =>
+                (arg.Accept(this) is TypeObject to ? to.Encapsulated :
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 c.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated :
                     throw new UnexpectedException("expected type"));
@@ -168,15 +169,25 @@ namespace Outlet.Interpreting {
                 if (!f.LocalCount.HasValue) throw new UnexpectedException("stack frame size not allocated at check time");
                 StackFrame stackFrame = new StackFrame(closure, f.LocalCount.Value, f.Name);
                 CallStack.Push(stackFrame);
-				for(int i = 0; i < args.Length; i++) {
-                    stackFrame.Assign(f.Args[i], args[i]);
-				}
+                foreach (var (parameter, value) in f.Parameters.Zip(args)) {
+                    stackFrame.Assign(parameter, value);
+                }
                 Operand returnval = f.Body.Accept(this);
                 CallStack.Pop();
 				return returnval;
 			}
-            var funcType = new FunctionType(f.Args.Select(arg =>
-                (arg.Accept(this) is TypeObject to ? to.Encapsulated as Type : 
+
+            // TODO pass this to caller
+            List<Type> genericParams = f.TypeParameters.Select(param =>
+            {
+                if (!param.ResolveLevel.HasValue) throw new UnexpectedException($"generic parameter {param.Identifier} was not resolved");
+                var type = Primitive.Object;
+                CurrentStackFrame.Assign(param, new TypeObject(type));
+                return type as Type;
+            }).ToList();
+
+            var funcType = new FunctionType(f.Parameters.Select(arg =>
+                (arg.Accept(this) is TypeObject to ? to.Encapsulated : 
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 f.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated : 
                     throw new UnexpectedException("expected type"));
@@ -185,7 +196,12 @@ namespace Outlet.Interpreting {
 			return func;
 		}
 
-		public Operand Visit(VariableDeclaration v) {
+        public Operand Visit(OperatorOverloadDeclaration o)
+        {
+            return Visit(o as FunctionDeclaration);
+        }
+
+        public Operand Visit(VariableDeclaration v) {
 			Operand initial = v.Initializer?.Accept(this) ?? ((TypeObject) v.Decl.Accept(this)).Encapsulated.Default();
             CurrentStackFrame.Assign(v.Decl, initial);
 			return initial;
@@ -209,7 +225,9 @@ namespace Outlet.Interpreting {
 
         public Operand Visit(Access a) {
 			Operand col = a.Collection.Accept(this);
+            var idxs = a.Index.Select(idx => idx.Accept(this));
 			if(col is TypeObject at && a.Index.Length == 0) return new TypeObject(new ArrayType(at.Encapsulated));
+            if(col is Function f && idxs.All(idx => idx is TypeObject)) return f;
             if(col is Array c)
             {
                 // Index is 0 because all array access is one-dimensional as of now
@@ -219,7 +237,7 @@ namespace Outlet.Interpreting {
                 if (idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
                 return c.Values()[idx];
             }
-            throw new UnexpectedException("cannot acccess this type");
+            throw new UnexpectedException("cannot access this type");
 		}
 
 		public Operand Visit(As a) {
@@ -234,11 +252,21 @@ namespace Outlet.Interpreting {
 			if(a.Left is Variable v) {
                 CurrentStackFrame.Assign(v, val);
 				return val;
-			} else if(a.Left is MemberAccess m && m.Left.Accept(this) is IDereferenceable dereferenced) {
-                dereferenced.SetMember(m.Member, val);
-                return val;
+			} 
+            else if(a.Left is MemberAccess m) {
+                var memberLeft = m.Left.Accept(this);
+                if(memberLeft is IDereferenceable dereferenced)
+                {
+                    dereferenced.SetMember(m.Member, val);
+                    return val;
+                }
+                else if(memberLeft is TypeObject to && to.Encapsulated is IDereferenceable staticAccess)
+                {
+                    staticAccess.SetMember(m.Member, val);
+                    return val;
+                }
 			}
-			throw new UnexpectedException("cannot assign to the left side of this expression");
+            throw new UnexpectedException("cannot assign to the left side of this expression");
 		}
 
 		public Operand Visit(Binary b) => b.Oper is BinOp bo ? bo.Perform(b.Left.Accept(this), b.Right.Accept(this)) : 
@@ -311,7 +339,7 @@ namespace Outlet.Interpreting {
 			IEnumerable<Operand> evaled = t.Args.Select(arg => arg.Accept(this));
 			if(evaled.All(elem => elem is TypeObject)) 
                 return new TypeObject(new TupleType(evaled.Select(elem => Cast<TypeObject>(elem).Encapsulated).ToArray()));
-			if(t.Args.Length == 1) return t.Args[0].Accept(this);
+			if(t.Args.Length == 1) return t.Args.First().Accept(this);
 			else return new OTuple(evaled.ToArray());
 		}
 
@@ -351,7 +379,7 @@ namespace Outlet.Interpreting {
 		public Operand Visit(ForLoop f) {
 			Operands.Array c = (Operands.Array) f.Collection.Accept(this);
 			foreach(Operand o in c.Values()) {
-				Type looptype = Cast<TypeObject>(f.LoopVar.Accept(this)).Encapsulated;
+				Cast<TypeObject>(f.LoopVar.Accept(this));
                 CurrentStackFrame.Assign(f.LoopVar, o);
 				Operand res = f.Body.Accept(this);
 				if(f.Body is Statement s && !(s is Expression) && res != null) {
@@ -392,7 +420,8 @@ namespace Outlet.Interpreting {
             {
                 foreach(var (id, val) in d.GetMembers())
                 {
-                    // TODO fix CurScope.Add(id, val.GetOutletType(), val);
+                    // TODO fix
+                    CurrentStackFrame.Assign(new Variable(id), val);
                 }
                 return Empty.Value;
             } 

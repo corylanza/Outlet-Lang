@@ -1,6 +1,8 @@
 ﻿using Outlet.Checking;
 using Outlet.FFI.Natives;
+using Outlet.ForeignFunctions;
 using Outlet.Operands;
+using Outlet.StandardLib;
 using Outlet.Types;
 using System;
 using System.Collections;
@@ -10,10 +12,16 @@ using System.Reflection;
 
 namespace Outlet.FFI
 {
-    public static class NativeInitializer
+    public class NativeInitializer
     {
+        private SystemInterface System { get; }
 
-        public static Operand ToOutletOperand(object? o) => o switch
+        public NativeInitializer(SystemInterface system)
+        {
+            System = system;
+        }
+
+        public Operand ToOutletOperand(object? o) => o switch
         {
             string s => new Operands.String(s),
             float f => Value.Float(f),
@@ -26,9 +34,9 @@ namespace Outlet.FFI
             _ => throw new UnexpectedException("Cannot map type")
         };
 
-        public static Operand ToOutletInstance(NativeClass nc, object o)
+        public Operand ToOutletInstance(NativeClass nc, object o)
         {
-            static Operand ToMember(string id, MemberInfo member, object o) => member switch
+            Operand ToMember(string id, MemberInfo member, object o) => member switch
             {
                 MethodInfo method => Convert(id, method),
                 FieldInfo field => ToOutletOperand(o.GetType()!.GetField(field.Name)!.GetValue(o)),
@@ -65,9 +73,9 @@ namespace Outlet.FFI
             return new NativeInstance(nc, o, Get, Set, List);
         }
 
-        public static NativeClass ToOutletClass(string name, (string id, MemberInfo member)[] staticMembers, (string, MemberInfo)[] instanceMembers)
+        public NativeClass ToOutletClass(string name, (string id, MemberInfo member)[] staticMembers, (string, MemberInfo)[] instanceMembers)
         {
-            static Operand ToMember(string id, MemberInfo member) => member switch
+            Operand ToMember(string id, MemberInfo member) => member switch
             {
                 MethodInfo method => Convert(id, method),
                 FieldInfo field => ToOutletOperand(field.DeclaringType!.GetField(field.Name)!.GetValue(null)),
@@ -130,29 +138,31 @@ namespace Outlet.FFI
 
         public static FunctionType ToOutletMethodType(MethodInfo method) =>
             new FunctionType(method.GetParameters()
+                // If there is an argument with name sys and type SystemInterface, ignore in signature to allow dependency injection
+                .Where(param => !(param.ParameterType == typeof(SystemInterface) && param.Name == "sys"))
                 .Select(param => (Convert(param.ParameterType), param.Name!))
                 .ToArray(), Convert(method.ReturnType));
 
-        public static NativeFunction Convert(string name, MethodInfo method) =>
-            new NativeFunction(name, ToOutletMethodType(method), method);
+        public NativeFunction Convert(string name, MethodInfo method) =>
+            new NativeFunction(name, ToOutletMethodType(method), method, System);
 
         public static FunctionType ToOutletConstructorType(ConstructorInfo constructor) =>
             new FunctionType(constructor.GetParameters()
                 .Select(param => (Convert(param.ParameterType), param.Name!))
                 .ToArray(), Convert(constructor.DeclaringType!));
 
-        public static NativeConstructor Convert(ConstructorInfo constructor) =>
-            new NativeConstructor("", ToOutletConstructorType(constructor), constructor);
+        public NativeConstructor Convert(ConstructorInfo constructor) =>
+            new NativeConstructor("", ToOutletConstructorType(constructor), constructor, System);
 
-        public static Operand Convert(FieldInfo field)
+        public Operand Convert(FieldInfo field)
         {
             return ToOutletOperand(field.GetValue(null));
         }
 
         #region Reflection
 
-        private static IEnumerable<System.Type> GetForeignClasses() =>
-            AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+        private static IEnumerable<System.Type> GetForeignClasses(Assembly assembly) =>
+            assembly.GetTypes()
                 .Where(x => x.IsClass && x.GetCustomAttributes(typeof(ForeignClass)).FirstOrDefault() != null);
 
         private static IEnumerable<MethodInfo> GetMethods(System.Type type) =>
@@ -166,9 +176,9 @@ namespace Outlet.FFI
 
         #endregion
 
-        public static void Register()
+        public void Register(Assembly assembly, CheckStackFrame globalScope, Func<string, Error> checkingError)
         {
-            var classes = GetForeignClasses();
+            var classes = GetForeignClasses(assembly);
             foreach (var type in classes)
             {
                 ForeignClass fc = type.GetCustomAttribute(typeof(ForeignClass))
@@ -180,16 +190,16 @@ namespace Outlet.FFI
                 var constructors = GetConstructors(type);
 
                 var staticMembers = new List<(string id, MemberInfo member)>();
-                var staticTypes = new CheckStackFrame(null);
+                var staticTypes = new CheckStackFrame(null, checkingError);
                 var instanceMembers = new List<(string id, MemberInfo member)>();
-                var instanceTypes = new CheckStackFrame(null);
+                var instanceTypes = new CheckStackFrame(null, checkingError);
 
                 // Checktime
                 // Add Create and define ProtoClass first, allowing members to reference the type they are declared in
-                ProtoClass proto = new ProtoClass(className, Primitive.Object, staticTypes, instanceTypes);
+                ProtoClass proto = new ProtoClass(className, checkingError, Primitive.Object, staticTypes, instanceTypes);
                 MetaType checkTimeType = new MetaType(proto);
                 Conversions.OutletType.Add(type, proto);
-                CheckStackFrame.Global.Assign(className.ToVariable(), checkTimeType);
+                globalScope.Assign(className.ToVariable(), checkTimeType);
 
                 foreach (FieldInfo field in fields)
                 {
@@ -234,7 +244,7 @@ namespace Outlet.FFI
 
                 // Runtime
                 NativeClass c = ToOutletClass(className, staticMembers.ToArray(), instanceMembers.ToArray());
-                ForeignFunctions.NativeTypes.Add(className, c);
+                NativeOutletTypes.NativeTypes.Add(className, c);
                 Conversions.OutletType[type] = c;
             };
         }

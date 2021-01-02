@@ -66,7 +66,7 @@ namespace Outlet.Lexing {
 			commentesc.SetTransition(CharType.ForwardSlash, commentend);
 			// Ints and floats
 			number.SetTransition(CharType.Number, number);
-            //number.SetTransition(CharType.Dot, floatdot);
+            number.SetTransition(CharType.Dot, floatdot);
             floatdot.SetTransition(CharType.Number, sfloat);
 			sfloat.SetTransition(CharType.Number, sfloat);
             // Strings
@@ -117,16 +117,16 @@ namespace Outlet.Lexing {
         public delegate Token? Tokenizer(string text);
 
         private static Token TokenizeID(string text) {
-			if(text == "true") return new BoolLiteral(text, LinePos, CharPos);
-			if(text == "false") return new BoolLiteral(text, LinePos, CharPos);
-			if(text == "null") return new NullLiteral(LinePos, CharPos);
+			if(text == "true") return new BoolLiteral(text);
+			if(text == "false") return new BoolLiteral(text);
+			if(text == "null") return new NullLiteral();
             if(Token.ContainsKey(text)) return Token.Get(text);
-            else return new Identifier(text, LinePos, CharPos);
+            else return new Identifier(text);
         }
         private static Token TokenizeOp(string text) => Token.Get(text);
-        private static Token TokenizeString(string text) => new StringLiteral(text, LinePos, CharPos);
-        private static Token TokenizeInt(string text) => new IntLiteral(text, LinePos, CharPos);
-        private static Token TokenizeFloat(string text) => new FloatLiteral(text, LinePos, CharPos);
+        private static Token TokenizeString(string text) => new StringLiteral(text);
+        private static Token TokenizeInt(string text) => new IntLiteral(text);
+        private static Token TokenizeFloat(string text) => new FloatLiteral(text);
         private static Token? NoToken(string text) => null;
     }
 }

@@ -33,7 +33,7 @@ namespace Outlet.Operands {
 			foreach (Operand e in Vals) {
 				s += e.ToString() + ", ";
 			}
-			return s.Substring(0, s.Length - 2) + "]";
+			return s[0..^2] + "]";
 		}
     }
 }

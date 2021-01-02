@@ -7,19 +7,21 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class Block : Statement {
 
-		public readonly List<ClassDeclaration> Classes = new List<ClassDeclaration>();
-		public readonly List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
-        public readonly List<IASTNode> Lines = new List<IASTNode>();
+		public List<ClassDeclaration> Classes => Lines.OfType<ClassDeclaration>().OrderBy(c => c.SuperClass != null).ToList();
+		public List<FunctionDeclaration> Functions => Lines.OfType<FunctionDeclaration>().ToList();
+		public List<OperatorOverloadDeclaration> OverloadedOperators => Lines.OfType<OperatorOverloadDeclaration>().ToList();
 
-		public Block(List<IASTNode> lines, List<FunctionDeclaration> funcs, List<ClassDeclaration> classes) {
+		public List<IASTNode> Lines { get; private set; }
+		public bool IsProgram { get; private init; }
+
+		public Block(List<IASTNode> lines, bool program = false) {
 			Lines = lines;
-			Functions = funcs;
-			Classes = classes;
+			IsProgram = program;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public static Block Empty() => new Block(new List<IASTNode>());
+
+		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() {
 			string s = "{\n";

@@ -7,7 +7,7 @@ namespace Outlet.Operands {
     {
         public override Class RuntimeType { get; }
 
-        public Instance(Class type)
+        protected Instance(Class type)
         {
 			RuntimeType = type;
 		}
@@ -29,13 +29,11 @@ namespace Outlet.Operands {
 
     public class UserDefinedInstance : Instance
     {
-        private readonly Field[] InstanceMembers;
         private readonly IStackFrame<Operand> InstanceStackFrame; 
 
-        public UserDefinedInstance(Class type, IStackFrame<Operand> stackFrame, int instanceVarCount) : base(type) 
+        public UserDefinedInstance(Class type, IStackFrame<Operand> stackFrame) : base(type) 
         {
             InstanceStackFrame = stackFrame;
-            InstanceMembers = new Field[instanceVarCount];
         }
 
         // Subtract one from local id for getting and setting as local id 0 is reserved for "this"

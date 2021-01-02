@@ -6,28 +6,31 @@ using System.Text;
 using System.Threading.Tasks;
 using Outlet.Util;
 using Outlet.Tokens;
+using Outlet.StandardLib;
 
 namespace Outlet.Lexing {
     public static partial class Lexer {
 
-		public static int LinePos = 0;
-		public static int CharPos = 0;
-		public static int ErrorCount = 0;
+		private static int LinePos = 1;
+		private static int CharPos = 1;
+		private static int ErrorCount = 0;
         
         static Lexer() {
             InitStates();
         }
 
-		public static void Error(string message) {
+		private static void Error(string message, StandardError errorHandler) {
 			ErrorCount++;
-			Program.ThrowException(message);
+			errorHandler(new LexerException(message));
 		}
 
-        public static LinkedList<Token> Scan(byte[] charStream) {
+        public static LinkedList<Lexeme> Scan(byte[] charStream, StandardError errorHandler) {
+			LinePos = 1;
+			CharPos = 1;
 			ErrorCount = 0;
 			machine.Cur = start; 
 			string buffer = "";
-			LinkedList<Token> tokens = new LinkedList<Token>();
+			LinkedList<Lexeme> lexemes = new LinkedList<Lexeme>();
 			for (int i = 0; i < charStream.Length; i++) {
                 byte b = charStream[i];
 				CharType c = CharClass.Get(b);
@@ -35,24 +38,26 @@ namespace Outlet.Lexing {
 					machine.NextState(c);
 				} else if(machine.Cur.Accepting) {
 					if(machine.Cur.Output != NoToken) {
-						Token? toadd = machine.Cur.Output is Tokenizer t ? t (buffer) : null;
+						Token? toadd = machine.Cur.Output is Tokenizer t ? t(buffer) : null;
 						if(toadd != null) {
-							if(tokens.Count > 1 && toadd is IntLiteral i2 && tokens.Last() == Operator.Dot) {
-								tokens.RemoveLast();
-								if(tokens.Last() is IntLiteral i1) {
-									tokens.RemoveLast();
-									tokens.AddLast(new FloatLiteral(i1.Value + "." + i2.Value, 0, 0));
+							if(lexemes.Count > 1 && toadd is IntLiteral i2 && lexemes.Last() is Lexeme dotLexeme && dotLexeme.InnerToken == OperatorToken.Dot) {
+								lexemes.RemoveLast();
+								if(lexemes.Last() is Lexeme l1 && l1.InnerToken is IntLiteral i1) {
+									// if there was an int . int then create a float token instead use the first ints position as the new floats position
+									lexemes.RemoveLast();
+									lexemes.AddLast(new Lexeme(new FloatLiteral(i1.Value + "." + i2.Value), l1.Line, l1.Character));
 								} else {
-									tokens.AddLast(Operator.Dot);
-									tokens.AddLast(i2);
+									// if we don't find an int . int pattern then we must readd the . and add an int lexeme
+									lexemes.AddLast(dotLexeme);
+									lexemes.AddLast(new Lexeme(i2, LinePos, CharPos));
 								}
-							} else tokens.AddLast(toadd);
+							} else lexemes.AddLast(new Lexeme(toadd, LinePos, CharPos));
 						}
 					}
 					buffer = "";
 					machine.Cur = start.Transition(c);
 				} else {
-					Error("illegal character");
+					Error("illegal character", errorHandler);
 				}
                 if(machine.Cur.Keep) buffer += (char) b;
 				CharPos++;
@@ -61,13 +66,13 @@ namespace Outlet.Lexing {
 					CharPos = 0;
 				}
             }
-			if(!machine.Cur.Accepting && buffer.Length > 0) Error("illegal state");
+			if(!machine.Cur.Accepting && buffer.Length > 0) Error("illegal state", errorHandler);
 			else if(buffer.Length > 0) {
 				Token? toadd = machine.Cur.Output is Tokenizer t ? t (buffer) : null;
-				if(toadd != null) tokens.AddLast(toadd);
-			} else if(machine.Cur == poststring) tokens.AddLast(new StringLiteral("", LinePos, CharPos));
+				if(toadd != null) lexemes.AddLast(new Lexeme(toadd, LinePos, CharPos));
+			} else if(machine.Cur == poststring) lexemes.AddLast(new Lexeme(new StringLiteral(""), LinePos, CharPos));
 			if(ErrorCount > 0) throw new LexerException(ErrorCount+" Lexing errors encountered");
-            return tokens;
+            return lexemes;
 		}
 
 }

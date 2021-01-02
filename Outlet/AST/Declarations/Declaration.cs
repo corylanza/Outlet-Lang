@@ -8,7 +8,7 @@ namespace Outlet.AST {
     public abstract class Declaration : IASTNode {
 
 		public string Name => Decl.Identifier;
-        public Declarator Decl { get; private set; }
+        public Declarator Decl { get; private init; }
 
         protected Declaration(Declarator decl)
         {

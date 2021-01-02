@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Type = Outlet.Types.Type;
 
 namespace Outlet.Operands {
@@ -10,7 +11,6 @@ namespace Outlet.Operands {
 
         public override bool Equals(object? obj) => obj is Operand o && Equals(o);
         public override int GetHashCode() => base.GetHashCode();
-
     }
 
     public abstract class Operand<T> : Operand where T : Type
@@ -25,7 +25,8 @@ namespace Outlet.Operands {
     public delegate IEnumerable<(string, Operand)> Lister();
 
 	public interface ICallable {
-		Operand Call(Operand? caller, params Operand[] args);
+        Operand Call(Operand? caller, List<Type> typeArgs, params Operand[] args);
+        Operand Call(Operand? caller, params Operand[] args) => Call(caller, new List<Type>(), args);
 	}
 
 	public interface IDereferenceable {

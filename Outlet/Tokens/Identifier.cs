@@ -8,12 +8,9 @@ namespace Outlet.Tokens {
 	public class Identifier : Token {
 
 		public readonly string Name;
-		public int Line, Pos;
 
-		public Identifier(string name, int linenumber, int posinline) {
+		public Identifier(string name) {
 			Name = name;
-			Line = linenumber;
-			Pos = posinline;
 		}
 
 		public override bool Equals(object? obj) => obj is Identifier id && id.Name == Name;

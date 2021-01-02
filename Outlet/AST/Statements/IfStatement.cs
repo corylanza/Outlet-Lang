@@ -11,16 +11,11 @@ namespace Outlet.AST {
         public readonly Statement Iftrue;
         public readonly Statement? Iffalse;
 
-		public IfStatement(Expression condition, Statement iftrue, Statement? ifelse) {
-			Condition = condition;
-			Iftrue = iftrue;
-			Iffalse = ifelse;
-		}
+		public IfStatement(Expression condition, Statement iftrue, Statement? ifelse) =>
+			(Condition, Iftrue, Iffalse) = (condition, iftrue, ifelse);
 		
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => "if("+Condition.ToString()+") "+Iftrue.ToString() + (Iffalse != null ? " else "+Iffalse.ToString() : "");
+		public override string ToString() => $"if({Condition}) {Iftrue}{(Iffalse is null ? "" : $" else {Iffalse}")}";
 	}
 }
