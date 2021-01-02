@@ -18,17 +18,17 @@ namespace Outlet.Parsing {
 				{
 					do
 					{
-						string genericId = ConsumeType<Identifier>("Expected generic parameter identifier").Name;
+						string genericId = ConsumeType<Identifier>(expected: "generic parameter identifier").Name;
 						Expression? genericConstraint = Match(Keyword.Extends) ? NextExpression() : null;
 						parameters.Add(new TypeParameter(genericConstraint, genericId));
 					} while (Match(DelimeterToken.Comma));
-					Consume(DelimeterToken.RightBrace, "expected ] to close generic type definition");
+					Consume(DelimeterToken.RightBrace, expected: "] to close generic type definition");
 				}
 				return parameters;
 			}
 			(List<Declarator>, List<TypeParameter>, Statement) ProtoType() {
 				var genericParameters = ParseGenericParameters();
-				Consume(DelimeterToken.LeftParen, $"expected ( after generic parameters");
+				Consume(DelimeterToken.LeftParen, expected: "( after generic parameters");
 				List<Declarator> argnames = new List<Declarator>();
 				while(PeekNextTokenExistsAndIsnt(DelimeterToken.RightParen)) {
 					do {
@@ -37,12 +37,12 @@ namespace Outlet.Parsing {
 						} else throw new OutletException("function parameters expected in type id format");
 					} while(Match(DelimeterToken.Comma));
 				}
-				Consume(DelimeterToken.RightParen, " expected ) after function args");
+				Consume(DelimeterToken.RightParen, expected: ") after function args");
 				Statement body;
 				if(Match(OperatorToken.Lambda)) {
 					body = NextExpression();
 					if(Tokens.Count != 0)
-						Consume(DelimeterToken.SemiC, "expected ; after inline function");
+						Consume(DelimeterToken.SemiC, expected: "; after inline function");
 				} else body = NextStatement();
 				return (argnames, genericParameters, body);
 			}
@@ -51,7 +51,7 @@ namespace Outlet.Parsing {
 				Expression? initializer = null;
 				if(Match(OperatorToken.Equal)) initializer = NextExpression();
 				if(Tokens.Count != 0)
-					Consume(DelimeterToken.SemiC, "expected ; after declaring a variable");
+					Consume(DelimeterToken.SemiC, expected: "; after declaring a variable");
 				return new VariableDeclaration(decl, initializer);
 			}
 			FunctionDeclaration FunctionDef(Declarator decl) {
@@ -72,11 +72,11 @@ namespace Outlet.Parsing {
 				List<Declaration> statics = new List<Declaration>();
 				List<ConstructorDeclaration> constructors = new List<ConstructorDeclaration>();
 				Variable? superclass = null;
-                Lexeme nameLexeme = ConsumeTypeGetLexeme<Identifier>("Expected class identifier");
+                Lexeme nameLexeme = ConsumeTypeGetLexeme<Identifier>(expected: "class identifier");
 				Identifier name = nameLexeme.InnerToken as Identifier;
 				var genericParameters = ParseGenericParameters();
                 if (Match(Keyword.Extends)) {
-					 superclass = new Variable(ConsumeType<Identifier>("expected name of super class after extends keyword").Name);
+					 superclass = new Variable(ConsumeType<Identifier>(expected: "name of super class after extends keyword").Name);
 				}
 				if(Match(DelimeterToken.LeftCurly)) {
 					while(true) {
@@ -105,9 +105,9 @@ namespace Outlet.Parsing {
 			if(next is Declarator d) {
 				if(d.IsOperatorOverload)
                 {
-					var op = ConsumeType<OperatorToken>("Expected operator following overload");
+					var op = ConsumeType<OperatorToken>(expected: "operator following overload");
 					// TODO this should probably be a PeekMatch and also check for LeftBrace for generic case
-					Consume(DelimeterToken.LeftParen, "Expected ( before operator overload args");
+					Consume(DelimeterToken.LeftParen, expected: "( before operator overload args");
 					return OperatorOverloadDef(new Declarator(d.Type, op.ToString()), op);
                 }
 				if(PeekMatch(DelimeterToken.LeftParen) || PeekMatch(DelimeterToken.LeftBrace)) return FunctionDef(d);
@@ -119,45 +119,45 @@ namespace Outlet.Parsing {
         private Statement NextStatement() {
             Statement Scope() {
 				var block = ParseBlock();
-				Consume(DelimeterToken.RightCurly, "Expected } to close code block");
+				Consume(DelimeterToken.RightCurly, expected: "} to close code block");
                 return block;
             }
             Statement IfStatement() {
-                Consume(DelimeterToken.LeftParen, "Expected ( after if");
+                Consume(DelimeterToken.LeftParen, expected: "( after if");
                 Expression condition = NextExpression();
-                Consume(DelimeterToken.RightParen, "Expected ) after if condition");
+                Consume(DelimeterToken.RightParen, expected: ") after if condition");
                 Statement iftrue = NextStatement();
                 Statement? ifelse = Match(Keyword.Else) ? NextStatement() : null;
                 return new IfStatement(condition, iftrue, ifelse);
             }
             Statement WhileLoop() {
-                Consume(DelimeterToken.LeftParen, "Expected ( after while");
+                Consume(DelimeterToken.LeftParen, expected: "( after while");
                 Expression condition = NextExpression();
-                Consume(DelimeterToken.RightParen, "Expected ) after while condition");
+                Consume(DelimeterToken.RightParen, expected: ") after while condition");
                 Statement iftrue = NextStatement();
                 return new WhileLoop(condition, iftrue);
             }
             Statement ForLoop() {
-                Consume(DelimeterToken.LeftParen, "Expected ( after for");
+                Consume(DelimeterToken.LeftParen, expected: "( after for");
                 Statement s = NextStatement();
                 if (s is Declarator loopvar) {
-                    Consume(Keyword.In, "expected in after for loop variable");
+                    Consume(Keyword.In, expected: "'in' after for loop variable");
                     Expression collection = NextExpression();
-                    Consume(DelimeterToken.RightParen, "Expected ) after for loop collection");
+                    Consume(DelimeterToken.RightParen, expected: ") after for loop collection");
                     Statement body = NextStatement();
                     return new ForLoop(loopvar, collection, body);
                 }
-                throw new OutletException("expected type followed by an identifier to use as a loop variable");
+				throw new OutletException("expected type followed by an identifier to use as a loop variable");
             }
             Statement Return() {
                 Expression retexpr = NextExpression();
-                Consume(DelimeterToken.SemiC, "expected ; after return statement");
+                Consume(DelimeterToken.SemiC, expected: "; after return statement");
                 return new ReturnStatement(retexpr);
             }
             Statement Using()
             {
                 Expression used = NextExpression();
-                Consume(DelimeterToken.SemiC, "expected ; after using statement");
+                Consume(DelimeterToken.SemiC, expected: "; after using statement");
                 return new UsingStatement(used);
             }
 			if(Match(DelimeterToken.LeftCurly)) return Scope();
@@ -166,10 +166,18 @@ namespace Outlet.Parsing {
 			if(Match(Keyword.While)) return WhileLoop();
 			if(Match(Keyword.Return)) return Return();
             if(Match(Keyword.Using)) return Using();
-			Expression? expr = Match(Keyword.Var) ? null : NextExpression();
-			if((Match(DelimeterToken.SemiC) || Tokens.Count == 0) && expr != null) return expr;
-			Identifier id = ConsumeType<Identifier>($"unexpected token: {Tokens.First()}, expected: ;");
-			return expr is null ? new Declarator(id.Name) : new Declarator(expr, id.Name);
+
+			if(Match(Keyword.Var))
+			{
+				Identifier varId = ConsumeType<Identifier>(expected: "identifier after var");
+				return new Declarator(varId.Name);
+			}
+
+
+			Expression expr = NextExpression();
+			if(Match(DelimeterToken.SemiC) || Tokens.Count == 0) return expr;
+			Identifier id = ConsumeType<Identifier>(expected: "; to close statement");
+			return new Declarator(expr, id.Name);
 		}
 	}
 }

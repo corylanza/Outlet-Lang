@@ -37,15 +37,37 @@ namespace Outlet {
         }
     }
 
-	public class ParserException : OutletException {
-		public ParserException(string message) : base("Parsing Error: " + message) { }
+    public class SyntaxException : OutletException
+    {
 
-        public ParserException()
+        public int Line { get; private init; }
+        public Range CharacterRange { get; private init; }
+
+        public SyntaxException(string message, int line, Range characterRange) : base(message)
         {
+            Line = line;
+            CharacterRange = characterRange;
+        }
+    }
+
+	public class ParserException : OutletException {
+
+        public List<SyntaxException> SyntaxErrors { get; private init; }
+
+        private static string ToErrorMessage(params SyntaxException[] syntaxErrors)
+        {
+            var sb = new StringBuilder($"Parsing failed, found {syntaxErrors.Length} syntax errors:\n");
+            foreach(var error in syntaxErrors)
+            {
+                sb.Append(error.Message + "\n");
+            }
+
+            return sb.ToString();
         }
 
-        public ParserException(string message, Exception innerException) : base(message, innerException)
+        public ParserException(params SyntaxException[] syntaxErrors) : base(ToErrorMessage(syntaxErrors))
         {
+            SyntaxErrors = syntaxErrors.ToList();
         }
     }
 

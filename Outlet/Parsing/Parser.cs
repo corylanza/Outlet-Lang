@@ -15,6 +15,8 @@ namespace Outlet.Parsing {
 		// Store this for errors where unexpected EOF
 		private int TotalLines { get; init; }
 
+		private readonly List<SyntaxException> SyntaxErrors = new List<SyntaxException>();
+
 		public Parser(LinkedList<Lexeme> tokens)
         {
 			Tokens = tokens;
@@ -45,28 +47,38 @@ namespace Outlet.Parsing {
 			else return false;
 		}
 
-		private void Consume(Token s, string error)
+		private void Consume(Token s, string expected)
 		{
 			Lexeme? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
-			if (found is null) throw new OutletException($"Syntax Error at line {TotalLines} : {error}, found: no more tokens");
-			if (!s.Equals(found.InnerToken)) throw new OutletException($"Syntax Error at line {found.Line}: {error}, found: {found.InnerToken}");
+			if (found is not null && s.Equals(found.InnerToken)) return;
+			else throw SyntaxError(expected, found);
 		}
 
-		private Lexeme ConsumeTypeGetLexeme<T>(string error) where T : Token
+		private Lexeme ConsumeTypeGetLexeme<T>(string expected) where T : Token
 		{
 			Lexeme? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
-			if (found is null) throw new OutletException($"Syntax Error {error} at line {TotalLines}, found: no more tokens");
-			if (found.InnerToken is T) return found;
-			else throw new OutletException($"Syntax Error at line {found.Line}: {error}, found: {found.InnerToken}");
+			if (found is not null && found.InnerToken is T) return found;
+			throw SyntaxError(expected, found);
 		}
 
-		private T ConsumeType<T>(string error) where T : Token 
+		private T ConsumeType<T>(string expected) where T : Token 
 		{
 			Lexeme? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
-			if (found is null) throw new OutletException($"Syntax Error {error} at line {TotalLines}, found: no more tokens");
-			if (found.InnerToken is T t) return t;
-			else throw new OutletException($"Syntax Error at line {found.Line}: {error}, found: {found.InnerToken}");
+			if (found is not null && found.InnerToken is T t) return t; 
+			throw SyntaxError(expected, found);
 		}
+
+		private SyntaxException SyntaxError(string expected, Lexeme? found)
+        {
+			var line = found?.Line ?? TotalLines;
+			if (found is null) return new SyntaxException($"Line {line}: expected {expected}, found: EndOfFile", line, new Range());
+			else
+			{
+				var characterRange = new Range(found.Character, found.Character + (found.InnerToken.ToString()?.Length ?? 0));
+				return new SyntaxException($"Line {line} chars [{characterRange.Start}:{characterRange.End}]: expected {expected}, found: {found.InnerToken}", line, characterRange);
+			}
+		}
+
 
 		private static bool IsBinary(Token last) => 
 			last is TokenLiteral || last is Identifier || last == DelimeterToken.RightParen || last == DelimeterToken.RightBrace;
@@ -78,18 +90,35 @@ namespace Outlet.Parsing {
 
 		public IASTNode Parse() {
 			var block = ParseBlock(isProgram: true);
+			if (SyntaxErrors.Count > 0) throw new ParserException(SyntaxErrors.ToArray());
 			if (block.Lines.Count == 1 && block.Lines.First() is Expression expr) return expr;
 			return block;
 		}
 
+		/// <summary>
+		/// Parses sequences of statements after a { until the next } or out of tokens
+		/// This is how all programs are represented as well including single lines
+		/// It is technically allowed to have extraneous } in a program currently, TODO maybe change this
+		/// </summary>
+		/// <param name="isProgram">whether this is the root level block representing the program</param>
         private Block ParseBlock(bool isProgram = false)
         {
 			List<IASTNode> lines = new List<IASTNode>();
+
             while (PeekNextTokenExistsAndIsnt(DelimeterToken.RightCurly))
             {
-                var nextdecl = NextDeclaration();
-                lines.Add(nextdecl);
-            }
+				try
+				{
+					var nextdecl = NextDeclaration();
+					lines.Add(nextdecl);
+				}
+				catch (SyntaxException e)
+				{
+					SyntaxErrors.Add(e);
+					Tokens = new LinkedList<Lexeme>(Tokens.SkipWhile(lexeme => lexeme.InnerToken != DelimeterToken.SemiC));
+				}
+			}
+
             return new Block(lines, isProgram);
         }
 	}

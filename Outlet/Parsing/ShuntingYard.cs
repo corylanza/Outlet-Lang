@@ -11,20 +11,29 @@ using Outlet.Operators;
 namespace Outlet.Parsing {
 	public partial class Parser {
 
+		private Expression NextExpression()
+        {
+			if(Tokens.Count == 0) throw SyntaxError(expected: "expression", found: null);
+			return NextExpression(Tokens.First());
+        }
 
-		private Expression NextExpression() {
+		private Expression NextExpression(Lexeme cur) {
 			#region preliminary definitons
 			bool expectOperand = true;
 			bool done = false;
 			var (output, stack, arity) = (new Stack<Expression>(), new Stack<IOperatorPrecedenceParsable>(), new Stack<int>());
-			Lexeme? cur = null, last;
+			Lexeme first = cur;
+			Lexeme? last = null;
 			bool ValidToken() =>
                 PeekMatchType(out Token? i) &&
 				((i is DelimeterToken d && (d != DelimeterToken.LeftCurly && d != DelimeterToken.RightCurly && d != DelimeterToken.SemiC)) ||
 				i is TokenLiteral || i is OperatorToken || i is Identifier);
+
 			bool ExpectingOperator(Lexeme toputback) { if(!expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool ExpectingOperand(Lexeme toputback) { if(expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Assoc == Side.Left);
+			SyntaxException SyntaxError(string message) => this.SyntaxError(message, first);
+			
 			#endregion
 
 			while (ValidToken() && !done) {
@@ -49,7 +58,7 @@ namespace Outlet.Parsing {
 							isBinary && o.HasBinaryOperation(out var binop) ? binop :
 							isPreUnary && o.HasPreUnaryOperation(out var unop) ? unop :
 							isPostUnary && o.HasPostUnaryOperation(out var postUnOp) ? postUnOp :
-							throw new OutletException();
+							throw new UnexpectedException("An operator should always be either binary, pre unary, or post unary, something has gone wrong");
 
 						if(op is UnaryOperator) {
 							if(isPreUnary && ExpectingOperator(cur)) break;
