@@ -14,8 +14,6 @@ namespace Outlet.FFI
 {
     public class NativeInitializer
     {
-        private readonly static HashSet<string> AlreadyRegistered = new();
-
         private SystemInterface System { get; }
 
         public NativeInitializer(SystemInterface system)
@@ -180,14 +178,6 @@ namespace Outlet.FFI
 
         public void Register(Assembly assembly, CheckStackFrame globalScope, Func<string, Error> checkingError)
         {
-            if (assembly.FullName is null || AlreadyRegistered.Contains(assembly.FullName))
-            {
-                // Don't register if the assembly has already been registered
-                return;
-            }
-            else AlreadyRegistered.Add(assembly.FullName);
-
-
             var classes = GetForeignClasses(assembly);
             foreach (var type in classes)
             {
@@ -208,7 +198,7 @@ namespace Outlet.FFI
                 // Add Create and define ProtoClass first, allowing members to reference the type they are declared in
                 ProtoClass proto = new ProtoClass(className, checkingError, Primitive.Object, staticTypes, instanceTypes);
                 MetaType checkTimeType = new MetaType(proto);
-                Conversions.OutletType.Add(type, proto);
+                Conversions.OutletType[type] = proto;
                 globalScope.Assign(className.ToVariable(), checkTimeType);
 
                 foreach (FieldInfo field in fields)
@@ -254,7 +244,7 @@ namespace Outlet.FFI
 
                 // Runtime
                 NativeClass c = ToOutletClass(className, staticMembers.ToArray(), instanceMembers.ToArray());
-                NativeOutletTypes.NativeTypes.Add(className, c);
+                NativeOutletTypes.NativeTypes[className] = c;
                 Conversions.OutletType[type] = c;
             };
         }
