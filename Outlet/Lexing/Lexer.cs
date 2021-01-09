@@ -7,24 +7,25 @@ using System.Threading.Tasks;
 using Outlet.Util;
 using Outlet.Tokens;
 using Outlet.StandardLib;
+using Outlet.Lexer;
 
 namespace Outlet.Lexing {
-    public static partial class Lexer {
+    public partial class Lexer : ILexer {
 
-		private static int LinePos = 1;
-		private static int CharPos = 1;
-		private static int ErrorCount = 0;
+		private int LinePos = 1;
+		private int CharPos = 1;
+		private int ErrorCount = 0;
         
-        static Lexer() {
+        public Lexer() {
             InitStates();
         }
 
-		private static void Error(string message, StandardError errorHandler) {
+		private void Error(string message, StandardError errorHandler) {
 			ErrorCount++;
 			errorHandler(new LexerException(message));
 		}
 
-        public static LinkedList<Lexeme> Scan(byte[] charStream, StandardError errorHandler) {
+        public LinkedList<Lexeme> Scan(byte[] charStream, StandardError errorHandler) {
 			LinePos = 1;
 			CharPos = 1;
 			ErrorCount = 0;

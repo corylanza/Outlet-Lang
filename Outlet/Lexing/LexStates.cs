@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Outlet.Util;
+﻿using Outlet.Util;
 using Outlet.Tokens;
 using State = Outlet.Util.State<Outlet.Lexing.CharType, Outlet.Lexing.Lexer.Tokenizer>;
 
 namespace Outlet.Lexing {
-    public static partial class Lexer {
+    public partial class Lexer {
 
-        static StateMachine<CharType, Tokenizer> machine = new StateMachine<CharType, Tokenizer>();
+        static readonly StateMachine<CharType, Tokenizer> machine = new StateMachine<CharType, Tokenizer>();
 
         private static readonly State
             start = machine.AddStartState(), // starting / default state
@@ -46,7 +41,7 @@ namespace Outlet.Lexing {
             commentend = machine.AddState(true, false, NoToken);
 
 
-		static void InitStates() {
+		private static void InitStates() {
             start.SetTransition(CharType.Letter, id);
             start.SetTransition(CharType.Number, number);
             start.SetTransition(CharType.OneChar, finalop);

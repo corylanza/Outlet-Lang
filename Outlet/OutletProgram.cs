@@ -13,6 +13,7 @@ using System.IO;
 using System.Text;
 using Outlet.StandardLib;
 using Outlet.Interpreting.ByteCode;
+using Outlet.Lexer;
 using Outlet.Compiling;
 
 namespace Outlet
@@ -26,11 +27,13 @@ namespace Outlet
         public ByteCodeGenerator Compiler = new ByteCodeGenerator();
         public SystemInterface System { get; private set; }
         private List<IASTNode> Nodes { get; set; } = new List<IASTNode>();
+        private ILexer Lexer { get; set; }
 
         protected OutletProgram(SystemInterface sys)
         {
             System = sys;
-
+            // old Lexer = new Lexing.Lexer();
+            Lexer = OutletLexer.CreateOutletLexer();
             Checker = new Checker();
             var stdlib = AppDomain.CurrentDomain.Load("Outlet.StandardLib");
             new NativeInitializer(sys).Register(stdlib, Checker.GlobalScope, Checker.Error);
