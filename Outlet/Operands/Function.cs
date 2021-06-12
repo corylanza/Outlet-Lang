@@ -37,6 +37,4 @@ namespace Outlet.Operands {
 
 
     public delegate Operand CallFunc(params Operand[] args);
-    public delegate Operand BinaryOperation(Operand left, Operand right);
-    public delegate Operand UnaryOperation(Operand expr);
 }

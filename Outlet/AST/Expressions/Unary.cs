@@ -5,10 +5,10 @@ namespace Outlet.AST {
 
 		public string Op;
 		public Expression Expr;
-		public UnOp? Oper;
-		public Overload<UnOp> Overloads;
+		public UnaryOperation? Oper;
+		public Overload<UnaryOperation> Overloads;
 
-		public Unary(string op, Expression input, Overload<UnOp> overloads) {
+		public Unary(string op, Expression input, Overload<UnaryOperation> overloads) {
 			Expr = input;
 			Overloads = overloads;
 			Op = op;

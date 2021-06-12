@@ -19,6 +19,6 @@ namespace Outlet.AST {
 			return visitor.Visit(this);
 		}
 
-		public override string ToString() => Collection.ToString() + "[" + Index.ToList().ToListString() + "]";
+		public override string ToString() => $"{Collection}[{string.Join(",", Index.Select(x => x.ToString()))}]";
 	}
 }

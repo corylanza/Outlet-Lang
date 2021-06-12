@@ -269,7 +269,7 @@ namespace Outlet.Interpreting {
             throw new UnexpectedException("cannot assign to the left side of this expression");
 		}
 
-		public Operand Visit(Binary b) => b.Oper is BinOp bo ? bo.Perform(b.Left.Accept(this), b.Right.Accept(this)) : 
+		public Operand Visit(Binary b) => b.Oper is BinaryOperation bo ? bo.Perform(b.Left.Accept(this), b.Right.Accept(this)) : 
             throw new UnexpectedException("Operator never resolved");
 
 		public Operand Visit(Call c) {
@@ -343,7 +343,7 @@ namespace Outlet.Interpreting {
 			else return new OTuple(evaled.ToArray());
 		}
 
-		public Operand Visit(Unary u) => u.Oper is UnOp uo ? uo.Perform(u.Expr.Accept(this)) : 
+		public Operand Visit(Unary u) => u.Oper is UnaryOperation uo ? uo.Perform(u.Expr.Accept(this)) : 
             throw new UnexpectedException("Unary operator was never resolved");
 
 		public Operand Visit(Variable v) {

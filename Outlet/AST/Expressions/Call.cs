@@ -20,7 +20,7 @@ namespace Outlet.AST {
 			return visitor.Visit(this);
 		}
 
-		public override string ToString() => Caller.ToString() + "(" + Args.ToList().ToListString() + ")";
+		public override string ToString() => $"{Caller}({string.Join(",", Args.Select(arg => arg.ToString()))})";
 
 	}
 }

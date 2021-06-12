@@ -86,7 +86,7 @@ namespace Outlet {
 	public class RuntimeException : OutletException {
 		public RuntimeException(string message) : base(message) { }
 		public RuntimeException(string message, Interpreting.Interpreter interpreter) : 
-            base("Runtime Error: " + message + "\n" + interpreter.CallStack.Select(frame => frame.Call + "\n").ToList().ToListString()) { }
+            base($"Runtime Error: {message}\n{string.Join("\n", interpreter.CallStack.Select(frame => frame.Call))}") { }
 
 		public RuntimeException() { }
 

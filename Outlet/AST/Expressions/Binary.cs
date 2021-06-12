@@ -5,10 +5,10 @@ namespace Outlet.AST {
 
 		public readonly string Op;
         public readonly Expression Left, Right;
-		public BinOp? Oper;
-		public Overload<BinOp> Overloads;
+		public BinaryOperation? Oper;
+		public Overload<BinaryOperation> Overloads;
 
-        public Binary(string op, Expression left, Expression right, Overload<BinOp> overloads) {
+        public Binary(string op, Expression left, Expression right, Overload<BinaryOperation> overloads) {
             Left = left;
             Right = right;
 			Overloads = overloads;

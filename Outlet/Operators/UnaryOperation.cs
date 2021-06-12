@@ -5,11 +5,11 @@ using Type = Outlet.Types.Type;
 
 namespace Outlet.Operators
 {
-    public abstract class UnOp : IOverloadable
+    public abstract class UnaryOperation : IOverloadable
     {
         protected Type Input, Output;
 
-        protected UnOp(Type input, Type output) => (Input, Output) = (input, output);
+        protected UnaryOperation(Type input, Type output) => (Input, Output) = (input, output);
 
         public abstract Operand Perform(Operand input);
 
@@ -26,7 +26,7 @@ namespace Outlet.Operators
         public Type GetResultType() => Output;
     }
 
-    public class UnOp<I, O> : UnOp where I : Operand where O : Operand
+    public class UnOp<I, O> : UnaryOperation where I : Operand where O : Operand
     {
         private readonly Func<I, O> Underlying;
 
@@ -39,11 +39,14 @@ namespace Outlet.Operators
             input is I arg ? Underlying(arg) : throw new OutletException("invalid operation for type SHOULD NOT PRINT");
     }
 
-    public class UserDefinedUnaryOperation : UnOp
-    {
-        private readonly UnaryOperation Underlying;
 
-        public UserDefinedUnaryOperation(UnaryOperation underlying, Type input, Type output) : base(input, output)
+    public delegate Operand UnderlyingUnaryOperation(Operand expr);
+
+    public class UserDefinedUnaryOperation : UnaryOperation
+    {
+        private readonly UnderlyingUnaryOperation Underlying;
+
+        public UserDefinedUnaryOperation(UnderlyingUnaryOperation underlying, Type input, Type output) : base(input, output)
         {
             Underlying = underlying;
         }

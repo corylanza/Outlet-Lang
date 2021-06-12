@@ -52,7 +52,7 @@ namespace Outlet.Types {
             return true;
         }
 
-		public override string ToString() => "("+Parameters.Select(arg => arg.type).ToList().ToListString()+")" + " => " + ReturnType.ToString();
+		public override string ToString() => $"({string.Join(", ", Parameters.Select(arg => arg.type.ToString()))}) => {ReturnType}";
 
 	}
 }

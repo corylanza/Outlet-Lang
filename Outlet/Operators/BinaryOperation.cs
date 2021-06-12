@@ -1,15 +1,16 @@
 ﻿using Outlet.Operands;
 using Outlet.Types;
 using System;
+using System.Collections.Generic;
 using Type = Outlet.Types.Type;
 
 namespace Outlet.Operators
 {
-    public abstract class BinOp : IOverloadable
+    public abstract class BinaryOperation : IOverloadable
     {
         protected Type LeftInput, RightInput, Output;
 
-        protected BinOp(Type left, Type right, Type output) => (LeftInput, RightInput, Output) = (left, right, output);
+        protected BinaryOperation(Type left, Type right, Type output) => (LeftInput, RightInput, Output) = (left, right, output);
 
         public abstract Operand Perform(Operand l, Operand r);
         public Type GetResultType() => Output;
@@ -24,9 +25,14 @@ namespace Outlet.Operators
             level = 0;
             return false;
         }
+
+        public IEnumerable<byte> GenerateByteCode(IEnumerable<byte> left, IEnumerable<byte> right)
+        {
+            throw new NotImplementedException();
+        }
     }
 
-    public class BinOp<L, R, O> : BinOp where L : Operand where R : Operand where O : Operand
+    public class BinOp<L, R, O> : BinaryOperation where L : Operand where R : Operand where O : Operand
     {
         private readonly Func<L, R, O> Underlying;
 
@@ -42,11 +48,14 @@ namespace Outlet.Operators
             r is R rArg ? Underlying(lArg, rArg) : throw new OutletException("Cannot perform operation as types do not match compile time types. SHOULD NOT PRINT");
     }
 
-    public class UserDefinedBinaryOperation : BinOp
-    {
-        private readonly BinaryOperation Underlying;
 
-        public UserDefinedBinaryOperation(BinaryOperation underlying, Type left, Type right, Type output) : base(left, right, output)
+    public delegate Operand UnderlyingBinaryOperation(Operand left, Operand right);
+
+    public class UserDefinedBinaryOperation : BinaryOperation
+    {
+        private readonly UnderlyingBinaryOperation Underlying;
+
+        public UserDefinedBinaryOperation(UnderlyingBinaryOperation underlying, Type left, Type right, Type output) : base(left, right, output)
         {
             Underlying = underlying;
         }

@@ -275,7 +275,7 @@ namespace Outlet.Checking
             {
                 if (a.Index.Length != 1)
                     return Error("array access requires exactly 1 index");
-                if (idxTypes.Count() != 1 || idxTypes.First() != Primitive.Int) return Error("only ints can be used to index into an array, found: " + idxTypes?.ToList().ToListString() ?? "empty");
+                if (idxTypes.Count() != 1 || idxTypes.First() != Primitive.Int) return Error($"only ints can be used to index into an array, found: {(idxTypes is null ? "empty" : string.Join(",", idxTypes.Select(x => x.ToString())))}");
                 else return at.ElementType;
             }
             return Error("type " + elem.ToString() + " is not accessable by array access operator []");
@@ -332,12 +332,12 @@ namespace Outlet.Checking
             {
                 return functype.Valid(out uint _, argtypes) ?
                     functype.ReturnType :
-                    Error($"{c.Caller} expects ({functype.Parameters.Select(x => x.type).ToList().ToListString()}) found: ({argtypes.ToList().ToListString()})");
+                    Error($"{c.Caller} expects ({string.Join(",", functype.Parameters.Select(x => x.type.ToString()))}) found: ({string.Join(",", argtypes.Select(x => x.ToString()))})");
             }
             if (calltype is MethodGroupType mgt)
             {
                 (FunctionType? bestMatch, uint? id) = mgt.FindBestMatch(argtypes);
-                if(bestMatch is null || id is null) return Error("No overload could be found for (" + argtypes.ToList().ToListString() + ")");
+                if(bestMatch is null || id is null) return Error($"No overload could be found for ({string.Join(",", argtypes.Select(x => x.ToString()))})");
                 IBindable caller = c.Caller is Variable v ? v : c.Caller is MemberAccess ma ? ma.Member : throw new UnexpectedException("Caller is not able to be overloaded");
                 if(caller.ResolveLevel.HasValue)
                 {
