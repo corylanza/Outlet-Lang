@@ -46,7 +46,15 @@ namespace Outlet.Operators
         {
             PostInc = new UnaryOperator("++", 1, Side.Left);
             PostDec = new UnaryOperator("--", 1, Side.Left);
-            Dot = new BinaryOperator(".", 1, Side.Left);
+
+            Dot = new BinaryOperator(".", 1, Side.Left, 
+                astGenerator: (l, r) => r switch {
+                    Literal<int> idx => new TupleAccess(l, idx.Value),
+                    Variable member => new MemberAccess(l, member),
+                    _ => throw new UnexpectedException("Only variable or tuple access allowed here")
+                }
+            );
+
             //ExcRange =		new BinaryOperator("..",   1,  Side.Right,
             //new BinOp<Int, Int, Operands.Array>((l, r) => Range(l.Val, r.Val, false)));
             //IncRange =		new BinaryOperator("...",  1,  Side.Right,   new BinOp<Int, Int, Operands.Array>((l, r) => Range(l.Val, r.Val, true)));
@@ -114,9 +122,9 @@ namespace Outlet.Operators
             GTE = new BinaryOperator(">=", 6, Side.Left,
                 new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying >= r.Underlying)));
             
-            As = new BinaryOperator("as", 6, Side.Left);
-            Is = new BinaryOperator("is", 6, Side.Left);
-            Isnt = new BinaryOperator("isnt", 6, Side.Left);
+            As = new BinaryOperator("as", 6, Side.Left, astGenerator: (l, r) => new As(l, r));
+            Is = new BinaryOperator("is", 6, Side.Left, astGenerator: (l, r) => new Is(l, r, yes: true));
+            Isnt = new BinaryOperator("isnt", 6, Side.Left, astGenerator: (l, r) => new Is(l, r, yes: false));
 
             BoolEquals = new BinaryOperator("==", 7, Side.Left,
                 new BinOp<Obj, Obj, Bln>((l, r) => Value.Bool(l.Equals(r))));
@@ -133,48 +141,44 @@ namespace Outlet.Operators
             BitOr = new BinaryOperator("|", 10, Side.Left,
                 new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying | r.Underlying)));
 
-            LogicalAnd = new BinaryOperator("&&", 11, Side.Left);
-            LogicalOr = new BinaryOperator("||", 12, Side.Left);
+            LogicalAnd = new BinaryOperator("&&", 11, Side.Left, astGenerator: (l, r) => new LogicalAnd(l, r));
+            LogicalOr = new BinaryOperator("||", 12, Side.Left, astGenerator: (l, r) => new LogicalOr(l, r));
             Question = new BinaryOperator("?", 13, Side.Right);
             Ternary = new BinaryOperator(":", 13, Side.Right);
-            Equal = new BinaryOperator("=", 14, Side.Right);
-            PlusEqual = new BinaryOperator("+=", 14, Side.Right);
-            MinusEqual = new BinaryOperator("-=", 14, Side.Right);
-            DivEqual = new BinaryOperator("/=", 14, Side.Right);
-            MultEqual = new BinaryOperator("*=", 14, Side.Right);
-            ModEqual = new BinaryOperator("%=", 14, Side.Right);
-            Lambda = new BinaryOperator("=>", 14, Side.Right);
+            Equal = new BinaryOperator("=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, r));
+            PlusEqual = new BinaryOperator("+=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Plus.GenerateASTNode(l, r)));
+            MinusEqual = new BinaryOperator("-=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Minus.GenerateASTNode(l, r)));
+            DivEqual = new BinaryOperator("/=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Divide.GenerateASTNode(l, r)));
+            MultEqual = new BinaryOperator("*=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Times.GenerateASTNode(l, r)));
+            ModEqual = new BinaryOperator("%=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Modulus.GenerateASTNode(l, r)));
+            Lambda = new BinaryOperator("=>", 14, Side.Right, astGenerator: (l, r) => new Lambda(l, r));
         }
     }
+
+    public delegate Expression BinaryOpASTGenerator(Expression left, Expression right);
 
     public class BinaryOperator : Operator
     {
         public readonly Overload<BinOp> Overloads;
+        private readonly BinaryOpASTGenerator ASTGenerator;
 
-        public BinaryOperator(string name, int p, Side a, params BinOp[] defaultoverloads) : base(name, p, a)
+        public BinaryOperator(string name, int p, Side a, BinaryOpASTGenerator astGenerator, params BinOp[] defaultoverloads) : base(name, p, a)
         {
+            ASTGenerator = astGenerator;
             Overloads = new Overload<BinOp>(defaultoverloads);
         }
 
-        // Right param is first due to shunting yard popping the right operand first
-        public Expression Construct(Expression r, Expression l)
+        public BinaryOperator(string name, int p, Side a, params BinOp[] defaultoverloads) : base(name, p, a)
         {
-            if (this == Is || this == Isnt) return new Is(l, r, this == Is);
-            if (this == As) return new As(l, r);
-            if (this == Dot && r is Literal<int> idx) return new TupleAccess(l, idx.Value);
-            if (this == Dot && r is Variable member) return new MemberAccess(l, member);
-            // TODO better error handling here
-            if (this == Dot) throw new UnexpectedException("Only variable or tuple access allowed here");
-            if (this == Lambda) return new Lambda(l, r);
-            if (this == Equal) return new Assign(l, r);
-            if (this == PlusEqual) return new Assign(l, new Binary(Plus.Name, l, r, Plus.Overloads));
-            if (this == MinusEqual) return new Assign(l, new Binary(Minus.Name, l, r, Minus.Overloads));
-            if (this == MultEqual) return new Assign(l, new Binary(Times.Name, l, r, Times.Overloads));
-            if (this == DivEqual) return new Assign(l, new Binary(Divide.Name, l, r, Divide.Overloads));
-            if (this == ModEqual) return new Assign(l, new Binary(Modulus.Name, l, r, Modulus.Overloads));
-            if (this == LogicalAnd || this == LogicalOr) return new ShortCircuit(l, this, r);
-            return new Binary(Name, l, r, Overloads);
+            ASTGenerator = DefaultAstGenerator;
+            Overloads = new Overload<BinOp>(defaultoverloads);
         }
+
+        private Expression DefaultAstGenerator(Expression left, Expression right) => new Binary(Name, left, right, Overloads);
+
+
+        // Right param is first due to shunting yard popping the right operand first
+        public Expression GenerateASTNode(Expression right, Expression left) => ASTGenerator(left, right);
     }
 
     public class UnaryOperator : Operator
@@ -185,6 +189,8 @@ namespace Outlet.Operators
         {
             Overloads = new Overload<UnOp>(overloads);
         }
+
+        public Expression GenerateASTNode(Expression input) => new Unary(Name, input, Overloads);
     }
 
     public class Delimeter : IOperatorPrecedenceParsable

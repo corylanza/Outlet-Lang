@@ -322,10 +322,10 @@ namespace Outlet.Interpreting {
 
 		public Operand Visit(ShortCircuit s) {
             bool left = Cast<Value<bool>>(s.Left.Accept(this)).Underlying;
-			if(s.isand == left) {
+			if(s.IsAnd == left) {
                 bool right = Cast<Value<bool>>(s.Right.Accept(this)).Underlying;
                 return Value.Bool(right);
-			} else return Value.Bool(!s.isand);
+			} else return Value.Bool(!s.IsAnd);
 		}
 
 		public Operand Visit(Ternary t) {
