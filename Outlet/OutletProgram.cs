@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Outlet.StandardLib;
-using Outlet.TreeViewer;
 
 namespace Outlet
 {
@@ -72,11 +71,6 @@ namespace Outlet
         {
             Checker = new Checker();
             Interpreter = new Interpreter();
-        }
-
-        public Node GenerateAST()
-        {
-            return new ASTViewer().BuildTree(Nodes.ToArray());
         }
     }
 

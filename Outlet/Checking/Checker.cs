@@ -10,7 +10,7 @@ using Type = Outlet.Types.Type;
 
 namespace Outlet.Checking
 {
-    public class Checker : IVisitor<Type>
+    public class Checker : IASTVisitor<Type>
     {
 
         #region Helpers

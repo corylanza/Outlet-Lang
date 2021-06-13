@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Outlet.Compiling
 {
-    public class ByteCodeGenerator : IVisitor<CodeBlock>
+    public class ByteCodeGenerator : IASTVisitor<CodeBlock>
     {
         public CodeBlock Visit(ClassDeclaration c)
         {

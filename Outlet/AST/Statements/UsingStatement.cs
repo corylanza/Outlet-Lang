@@ -13,7 +13,7 @@ namespace Outlet.AST
             Used = usedClass;
         }
 
-        public override T Accept<T>(IVisitor<T> visitor)
+        public override T Accept<T>(IASTVisitor<T> visitor)
         {
             return visitor.Visit(this);
         }

@@ -7,7 +7,7 @@ using Outlet.Types;
 using Type = Outlet.Types.Type;
 
 namespace Outlet.Interpreting {
-	public class Interpreter : IVisitor<Operand> {
+	public class Interpreter : IASTVisitor<Operand> {
 
 		#region Helpers
 

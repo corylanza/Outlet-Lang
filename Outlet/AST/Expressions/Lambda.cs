@@ -5,18 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Lambda : Expression {
+	public class Lambda : BinaryExpression
+	{
+		public Lambda(Expression l, Expression r) : base(l, r) { }
 
-		public readonly Expression Left, Right;
-
-		public Lambda(Expression l, Expression r) {
-			Left = l;
-			Right = r;
-		}
-
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() => $"{Left} => {Right}";
 	}

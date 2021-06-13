@@ -15,10 +15,8 @@ namespace Outlet.AST {
 			IfFalse = iffalse;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => Condition.ToString() + " ? " + IfTrue.ToString() + " : " + IfFalse.ToString();
+		public override string ToString() => $"{Condition} ? {IfTrue} : {IfFalse}";
 	}
 }

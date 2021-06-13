@@ -20,7 +20,7 @@ namespace Outlet.AST {
 
         public void Bind(uint id, uint level) => (LocalId, ResolveLevel) = (id, level);
 
-        public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+        public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 		public override string ToString() => Identifier;
 	}
 }

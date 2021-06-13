@@ -5,18 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Is : Expression {
+	public class Is : BinaryExpression {
 
-		public readonly Expression Left, Right;
 		public readonly bool NotIsnt;
 
-		public Is(Expression left, Expression right, bool yes) {
-			(Left, Right, NotIsnt) = (left, right, yes);
+		public Is(Expression left, Expression right, bool yes) : base(left, right) {
+			NotIsnt = yes;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() => Left + (NotIsnt ? " is " : " isnt ") + Right; 
 	}

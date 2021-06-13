@@ -14,7 +14,7 @@ namespace Outlet.AST {
 		public IfStatement(Expression condition, Statement iftrue, Statement? ifelse) =>
 			(Condition, Iftrue, Iffalse) = (condition, iftrue, ifelse);
 		
-		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() => $"if({Condition}) {Iftrue}{(Iffalse is null ? "" : $" else {Iffalse}")}";
 	}

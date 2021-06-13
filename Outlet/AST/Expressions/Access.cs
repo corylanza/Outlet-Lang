@@ -15,9 +15,7 @@ namespace Outlet.AST {
 			Index = idx;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() => $"{Collection}[{string.Join(",", Index.Select(x => x.ToString()))}]";
 	}

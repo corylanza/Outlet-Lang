@@ -15,7 +15,7 @@ namespace Outlet.AST {
             Decl = decl;
         }
 
-		public abstract T Accept<T>(IVisitor<T> visitor);
+		public abstract T Accept<T>(IASTVisitor<T> visitor);
 
 		public abstract override string ToString();
     }

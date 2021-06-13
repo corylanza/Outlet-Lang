@@ -10,4 +10,12 @@ namespace Outlet.AST {
 		public abstract override string ToString();
 	}
 
+	public abstract class BinaryExpression : Expression
+    {
+		public Expression Left { get; private init; }
+		public Expression Right { get; private init; }
+
+		protected BinaryExpression(Expression left, Expression right) => (Left, Right) = (left, right);
+    }
+
 }

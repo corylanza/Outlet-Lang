@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public abstract class Statement : IASTNode {
 
-		public abstract T Accept<T>(IVisitor<T> visitor);
+		public abstract T Accept<T>(IASTVisitor<T> visitor);
 		public abstract override string ToString();
 	}
 }

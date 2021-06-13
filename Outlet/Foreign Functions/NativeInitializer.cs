@@ -34,7 +34,7 @@ namespace Outlet.FFI
             _ => throw new UnexpectedException("Cannot map type")
         };
 
-        public Operand ToOutletInstance(NativeClass nc, object o)
+        public NativeInstance ToOutletInstance(NativeClass nc, object o)
         {
             Operand ToMember(string id, MemberInfo member, object o) => member switch
             {

@@ -14,10 +14,8 @@ namespace Outlet.AST {
 			Op = op;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => "("+Op.ToString() + " " + Expr.ToString() + ")";
+		public override string ToString() => $"({Op} {Expr})";
 	}
 }

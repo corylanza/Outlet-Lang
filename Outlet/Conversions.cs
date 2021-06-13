@@ -6,7 +6,7 @@ using String = Outlet.Operands.String;
 
 namespace Outlet
 {
-    public class Conversions
+    public static class Conversions
     {
         public static readonly Dictionary<System.Type, Types.Type> OutletType = new Dictionary<System.Type, Types.Type>()
         {

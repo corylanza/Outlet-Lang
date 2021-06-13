@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public interface IASTNode {
-
-		T Accept<T>(IVisitor<T> visitor);
+	public interface IASTNode
+	{
+		T Accept<T>(IASTVisitor<T> visitor);
 	}
 }

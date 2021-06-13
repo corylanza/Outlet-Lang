@@ -16,9 +16,7 @@ namespace Outlet.AST {
             Caller = new MemberAccess(Caller, new Variable(""));
         }
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() => $"{Caller}({string.Join(",", Args.Select(arg => arg.ToString()))})";
 

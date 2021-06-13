@@ -36,10 +36,8 @@ namespace Outlet.Operands {
             InstanceStackFrame = stackFrame;
         }
 
-        // Subtract one from local id for getting and setting as local id 0 is reserved for "this"
-        public override Operand GetMember(IBindable field) => InstanceStackFrame.Get(field); //InstanceMembers[field.LocalId].Value;
-        // TODO this is inconsistent, should not need to subtract 1 from local id
-        public override void SetMember(IBindable field, Operand value) => InstanceStackFrame.Assign(field, value);//InstanceMembers[field.LocalId - 1] = new Field(field.Identifier, value);
-        public override IEnumerable<(string id, Operand val)> GetMembers() => InstanceStackFrame.List();//InstanceMembers.Select(member => (member?.Name, member?.Value));
+        public override Operand GetMember(IBindable field) => InstanceStackFrame.Get(field);
+        public override void SetMember(IBindable field, Operand value) => InstanceStackFrame.Assign(field, value);
+        public override IEnumerable<(string id, Operand val)> GetMembers() => InstanceStackFrame.List();
     }
 }

@@ -27,7 +27,7 @@ namespace Outlet.AST {
 			Constructors = constructors;
 		}
 
-		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
 		public override string ToString() => Name + "{}";
 	}

@@ -5,17 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class As : Expression {
-		public readonly Expression Left, Right;
+	public class As : BinaryExpression {
 
-		public As(Expression left, Expression right) {
-			(Left, Right) = (left, right);
-		}
+		public As(Expression left, Expression right) : base(left, right) { }
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => Left + " as " + Right;
+		public override string ToString() => $"{Left} as {Right}";
 	}
 }

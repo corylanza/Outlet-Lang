@@ -1,24 +1,20 @@
 ﻿using Outlet.Operators;
 
 namespace Outlet.AST {
-	public class Binary : Expression {
+	public class Binary : BinaryExpression {
 
 		public readonly string Op;
-        public readonly Expression Left, Right;
 		public BinaryOperation? Oper;
 		public Overload<BinaryOperation> Overloads;
 
-        public Binary(string op, Expression left, Expression right, Overload<BinaryOperation> overloads) {
-            Left = left;
-            Right = right;
+        public Binary(string op, Expression left, Expression right, Overload<BinaryOperation> overloads) : base(left, right)
+		{
 			Overloads = overloads;
 			Op = op;
         }
 
-		public override T Accept<T>(IVisitor<T> visitor) {
-			return visitor.Visit(this);
-		}
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
-		public override string ToString() => "("+Left.ToString() +" "+ Op + " "+Right.ToString()+")";
+		public override string ToString() => $"({Left} {Op} {Right})";
     }
 }

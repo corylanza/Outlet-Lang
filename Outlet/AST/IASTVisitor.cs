@@ -1,7 +1,7 @@
 ﻿using Outlet.AST;
 
 namespace Outlet {
-	public interface IVisitor<T> {
+	public interface IASTVisitor<T> {
 		
 		T Visit(ClassDeclaration c);
 		T Visit(ConstructorDeclaration c);

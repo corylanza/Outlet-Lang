@@ -25,7 +25,7 @@ namespace Outlet.AST {
 		}
 
 
-		public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+		public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
         public override string ToString() => Value.ToString() ?? throw new Exception("Invalid value");
 	}
@@ -36,14 +36,14 @@ namespace Outlet.AST {
 
         public StringLiteral(string s) => Value = s;
 
-        public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+        public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
         public override string ToString() => Value;
     }
 
     public class NullExpr : Literal
     {
-        public override T Accept<T>(IVisitor<T> visitor) => visitor.Visit(this);
+        public override T Accept<T>(IASTVisitor<T> visitor) => visitor.Visit(this);
 
         public override string ToString() => "null";
     }
