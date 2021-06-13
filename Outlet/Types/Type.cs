@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Outlet.Operands;
 
 namespace Outlet.Types {
@@ -14,8 +15,8 @@ namespace Outlet.Types {
             {
                 (Type other, UnionType unionTo) => NewIs(other, unionTo.First) || NewIs(other, unionTo.Second),
                 (ArrayType arrayFrom, ArrayType arrayTo) => NewIs(arrayFrom.ElementType, arrayTo.ElementType),
-                (TupleType ttFrom, TupleType ttTo) =>ttFrom.Types.SameLengthAndAll(ttTo.Types, (fromElementType, toElementType) => NewIs(fromElementType, toElementType)),
-                (FunctionType funcFrom, FunctionType funcTo) => true,
+                (TupleType ttFrom, TupleType ttTo) => ttFrom.Types.SameLengthAndAll(ttTo.Types, (fromElementType, toElementType) => NewIs(fromElementType, toElementType)),
+                (FunctionType funcFrom, FunctionType funcTo) => funcFrom.Parameters.Select(p => p.type).SameLengthAndAll(funcTo.Parameters.Select(p => p.type), (fromParamType, toParamType) => NewIs(fromParamType, toParamType)) && NewIs(funcFrom.ReturnType, funcTo.ReturnType),
                 (Class classFrom, Class classTo) => (classFrom.Equals(classTo) || (classFrom.Parent != null && NewIs(classFrom.Parent, classTo))),
                 (MetaType meta, Primitive type) => type == Primitive.MetaType,
                 (Type any, Primitive obj) => obj == Primitive.Object,

@@ -35,7 +35,7 @@ namespace Outlet.Operators
             return new Operands.Array(Enumerable.Range(start, end - start + i).Select((x) => Value.Int(x)).ToArray());
         }
 
-        public static readonly UnaryOperator PostInc, PostDec, PreInc, PreDec, UnaryPlus, Complement, UnaryAnd, Negative, Not;
+        public static readonly UnaryOperator PostInc, PostDec, PreInc, PreDec, UnaryPlus, Complement, UnaryAnd, DefineLookup, Negative, Not;
         public static readonly BinaryOperator Dot, Times, Divide, Modulus, Plus, Minus, LShift, RShift,
                                               LT, LTE, GT, GTE, Is, As, Isnt, BoolEquals, NotEqual, BitAnd,
                                               BitXor, BitOr, LogicalAnd, LogicalOr, Question, Ternary,
@@ -66,7 +66,11 @@ namespace Outlet.Operators
                 new UnOp<Int, Int>((l) => Value.Int(~l.Underlying)));
 
             UnaryAnd = new UnaryOperator("&", 2, Side.Right,
+                new UnOp<Typ, Typ>((l) => new Typ(l.GetOutletType())),
                 new UnOp<Obj, Typ>((l) => new Typ(l.GetOutletType())));
+
+            DefineLookup = new UnaryOperator("#", 2, Side.Right,
+                new UnOp<Typ, Str>((l) => new Str(l.Encapsulated.ToString())));
 
             Negative = new UnaryOperator("-", 2, Side.Right,
                 new UnOp<Int, Int>((l) => Value.Int(-l.Underlying)),

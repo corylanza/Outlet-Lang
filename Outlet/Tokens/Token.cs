@@ -60,6 +60,7 @@ namespace Outlet.Tokens {
 			{">=", Operator.GTE },
 			{"!=", Operator.NotEqual },
 			{"==", Operator.BoolEquals },
+			{"#", Operator.DefineLookup },
 			{"as", Operator.As },
 			{"is", Operator.Is },
 			{"isnt", Operator.Isnt },

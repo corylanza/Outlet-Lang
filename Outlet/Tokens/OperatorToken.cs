@@ -70,6 +70,7 @@ namespace Outlet.Tokens
         public static readonly OperatorToken GTE = new OperatorToken(">=", Operator.GTE);
         public static readonly OperatorToken NotEqual = new OperatorToken("!=", Operator.NotEqual);
         public static readonly OperatorToken BoolEquals = new OperatorToken("==", Operator.BoolEquals);
+        public static readonly OperatorToken DefineLookup = new OperatorToken("#", Operator.DefineLookup);
         public static readonly OperatorToken As = new OperatorToken("as", Operator.As);
         public static readonly OperatorToken Is = new OperatorToken("is", Operator.Is);
         public static readonly OperatorToken Isnt = new OperatorToken("isnt", Operator.Isnt);

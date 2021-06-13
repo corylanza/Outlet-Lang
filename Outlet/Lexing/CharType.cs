@@ -36,6 +36,7 @@ namespace Outlet.Lexing {
             SetRange(CharType.Minus, 45, 46); // -
             SetRange(CharType.ForwardSlash, 47, 48); // /
             SetRange(CharType.Asterisk, 42, 43); // *
+            SetRange(CharType.OneChar, 35, 36); // #
             SetRange(CharType.OpEq, 37, 38); // %
             SetRange(CharType.OpEq, 33, 34); // !
             SetRange(CharType.LT, 60, 61); // *
