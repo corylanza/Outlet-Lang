@@ -1,6 +1,8 @@
-﻿using Outlet.Operands;
+﻿using Outlet.Compiling.Instructions;
+using Outlet.Operands;
 using Outlet.Types;
 using System;
+using System.Collections.Generic;
 using Type = Outlet.Types.Type;
 
 namespace Outlet.Operators
@@ -8,8 +10,15 @@ namespace Outlet.Operators
     public abstract class UnaryOperation : IOverloadable
     {
         protected Type Input, Output;
+        private readonly Func<Instruction> InstructionGen;
 
-        protected UnaryOperation(Type input, Type output) => (Input, Output) = (input, output);
+        protected UnaryOperation(Type input, Type output) : this(input, output, null) { }
+
+        protected UnaryOperation(Type input, Type output, Func<Instruction>? bytecode)
+        {
+            (Input, Output) = (input, output);
+            InstructionGen = bytecode ?? NotImplementedInstruction;
+        }
 
         public abstract Operand Perform(Operand input);
 
@@ -24,13 +33,20 @@ namespace Outlet.Operators
         }
 
         public Type GetResultType() => Output;
+
+        private Instruction NotImplementedInstruction() => throw new NotImplementedException();
+
+        public IEnumerable<Instruction> GenerateByteCode()
+        {
+            yield return InstructionGen();
+        }
     }
 
     public class UnOp<I, O> : UnaryOperation where I : Operand where O : Operand
     {
         private readonly Func<I, O> Underlying;
 
-        public UnOp(Func<I, O> func) : base(Conversions.GetRuntimeType<I>(), Conversions.GetRuntimeType<O>())
+        public UnOp(Func<I, O> func, Func<Instruction>? bytecode = null) : base(Conversions.GetRuntimeType<I>(), Conversions.GetRuntimeType<O>(), bytecode)
         {
             Underlying = func;
         }

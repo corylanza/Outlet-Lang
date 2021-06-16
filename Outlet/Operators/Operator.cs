@@ -13,6 +13,7 @@ using Typ = Outlet.Operands.TypeObject;
 using BinOp = Outlet.Operators.BinaryOperation;
 using UnOp = Outlet.Operators.UnaryOperation;
 using Outlet.Types;
+using Outlet.Compiling.Instructions;
 
 namespace Outlet.Operators
 {
@@ -73,7 +74,8 @@ namespace Outlet.Operators
                 new UnOp<Typ, Str>((l) => new Str(l.Encapsulated.ToString())));
 
             Negative = new UnaryOperator("-", 2, Side.Right,
-                new UnOp<Int, Int>((l) => Value.Int(-l.Underlying)),
+                new UnOp<Int, Int>((l) => Value.Int(-l.Underlying), 
+                    bytecode: () => new NegateInt()),
                 new UnOp<Flt, Flt>((l) => Value.Float(-l.Underlying)),
                 new UnOp<Str, Str>((l) => new Str(string.Concat(l.Underlying.Reverse()))));
 

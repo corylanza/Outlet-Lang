@@ -1,7 +1,7 @@
 ﻿using Outlet.AST;
 using Outlet.Checking;
 using Outlet.FFI;
-using Outlet.Interpreting;
+using Outlet.Interpreting.TreeWalk;
 using Outlet.Lexing;
 using Outlet.Operands;
 using Outlet.Parsing;
@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Outlet.StandardLib;
+using Outlet.Interpreting.ByteCode;
 
 namespace Outlet
 {
@@ -34,7 +35,7 @@ namespace Outlet
             Interpreter = new Interpreter();
         }
 
-        protected Operand RunBytes(byte[] bytes)
+        protected Operand RunBytes(byte[] bytes, bool useByteCode = false)
         {
             try
             {
@@ -42,8 +43,18 @@ namespace Outlet
                 IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
                 Checker.Check(program);
-                Operand res = Interpreter.Interpret(program);
-                return res;
+
+                if (useByteCode)
+                {
+                    var compiler = new VirtualMachine(program);
+                    string? result = compiler.Interpret()?.ToString();
+                    return result is null ? Value.Null : new Operands.String(result);
+                }
+                else
+                {
+                    Operand res = Interpreter.Interpret(program);
+                    return res;
+                }
             }
             catch (Exception e)
             {
@@ -78,7 +89,7 @@ namespace Outlet
     {
         public ReplOutletProgram(SystemInterface sys) : base(sys) { }
 
-        public Operand Run(byte[] bytes) => RunBytes(bytes);
+        public Operand Run(byte[] bytes) => RunBytes(bytes, useByteCode: true);
 
         public void Check(byte[] bytes) => CheckBytes(bytes);
     }

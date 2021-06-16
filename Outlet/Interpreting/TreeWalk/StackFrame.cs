@@ -2,7 +2,7 @@
 using Outlet.Types;
 using System.Collections.Generic;
 
-namespace Outlet.Interpreting
+namespace Outlet.Interpreting.TreeWalk
 {
     public class StackFrame : IStackFrame<Operand>
     {

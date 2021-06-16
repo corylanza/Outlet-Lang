@@ -3,7 +3,7 @@ using Outlet.Operands;
 using Outlet.Checking;
 using System.Collections.Generic;
 using System.Linq;
-using Outlet.Interpreting;
+using Outlet.Interpreting.TreeWalk;
 
 namespace Outlet.Types {
 

@@ -6,7 +6,7 @@ using Outlet.Operators;
 using Outlet.Types;
 using Type = Outlet.Types.Type;
 
-namespace Outlet.Interpreting {
+namespace Outlet.Interpreting.TreeWalk {
 	public class Interpreter : IASTVisitor<Operand> {
 
 		#region Helpers
