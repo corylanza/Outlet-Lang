@@ -7,33 +7,59 @@ using System.Threading.Tasks;
 
 namespace Outlet.Interpreting.ByteCode
 {
-    public partial class VirtualMachine : IInstructionVisitor<object>
+    public partial class VirtualMachine : IInstructionVisitor<object?>
     {
-        public object Visit(ConstInt c)
+        public object? Visit(ConstInt c)
         {
-            Accumulator = c.Value;
-            return c.Value;
+            ValueStack.Push(c.Value);
+            return null;
         }
 
-        public object Visit(ConstFloat c)
+        public object? Visit(ConstFloat c)
         {
             throw new NotImplementedException();
         }
 
-        public object Visit(ConstBool c)
+        public object? Visit(ConstBool c)
         {
             throw new NotImplementedException();
         }
 
-        public object Visit(ConstString c)
+        public object? Visit(ConstString c)
         {
             throw new NotImplementedException();
         }
 
-        public object Visit(NegateInt n)
+        public object? Visit(NegateInt n)
         {
-            Accumulator = -1 * Math.Abs(Accumulator);
-            return Accumulator;
+            ValueStack.Push(-ValueStack.Pop());
+            return null;
+        }
+
+        public object? Visit(BinaryAdd b)
+        {
+            ValueStack.Push(ValueStack.Pop() + ValueStack.Pop());
+            return null;
+        }
+
+        public object? Visit(BinarySub b)
+        {
+            var right = ValueStack.Pop();
+            var left = ValueStack.Pop();
+            ValueStack.Push(left - right);
+            return null;
+        }
+
+        public object? Visit(LocalStore l)
+        {
+            Locals[l.LocalId] = ValueStack.Pop();
+            return null;
+        }
+
+        public object? Visit(LocalGet l)
+        {
+            ValueStack.Push(Locals[l.LocalId]);
+            return null;
         }
     }
 }

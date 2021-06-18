@@ -136,8 +136,8 @@ namespace Outlet.Parsing {
 							int tuplen = arity.Pop();
 							Expression[] tuple = new Expression[tuplen];
 							for (int i = 0; i < tuplen; i++) tuple[tuplen - 1 - i] = output.Pop();
-							// If there is a func paren then this is a function call, otherwise it is a tuple literal
-							output.Push(stack.Pop() == Delimeter.FuncParen ? new Call(output.Pop(), tuple) as Expression : new TupleLiteral(tuple));
+							// If there is a func paren then this is a function call, otherwise it is a tuple literal if multiple values
+							output.Push(stack.Pop() == Delimeter.FuncParen ? new Call(output.Pop(), tuple) : tuplen == 1 ? tuple[0] : new TupleLiteral(tuple));
 						}
 						expectOperand = false;
 						break;

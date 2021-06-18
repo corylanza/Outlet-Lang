@@ -11,24 +11,24 @@ namespace Outlet.Interpreting.ByteCode
 {
     public partial class VirtualMachine
     {
-        private readonly Instruction[] ByteCode;
+        private readonly Stack<int> ValueStack = new();
+        private readonly Dictionary<uint, int> Locals = new();
 
-        private int Accumulator { get; set; }
-        private int idx = 0;
-
-        public VirtualMachine(IASTNode program)
+        public object? Interpret(Instruction[] byteCode)
         {
-            var compiler = new ByteCodeGenerator();
-            ByteCode = compiler.GenerateByteCode(program).ToArray();
-        }
+            int idx = 0;
 
-        public object Interpret()
-        {
-            object? last = null;
-            while(idx < ByteCode.Length) {
-                last = ByteCode[idx++].Accept(this);
+            while (idx < byteCode.Length) {
+                byteCode[idx++].Accept(this);
             }
-            return last;
+
+            if(ValueStack.Count > 0)
+            {
+                var output = ValueStack.Peek();
+                ValueStack.Clear();
+                return output;
+            }
+            return null;
         }
     }
 }

@@ -13,6 +13,7 @@ using System.IO;
 using System.Text;
 using Outlet.StandardLib;
 using Outlet.Interpreting.ByteCode;
+using Outlet.Compiling;
 
 namespace Outlet
 {
@@ -21,6 +22,8 @@ namespace Outlet
     {
         public Checker Checker { get; private set; }
         public Interpreter Interpreter { get; private set; }
+        public VirtualMachine ByteCodeVM { get; private init; }
+        public ByteCodeGenerator Compiler = new ByteCodeGenerator();
         public SystemInterface System { get; private set; }
         private List<IASTNode> Nodes { get; set; } = new List<IASTNode>();
 
@@ -33,6 +36,8 @@ namespace Outlet
             new NativeInitializer(sys).Register(stdlib, Checker.GlobalScope, Checker.Error);
 
             Interpreter = new Interpreter();
+            ByteCodeVM = new VirtualMachine();
+
         }
 
         protected Operand RunBytes(byte[] bytes, bool useByteCode = false)
@@ -46,8 +51,8 @@ namespace Outlet
 
                 if (useByteCode)
                 {
-                    var compiler = new VirtualMachine(program);
-                    string? result = compiler.Interpret()?.ToString();
+                    var byteCode = Compiler.GenerateByteCode(program);
+                    string? result = ByteCodeVM.Interpret(byteCode.ToArray())?.ToString();
                     return result is null ? Value.Null : new Operands.String(result);
                 }
                 else

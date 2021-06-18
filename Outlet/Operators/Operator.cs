@@ -101,13 +101,15 @@ namespace Outlet.Operators
                     : Value.Int(l.Underlying % r.Underlying)));
 
             Plus = new BinaryOperator("+", 4, Side.Left,
-                new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying + r.Underlying)),
+                new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying + r.Underlying),
+                    bytecode: () => new BinaryAdd()),
                 new BinOp<Flt, Flt, Flt>((l, r) => Value.Float(l.Underlying + r.Underlying)),
                 new BinOp<Str, Obj, Str>((l, r) => new Str(l.Underlying + r.ToString())),
                 new BinOp<Obj, Str, Str>((l, r) => new Str(l.ToString() + r.Underlying)));
 
             Minus = new BinaryOperator("-", 4, Side.Left,
-                new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying - r.Underlying)),
+                new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying - r.Underlying),
+                    bytecode: () => new BinarySub()),
                 new BinOp<Flt, Flt, Flt>((l, r) => Value.Float(l.Underlying - r.Underlying)));
 
             LShift = new BinaryOperator("<<", 5, Side.Left,

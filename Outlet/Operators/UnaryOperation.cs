@@ -12,9 +12,7 @@ namespace Outlet.Operators
         protected Type Input, Output;
         private readonly Func<Instruction> InstructionGen;
 
-        protected UnaryOperation(Type input, Type output) : this(input, output, null) { }
-
-        protected UnaryOperation(Type input, Type output, Func<Instruction>? bytecode)
+        protected UnaryOperation(Type input, Type output, Func<Instruction>? bytecode = null)
         {
             (Input, Output) = (input, output);
             InstructionGen = bytecode ?? NotImplementedInstruction;

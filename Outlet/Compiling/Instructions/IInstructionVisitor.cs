@@ -47,6 +47,36 @@ namespace Outlet.Compiling.Instructions
         public override T Accept<T>(IInstructionVisitor<T> visitor) => visitor.Visit(this);
     }
 
+    public class BinaryAdd : Instruction
+    {
+        public override T Accept<T>(IInstructionVisitor<T> visitor) => visitor.Visit(this);
+    }
+
+    public class BinarySub : Instruction
+    {
+        public override T Accept<T>(IInstructionVisitor<T> visitor) => visitor.Visit(this);
+    }
+
+    public class LocalStore : Instruction
+    {
+
+        public uint LocalId { get; set; }
+
+        public LocalStore(uint localId) => LocalId = localId;
+
+        public override T Accept<T>(IInstructionVisitor<T> visitor) => visitor.Visit(this);
+    }
+
+    public class LocalGet : Instruction
+    {
+
+        public uint LocalId { get; set; }
+
+        public LocalGet(uint localId) => LocalId = localId;
+
+        public override T Accept<T>(IInstructionVisitor<T> visitor) => visitor.Visit(this);
+    }
+
     public interface IInstructionVisitor<T>
     {
         T Visit(ConstInt c);
@@ -54,5 +84,9 @@ namespace Outlet.Compiling.Instructions
         T Visit(ConstBool c);
         T Visit(ConstString c);
         T Visit(NegateInt n);
+        T Visit(BinaryAdd b);
+        T Visit(BinarySub b);
+        T Visit(LocalStore l);
+        T Visit(LocalGet l);
     }
 }

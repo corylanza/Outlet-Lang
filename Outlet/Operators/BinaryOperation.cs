@@ -1,4 +1,5 @@
-﻿using Outlet.Operands;
+﻿using Outlet.Compiling.Instructions;
+using Outlet.Operands;
 using Outlet.Types;
 using System;
 using System.Collections.Generic;
@@ -9,8 +10,13 @@ namespace Outlet.Operators
     public abstract class BinaryOperation : IOverloadable
     {
         protected Type LeftInput, RightInput, Output;
+        private readonly Func<Instruction> InstructionGen;
 
-        protected BinaryOperation(Type left, Type right, Type output) => (LeftInput, RightInput, Output) = (left, right, output);
+        protected BinaryOperation(Type left, Type right, Type output, Func<Instruction>? bytecode = null)
+        {
+            (LeftInput, RightInput, Output) = (left, right, output);
+            InstructionGen = bytecode ?? NotImplementedInstruction;
+        }
 
         public abstract Operand Perform(Operand l, Operand r);
         public Type GetResultType() => Output;
@@ -26,9 +32,11 @@ namespace Outlet.Operators
             return false;
         }
 
-        public IEnumerable<byte> GenerateByteCode(IEnumerable<byte> left, IEnumerable<byte> right)
+        private Instruction NotImplementedInstruction() => throw new NotImplementedException();
+
+        public IEnumerable<Instruction> GenerateByteCode()
         {
-            throw new NotImplementedException();
+            yield return InstructionGen();
         }
     }
 
@@ -36,10 +44,11 @@ namespace Outlet.Operators
     {
         private readonly Func<L, R, O> Underlying;
 
-        public BinOp(Func<L, R, O> func) : base(
+        public BinOp(Func<L, R, O> func, Func<Instruction>? bytecode = null) : base(
             Conversions.GetRuntimeType<L>(),
             Conversions.GetRuntimeType<R>(),
-            Conversions.GetRuntimeType<O>())
+            Conversions.GetRuntimeType<O>(),
+            bytecode)
         {
             Underlying = func;
         }
@@ -55,7 +64,7 @@ namespace Outlet.Operators
     {
         private readonly UnderlyingBinaryOperation Underlying;
 
-        public UserDefinedBinaryOperation(UnderlyingBinaryOperation underlying, Type left, Type right, Type output) : base(left, right, output)
+        public UserDefinedBinaryOperation(UnderlyingBinaryOperation underlying, Type left, Type right, Type output, Func<Instruction>? bytecode = null) : base(left, right, output, bytecode)
         {
             Underlying = underlying;
         }

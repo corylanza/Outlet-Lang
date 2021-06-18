@@ -42,6 +42,7 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(VariableDeclaration v)
         {
+            return Seq(v.Initializer.Accept(this), v.Decl.Accept(this));
             throw new NotImplementedException();
         }
 
@@ -57,16 +58,20 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(Assign a)
         {
-            throw new NotImplementedException();
+            //yield return a.Left.Accept(this);
+            //yield return a.Right.Accept(this);
+            return null;
         }
 
         public IEnumerable<Instruction> Visit(Binary b)
         {
-            //IEnumerable<byte> left = b.Left.Accept(this);
-            //IEnumerable<byte> right = b.Right.Accept(this);
-            //var bytes = b.Oper!.GenerateByteCode(left, right);
-            //return new CodeBlock(bytes);
-            throw new NotImplementedException();
+            if (b.Oper is not null)
+            {
+                return Seq(b.Left.Accept(this), b.Right.Accept(this), b.Oper.GenerateByteCode());
+            } else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public IEnumerable<Instruction> Visit(Call c)
@@ -95,7 +100,7 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(Declarator d)
         {
-            throw new NotImplementedException();
+            yield return new LocalStore(d.LocalId!.Value);
         }
 
         public IEnumerable<Instruction> Visit(TupleAccess d)
@@ -151,12 +156,12 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(Variable v)
         {
-            throw new NotImplementedException();
+            yield return new LocalGet(v.LocalId!.Value);
         }
 
         public IEnumerable<Instruction> Visit(Block b)
         {
-            throw new NotImplementedException();
+            return b.Lines.SelectMany(line => line.Accept(this));
         }
 
         public IEnumerable<Instruction> Visit(ForLoop f)
