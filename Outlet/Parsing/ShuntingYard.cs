@@ -31,7 +31,7 @@ namespace Outlet.Parsing {
 
 			bool ExpectingOperator(Lexeme toputback) { if(!expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool ExpectingOperand(Lexeme toputback) { if(expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
-			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Assoc == Side.Left);
+			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Association == Side.Left);
 			SyntaxException SyntaxError(string message) => this.SyntaxError(message, first);
 			
 			#endregion
@@ -74,12 +74,12 @@ namespace Outlet.Parsing {
 						break;
 					case DelimeterToken colon when colon == DelimeterToken.Colon:
 						if(ExpectingOperand(cur)) break;
-						while(stack.Count > 0 && stack.Peek() != Operator.Question) {
+						while(stack.Count > 0 && stack.Peek() is not TernaryQuestion) {
 							ReduceOperator(output, stack);
 						}
 						if (stack.Count > 0) {
 							stack.Pop();
-							stack.Push(Operator.Ternary);
+							stack.Push(new TernaryElse());
 						} else throw new OutletException("expected ? before : in ternary operator");
 						expectOperand = true;
 						break;
@@ -87,7 +87,7 @@ namespace Outlet.Parsing {
 						bool func = !(last is null || last.InnerToken is OperatorToken || last.InnerToken is DelimeterToken dlp && !(dlp.Name == ")" || dlp.Name == "]"));
 						if(func && ExpectingOperand(cur)) break;
 						if(!func && ExpectingOperator(cur)) break;
-						while (lesserPrecedence(Operator.Dot)) {
+						while (lesserPrecedence(new DotOp())) {
 							ReduceOperator(output, stack);
 						}
 						// If this is a function call push a special function delim to stack, otherwise push (
@@ -169,15 +169,15 @@ namespace Outlet.Parsing {
 		private static void ReduceOperator(Stack<Expression> output, Stack<IOperatorPrecedenceParsable> stack) {
 			if (stack.Count > 0 && stack.Peek() is Operator op) {
 				stack.Pop();
-				if(op == Operator.Ternary) {
+				if(op is TernaryElse) {
 					if(output.Count < 3) throw new OutletException("Syntax Error: ternary operator expects 3 operands");
 					output.Push(new Ternary(output.Pop(), output.Pop(), output.Pop()));
 				} else if(op is BinaryOperator binop) {
 					if(output.Count < 2) throw new OutletException("Syntax Error: binary operator " + binop.ToString() + " expects 2 operands");
-					output.Push(binop.GenerateASTNode(output.Pop(), output.Pop()));
+					output.Push(binop.GenerateAstNode(output.Pop(), output.Pop()));
 				} else if(op is UnaryOperator unop) {
 					if(output.Count < 1) throw new OutletException("Syntax Error: unary operator " + unop.ToString() + " expects 1 operand");
-					output.Push(unop.GenerateASTNode(output.Pop()));
+					output.Push(unop.GenerateAstNode(output.Pop()));
 				} else throw new OutletException("Syntax Error: Incomplete expression, tried to reduce");
 			} else throw new OutletException("Expression invalid, more operators than needed operands");
 		}
