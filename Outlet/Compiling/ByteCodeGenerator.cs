@@ -12,8 +12,10 @@ namespace Outlet.Compiling
     {
         public IEnumerable<Instruction> GenerateByteCode(IASTNode program)
         {
-            return program.Accept(this);
+            return Gen(program);
         }
+
+        private IEnumerable<Instruction> Gen(IASTNode node) => node.Accept(this);
 
         private static IEnumerable<Instruction> Seq(params IEnumerable<Instruction>[] instructions)
         {
@@ -42,7 +44,8 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(VariableDeclaration v)
         {
-            return Seq(v.Initializer.Accept(this), v.Decl.Accept(this));
+            // TODO handle no initializer case
+            return Seq(Gen(v.Initializer), Gen(v.Decl));
             throw new NotImplementedException();
         }
 
@@ -63,9 +66,12 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(LocalAssign a)
         {
-            //yield return a.Left.Accept(this);
-            //yield return a.Right.Accept(this);
-            return null;
+            static IEnumerable<Instruction> LocalStore(uint localId)
+            {
+                yield return new LocalStore(localId);
+            }
+
+            return Seq(Gen(a.Right), LocalStore(a.Variable.LocalId!.Value));
         }
 
         public IEnumerable<Instruction> Visit(MemberAssign a)
@@ -77,7 +83,7 @@ namespace Outlet.Compiling
         {
             if (b.Oper is not null)
             {
-                return Seq(b.Left.Accept(this), b.Right.Accept(this), b.Oper.GenerateByteCode());
+                return Seq(Gen(b.Left), Gen(b.Right), b.Oper.GenerateByteCode());
             } else
             {
                 throw new NotImplementedException();
@@ -157,7 +163,7 @@ namespace Outlet.Compiling
         {
             if(u.Oper is not null)
             {
-                return Seq(u.Expr.Accept(this), u.Oper.GenerateByteCode());
+                return Seq(Gen(u.Expr), u.Oper.GenerateByteCode());
             } else
             {
                 throw new NotImplementedException();
@@ -171,7 +177,7 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(Block b)
         {
-            return b.Lines.SelectMany(line => line.Accept(this));
+            return b.Lines.SelectMany(line => Gen(line));
         }
 
         public IEnumerable<Instruction> Visit(ForLoop f)
@@ -181,7 +187,10 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(IfStatement i)
         {
-            throw new NotImplementedException();
+            //TODO Jump By Relative
+            //if (i.Iffalse is not null) return Seq(Gen(i.Condition).Append(), Gen(i.Iftrue), Gen(i.Iffalse));
+            //else return Seq(Gen(i.Condition), Gen(i.Iftrue));
+            //throw new NotImplementedException();
         }
 
         public IEnumerable<Instruction> Visit(ReturnStatement r)

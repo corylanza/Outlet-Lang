@@ -40,7 +40,7 @@ namespace Outlet
 
         }
 
-        protected Operand RunBytes(byte[] bytes, bool useByteCode = false)
+        protected Operand RunBytes(byte[] bytes, bool useByteCode = true)
         {
             try
             {
