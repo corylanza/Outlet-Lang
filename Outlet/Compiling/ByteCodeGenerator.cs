@@ -190,7 +190,7 @@ namespace Outlet.Compiling
             //TODO Jump By Relative
             //if (i.Iffalse is not null) return Seq(Gen(i.Condition).Append(), Gen(i.Iftrue), Gen(i.Iffalse));
             //else return Seq(Gen(i.Condition), Gen(i.Iftrue));
-            //throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Instruction> Visit(ReturnStatement r)
