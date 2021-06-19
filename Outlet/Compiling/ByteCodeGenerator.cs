@@ -46,7 +46,12 @@ namespace Outlet.Compiling
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Instruction> Visit(Access a)
+        public IEnumerable<Instruction> Visit(ArrayAccess a)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Instruction> Visit(ArrayAssign a)
         {
             throw new NotImplementedException();
         }
@@ -56,11 +61,16 @@ namespace Outlet.Compiling
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Instruction> Visit(Assign a)
+        public IEnumerable<Instruction> Visit(LocalAssign a)
         {
             //yield return a.Left.Accept(this);
             //yield return a.Right.Accept(this);
             return null;
+        }
+
+        public IEnumerable<Instruction> Visit(MemberAssign a)
+        {
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Instruction> Visit(Binary b)

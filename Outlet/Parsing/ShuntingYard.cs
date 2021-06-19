@@ -152,7 +152,7 @@ namespace Outlet.Parsing {
 							list[idxlen - 1 - i] = output.Pop();
 						}
 						// If there is an index brace this is a access expr, otherwise it is a list literal
-						output.Push(stack.Pop() == Delimeter.IndexBrace ? new Access(output.Pop(), list) as Expression : new ListLiteral(list));
+						output.Push(stack.Pop() == Delimeter.IndexBrace ? new ArrayAccess(output.Pop(), list) as Expression : new ListLiteral(list));
 						expectOperand = false;
 						break;
 					default:

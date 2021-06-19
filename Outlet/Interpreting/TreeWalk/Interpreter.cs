@@ -223,7 +223,7 @@ namespace Outlet.Interpreting.TreeWalk {
 
         public Operand Visit(NullExpr n) => Value.Null;
 
-        public Operand Visit(Access a) {
+        public Operand Visit(ArrayAccess a) {
 			Operand col = a.Collection.Accept(this);
             var idxs = a.Index.Select(idx => idx.Accept(this));
 			if(col is TypeObject at && a.Index.Length == 0) return new TypeObject(new ArrayType(at.Encapsulated));
@@ -240,33 +240,26 @@ namespace Outlet.Interpreting.TreeWalk {
             throw new UnexpectedException("cannot access this type");
 		}
 
-		public Operand Visit(As a) {
+        public Operand Visit(ArrayAssign a)
+        {
+            Operand val = a.Right.Accept(this);
+            if(a.ArrayIdx.Collection.Accept(this) is Array c)
+            {
+                // Index is 0 because all array access is one-dimensional as of now
+                // multi-dimensional arrays can be accessed through chained accesses
+                int idx = Cast<Value<int>>(a.ArrayIdx.Index[0].Accept(this)).Underlying;
+                int len = c.Values().Length;
+                if (idx >= len) throw new RuntimeException("array index out of bounds exception: index was " + idx + " array only goes to " + (len - 1));
+                return c.Values()[idx] = val;
+            }
+            throw new UnexpectedException("cannot assign to the left side of this expression");
+        }
+
+        public Operand Visit(As a) {
 			Operand l = a.Left.Accept(this);
 			TypeObject t = (TypeObject) a.Right.Accept(this);
 			if(l.GetOutletType().Is(t.Encapsulated)) return l;
 			throw new RuntimeException("cannot implicitly cast " + l.GetOutletType().ToString() + " to " + t.ToString());
-		}
-
-		public Operand Visit(Assign a) {
-			Operand val = a.Right.Accept(this);
-			if(a.Left is Variable v) {
-                CurrentStackFrame.Assign(v, val);
-				return val;
-			} 
-            else if(a.Left is MemberAccess m) {
-                var memberLeft = m.Left.Accept(this);
-                if(memberLeft is IDereferenceable dereferenced)
-                {
-                    dereferenced.SetMember(m.Member, val);
-                    return val;
-                }
-                else if(memberLeft is TypeObject to && to.Encapsulated is IDereferenceable staticAccess)
-                {
-                    staticAccess.SetMember(m.Member, val);
-                    return val;
-                }
-			}
-            throw new UnexpectedException("cannot assign to the left side of this expression");
 		}
 
 		public Operand Visit(Binary b) => b.Oper is BinaryOperation bo ? bo.Perform(b.Left.Accept(this), b.Right.Accept(this)) : 
@@ -296,7 +289,14 @@ namespace Outlet.Interpreting.TreeWalk {
             throw new UnexpectedException("Illegal dereference");
         }
 
-		public Operand Visit(MemberAccess m) {
+        public Operand Visit(LocalAssign a)
+        {
+            Operand val = a.Right.Accept(this);
+            CurrentStackFrame.Assign(a.Variable, val);
+            return val;
+        }
+
+        public Operand Visit(MemberAccess m) {
 			Operand left = m.Left.Accept(this);
 			if(left is Array a && m.ArrayLength) return Value.Int(a.Values().Length);
             if (left is TypeObject to && to.Encapsulated is IDereferenceable statics) return statics.GetMember(m.Member); 
@@ -305,7 +305,24 @@ namespace Outlet.Interpreting.TreeWalk {
 			throw new UnexpectedException("Illegal dereference");
 		}
 
-		public Operand Visit(Is i) {
+        public Operand Visit(MemberAssign a)
+        {
+            Operand val = a.Right.Accept(this);
+            var memberLeft = a.Member.Left.Accept(this);
+            if (memberLeft is IDereferenceable dereferenced)
+            {
+                dereferenced.SetMember(a.Member.Member, val);
+                return val;
+            }
+            else if (memberLeft is TypeObject to && to.Encapsulated is IDereferenceable staticAccess)
+            {
+                staticAccess.SetMember(a.Member.Member, val);
+                return val;
+            }
+            throw new UnexpectedException("cannot assign to the left side of this expression");
+        }
+
+        public Operand Visit(Is i) {
 			bool val = i.Left.Accept(this).GetOutletType().Is(((TypeObject) i.Right.Accept(this)).Encapsulated);
 			return Value.Bool(i.NotIsnt ? val : !val); 
 		}

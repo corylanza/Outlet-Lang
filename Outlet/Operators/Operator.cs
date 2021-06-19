@@ -48,7 +48,7 @@ namespace Outlet.Operators
             PostInc = new UnaryOperator("++", 1, Side.Left);
             PostDec = new UnaryOperator("--", 1, Side.Left);
 
-            Dot = new BinaryOperator(".", 1, Side.Left, 
+            Dot = new BinaryOperator(".", 1, Side.Left,
                 astGenerator: (l, r) => r switch {
                     Literal<int> idx => new TupleAccess(l, idx.Value),
                     Variable member => new MemberAccess(l, member),
@@ -74,7 +74,7 @@ namespace Outlet.Operators
                 new UnOp<Typ, Str>((l) => new Str(l.Encapsulated.ToString())));
 
             Negative = new UnaryOperator("-", 2, Side.Right,
-                new UnOp<Int, Int>((l) => Value.Int(-l.Underlying), 
+                new UnOp<Int, Int>((l) => Value.Int(-l.Underlying),
                     bytecode: () => new NegateInt()),
                 new UnOp<Flt, Flt>((l) => Value.Float(-l.Underlying)),
                 new UnOp<Str, Str>((l) => new Str(string.Concat(l.Underlying.Reverse()))));
@@ -114,22 +114,22 @@ namespace Outlet.Operators
 
             LShift = new BinaryOperator("<<", 5, Side.Left,
                 new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying << r.Underlying)));
-            
+
             RShift = new BinaryOperator(">>", 5, Side.Left,
                 new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying >> r.Underlying)));
-            
+
             LT = new BinaryOperator("<", 6, Side.Left,
                 new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying < r.Underlying)));
-            
+
             LTE = new BinaryOperator("<=", 6, Side.Left,
                 new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying <= r.Underlying)));
-            
+
             GT = new BinaryOperator(">", 6, Side.Left,
                 new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying > r.Underlying)));
-            
+
             GTE = new BinaryOperator(">=", 6, Side.Left,
                 new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying >= r.Underlying)));
-            
+
             As = new BinaryOperator("as", 6, Side.Left, astGenerator: (l, r) => new As(l, r));
             Is = new BinaryOperator("is", 6, Side.Left, astGenerator: (l, r) => new Is(l, r, yes: true));
             Isnt = new BinaryOperator("isnt", 6, Side.Left, astGenerator: (l, r) => new Is(l, r, yes: false));
@@ -153,14 +153,22 @@ namespace Outlet.Operators
             LogicalOr = new BinaryOperator("||", 12, Side.Left, astGenerator: (l, r) => new LogicalOr(l, r));
             Question = new BinaryOperator("?", 13, Side.Right);
             Ternary = new BinaryOperator(":", 13, Side.Right);
-            Equal = new BinaryOperator("=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, r));
-            PlusEqual = new BinaryOperator("+=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Plus.GenerateASTNode(l, r)));
-            MinusEqual = new BinaryOperator("-=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Minus.GenerateASTNode(l, r)));
-            DivEqual = new BinaryOperator("/=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Divide.GenerateASTNode(l, r)));
-            MultEqual = new BinaryOperator("*=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Times.GenerateASTNode(l, r)));
-            ModEqual = new BinaryOperator("%=", 14, Side.Right, astGenerator: (l, r) => new Assign(l, Modulus.GenerateASTNode(l, r)));
+            Equal = new BinaryOperator("=", 14, Side.Right, astGenerator: (l, r) => Assign(l, r));
+            PlusEqual = new BinaryOperator("+=", 14, Side.Right, astGenerator: (l, r) => Assign(l, Plus.GenerateASTNode(l, r)));
+            MinusEqual = new BinaryOperator("-=", 14, Side.Right, astGenerator: (l, r) => Assign(l, Minus.GenerateASTNode(l, r)));
+            DivEqual = new BinaryOperator("/=", 14, Side.Right, astGenerator: (l, r) => Assign(l, Divide.GenerateASTNode(l, r)));
+            MultEqual = new BinaryOperator("*=", 14, Side.Right, astGenerator: (l, r) => Assign(l, Times.GenerateASTNode(l, r)));
+            ModEqual = new BinaryOperator("%=", 14, Side.Right, astGenerator: (l, r) => Assign(l, Modulus.GenerateASTNode(l, r)));
             Lambda = new BinaryOperator("=>", 14, Side.Right, astGenerator: (l, r) => new Lambda(l, r));
         }
+
+        private static Expression Assign(Expression l, Expression r) => l switch
+        {
+            Variable v => new LocalAssign(v, r),
+            MemberAccess m => new MemberAssign(m, r),
+            ArrayAccess a => new ArrayAssign(a, r),
+            _ => throw new OutletException($"Can only assign to variables, fields, and array idxs not {l}")
+        };
     }
 
     public delegate Expression BinaryOpASTGenerator(Expression left, Expression right);

@@ -94,7 +94,7 @@ namespace Outlet
     {
         public ReplOutletProgram(SystemInterface sys) : base(sys) { }
 
-        public Operand Run(byte[] bytes) => RunBytes(bytes, useByteCode: true);
+        public Operand Run(byte[] bytes) => RunBytes(bytes, useByteCode: false);
 
         public void Check(byte[] bytes) => CheckBytes(bytes);
     }

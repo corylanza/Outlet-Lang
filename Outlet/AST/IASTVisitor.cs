@@ -9,9 +9,9 @@ namespace Outlet {
 		T Visit(OperatorOverloadDeclaration o);
 		T Visit(VariableDeclaration v);
 
-		T Visit(Access a);
+		T Visit(ArrayAccess a);
+		T Visit(ArrayAssign m);
 		T Visit(As a);
-		T Visit(Assign a);
 		T Visit(Binary b);
 		T Visit(Call c);
 		T Visit<E>(Literal<E> c) where E : struct;
@@ -23,6 +23,8 @@ namespace Outlet {
 		T Visit(Is i);
 		T Visit(Lambda l);
         T Visit(ListLiteral l);
+		T Visit(LocalAssign a);
+		T Visit(MemberAssign m);
 		T Visit(ShortCircuit s);
 		T Visit(Ternary t);
 		T Visit(TupleLiteral t);

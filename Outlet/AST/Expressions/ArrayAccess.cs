@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Outlet.AST {
-	public class Access : Expression {
+	public class ArrayAccess : Expression {
 
 		public Expression Collection;
 		public Expression[] Index;
 
-		public Access(Expression collection, Expression[] idx) {
+		public ArrayAccess(Expression collection, Expression[] idx) {
 			Collection = collection;
 			Index = idx;
 		}

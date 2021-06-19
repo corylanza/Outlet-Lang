@@ -255,7 +255,7 @@ namespace Outlet.Checking
 
         #region Expressions
 
-        public Type Visit(Access a)
+        public Type Visit(ArrayAccess a)
         {
             Type elem = a.Collection.Accept(this);
             var idxTypes = a.Index.Select(idx => idx.Accept(this));
@@ -281,6 +281,15 @@ namespace Outlet.Checking
             return Error("type " + elem.ToString() + " is not accessable by array access operator []");
         }
 
+        public Type Visit(ArrayAssign a) => (a.ArrayIdx.Collection.Accept(this), a.ArrayIdx.Index.Select(idx => idx.Accept(this)), a.Right.Accept(this)) switch
+        {
+            (Error e, _, _) => e,
+            (_, Error e, _) => e,
+            (_, _, Error e) => e,
+            (ArrayType c, IEnumerable<Type> i, Type r) when i.Count() == 1 && i.First() == Primitive.Int => Cast(r, c.ElementType),
+            (Type c, IEnumerable<Type> i, Type r) => Error($"type {c} cannot be accessed with an idx type of {string.Join(",", i.Select(idx => idx.ToString()))}")
+        };
+
         public Type Visit(As a)
         {
             a.Left.Accept(this);
@@ -288,19 +297,6 @@ namespace Outlet.Checking
             if (r is MetaType castedTo) return castedTo.Stored;
             return Error("the right side of an is expression must be a type, found: " + r.ToString());
         }
-
-        public Type Visit(Assign a) => a.Left switch
-        {
-            MemberAccess d when d.ArrayLength => Error("cannot assign to an array length"),
-            Expression left when left is Variable || left is MemberAccess =>
-                (a.Left.Accept(this), a.Right.Accept(this)) switch
-                {
-                    (Error e, _) => e,
-                    (_, Error e) => e,
-                    (Type l, Type r) => Cast(r, l)
-                },
-            _ => Error("illegal assignment, can only assign to variables and fields")
-        };
 
         public Type Visit(Binary b) => (b.Left.Accept(this), b.Right.Accept(this)) switch
         {
@@ -365,15 +361,6 @@ namespace Outlet.Checking
             Type type => Error($"Cannot reference member {t.Member} of non tuple type {type}")
         };
 
-        public Type Visit(MemberAccess d) => d.Left.Accept(this) switch
-        {
-            Error e => e,
-            ArrayType _ when d.ArrayLengthAccess() => Primitive.Int,
-            ProtoClass instances => instances.GetInstanceMemberType(d.Member),
-            MetaType t when t.Stored is ProtoClass statics => statics.GetStaticMemberType(d.Member),
-            Type other => Error($"cannot dereference type: {other}")
-        };
-
         public Type Visit(Is i)
         {
             i.Left.Accept(this);
@@ -392,6 +379,30 @@ namespace Outlet.Checking
         {
             return new ArrayType(Type.CommonAncestor(l.Args.Select(x => x.Accept(this)).ToArray()));
         }
+
+        public Type Visit(LocalAssign a) => (a.Variable.Accept(this), a.Right.Accept(this)) switch
+        {
+            (Error e, _) => e,
+            (_, Error e) => e,
+            (Type l, Type r) => Cast(r, l)
+        };
+
+        public Type Visit(MemberAccess d) => d.Left.Accept(this) switch
+        {
+            Error e => e,
+            ArrayType _ when d.ArrayLengthAccess() => Primitive.Int,
+            ProtoClass instances => instances.GetInstanceMemberType(d.Member),
+            MetaType t when t.Stored is ProtoClass statics => statics.GetStaticMemberType(d.Member),
+            Type other => Error($"cannot dereference type: {other}")
+        };
+
+        public Type Visit(MemberAssign a) => (a.Member.Accept(this), a.Right.Accept(this)) switch
+        {
+            (Error e, _) => e,
+            (_, Error e) => e,
+            (Type l, Type r) when a.Member.ArrayLength => Error("cannot assign to an array length"),
+            (Type l, Type r) => Cast(r, l),
+        };
 
         public Type Visit<E>(Literal<E> c) where E : struct => c.Type;
 
