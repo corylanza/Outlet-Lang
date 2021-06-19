@@ -130,11 +130,6 @@ namespace Outlet.Compiling
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Instruction> Visit(Is i)
-        {
-            throw new NotImplementedException();
-        }
-
         public IEnumerable<Instruction> Visit(Lambda l)
         {
             throw new NotImplementedException();

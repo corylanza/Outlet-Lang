@@ -361,14 +361,6 @@ namespace Outlet.Checking
             Type type => Error($"Cannot reference member {t.Member} of non tuple type {type}")
         };
 
-        public Type Visit(Is i)
-        {
-            i.Left.Accept(this);
-            Type r = i.Right.Accept(this);
-            if (r is MetaType || r == Primitive.MetaType) return Primitive.Bool;
-            return Error("the right side of an is expression must be a type, found: " + r.ToString());
-        }
-
         public Type Visit(Lambda l) => (l.Left.Accept(this), l.Right.Accept(this)) switch
         {
             (MetaType args, MetaType result) when args.Stored is TupleType tt  => new MetaType(new FunctionType(tt.Types.Select(t => (t, "arg")).ToArray(), result.Stored)),//Error("NOT IMPLEMENTED")

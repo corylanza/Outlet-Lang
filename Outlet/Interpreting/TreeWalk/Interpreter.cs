@@ -322,11 +322,6 @@ namespace Outlet.Interpreting.TreeWalk {
             throw new UnexpectedException("cannot assign to the left side of this expression");
         }
 
-        public Operand Visit(Is i) {
-			bool val = i.Left.Accept(this).GetOutletType().Is(((TypeObject) i.Right.Accept(this)).Encapsulated);
-			return Value.Bool(i.NotIsnt ? val : !val); 
-		}
-
 		public Operand Visit(Lambda l) {
 			Operand left = l.Left.Accept(this);
 			Operand right = l.Right.Accept(this);

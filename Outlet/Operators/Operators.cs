@@ -99,15 +99,13 @@ namespace Outlet.Operators
         public override Expression GenerateAstNode(Expression left, Expression right) => new As(left, right);
     }
 
-    public record IsOp() : BinaryOperator("is", 6, Side.Left)
-    {
-        public override Expression GenerateAstNode(Expression left, Expression right) => new Is(left, right, yes: true);
-    }
+    public record IsOp() : BinaryOperator("is", 6, Side.Left,
+        new BinOp<Obj, Typ, Bln>((l, r) => Value.Bool(l.GetOutletType().Is(r.Encapsulated))),
+        new BinOp<Typ, Typ, Bln>((l, r) => Value.Bool(l.GetOutletType().Is(r.Encapsulated))));
 
-    public record IsntOp() : BinaryOperator("isnt", 6, Side.Left)
-    {
-        public override Expression GenerateAstNode(Expression left, Expression right) => new Is(left, right, yes: false);
-    }
+    public record IsntOp() : BinaryOperator("isnt", 6, Side.Left,
+        new BinOp<Obj, Typ, Bln>((l, r) => Value.Bool(!l.GetOutletType().Is(r.Encapsulated))),
+        new BinOp<Typ, Typ, Bln>((l, r) => Value.Bool(!l.GetOutletType().Is(r.Encapsulated))));
 
     public record BoolEquals() : BinaryOperator("==", 7, Side.Left,
         new BinOp<Obj, Obj, Bln>((l, r) => Value.Bool(l.Equals(r))));
@@ -126,29 +124,51 @@ namespace Outlet.Operators
 
     public record LogicalAndOp() : BinaryOperator("&&", 11, Side.Left)
     {
+        // Needs separate AST Node due to short circuiting behavior
         public override Expression GenerateAstNode(Expression left, Expression right) => new LogicalAnd(left, right);
     }
 
     public record LogicalOrOp() : BinaryOperator("||", 12, Side.Left)
     {
+        // Needs separate AST Node due to short circuiting behavior
         public override Expression GenerateAstNode(Expression left, Expression right) => new LogicalOr(left, right);
     }
 
     public record TernaryQuestion() : BinaryOperator("?", 13, Side.Right);
     public record TernaryElse() : BinaryOperator(":", 13, Side.Right);
+
     public record Equal() : BinaryOperator("=", 14, Side.Right)
     {
         public override Expression GenerateAstNode(Expression left, Expression right) => Assign(left, right);
     }
 
-    public record PlusEqual() : BinaryOperator("+=", 14, Side.Right);
-    //{
-    //    public override Expression GenerateAstNode(Expression left, Expression right) => Assign(left, right);
-    //}
+    public record PlusEqual() : BinaryOperator("+=", 14, Side.Right)
+    {
+        public override Expression GenerateAstNode(Expression left, Expression right) => Assign(left, new Plus().GenerateAstNode(left, right));
+    }
 
-    public record MinusEqual() : BinaryOperator("-=", 14, Side.Right);//, astGenerator: (l, r) => Assign(l, Minus.GenerateASTNode(l, r)));
-    public record DivEqual() : BinaryOperator("/=", 14, Side.Right);// astGenerator: (l, r) => Assign(l, Divide.GenerateASTNode(l, r)));
-    public record MultEqual() : BinaryOperator("*=", 14, Side.Right);// astGenerator: (l, r) => Assign(l, Times.GenerateASTNode(l, r)));
-    public record ModEqual() : BinaryOperator("%=", 14, Side.Right);// astGenerator: (l, r) => Assign(l, Modulus.GenerateASTNode(l, r)));
-    public record LambdaOp() : BinaryOperator("=>", 14, Side.Right);// astGenerator: (l, r) => new Lambda(l, r));
+    public record MinusEqual() : BinaryOperator("-=", 14, Side.Right)
+    {
+        public override Expression GenerateAstNode(Expression left, Expression right) => Assign(left, new Minus().GenerateAstNode(left, right));
+    }
+
+    public record DivEqual() : BinaryOperator("/=", 14, Side.Right)
+    {
+        public override Expression GenerateAstNode(Expression left, Expression right) => Assign(left, new Divide().GenerateAstNode(left, right));
+    }
+
+    public record MultEqual() : BinaryOperator("*=", 14, Side.Right)
+    {
+        public override Expression GenerateAstNode(Expression left, Expression right) => Assign(left, new Times().GenerateAstNode(left, right));
+    }
+
+    public record ModEqual() : BinaryOperator("%=", 14, Side.Right)
+    {
+        public override Expression GenerateAstNode(Expression left, Expression right) => Assign(left, new Modulus().GenerateAstNode(left, right));
+    }
+
+    public record LambdaOp() : BinaryOperator("=>", 14, Side.Right)
+    {
+        public override Expression GenerateAstNode(Expression left, Expression right) => new Lambda(left, right);
+    }
 }

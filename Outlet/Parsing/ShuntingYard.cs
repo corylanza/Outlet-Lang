@@ -174,7 +174,9 @@ namespace Outlet.Parsing {
 					output.Push(new Ternary(output.Pop(), output.Pop(), output.Pop()));
 				} else if(op is BinaryOperator binop) {
 					if(output.Count < 2) throw new OutletException("Syntax Error: binary operator " + binop.ToString() + " expects 2 operands");
-					output.Push(binop.GenerateAstNode(output.Pop(), output.Pop()));
+					var right = output.Pop();
+					var left = output.Pop();
+					output.Push(binop.GenerateAstNode(left, right));
 				} else if(op is UnaryOperator unop) {
 					if(output.Count < 1) throw new OutletException("Syntax Error: unary operator " + unop.ToString() + " expects 1 operand");
 					output.Push(unop.GenerateAstNode(output.Pop()));

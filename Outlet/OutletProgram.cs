@@ -49,7 +49,7 @@ namespace Outlet
                 Nodes.Add(program);
                 Checker.Check(program);
 
-                bool useByteCode = true;
+                bool useByteCode = false;
 
                 if (useByteCode)
                 {
