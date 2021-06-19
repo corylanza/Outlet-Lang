@@ -22,7 +22,8 @@ namespace Outlet.Interpreting.ByteCode
 
         public object? Visit(ConstBool c)
         {
-            throw new NotImplementedException();
+            ValueStack.Push(c.Value ? 1 : 0);
+            return null;
         }
 
         public object? Visit(ConstString c)
@@ -59,6 +60,21 @@ namespace Outlet.Interpreting.ByteCode
         public object? Visit(LocalGet l)
         {
             ValueStack.Push(Locals[l.LocalId]);
+            return null;
+        }
+
+        public object? Visit(JumpRelative j)
+        {
+            idx += j.JumpInterval;
+            return null;
+        }
+
+        public object? Visit(JumpFalseRelative j)
+        {
+            if(ValueStack.Pop() == 0)
+            {
+                idx += j.JumpInterval;
+            }
             return null;
         }
     }

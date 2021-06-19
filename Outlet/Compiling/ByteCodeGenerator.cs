@@ -100,6 +100,7 @@ namespace Outlet.Compiling
             yield return c switch
             {
                 Literal<int> l => new ConstInt(l.Value),
+                Literal<bool> l => new ConstBool(l.Value),
                 _ => throw new NotImplementedException()
             };
         }
@@ -151,7 +152,17 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(Ternary t)
         {
-            throw new NotImplementedException();
+            var ifFalse = Gen(t.IfFalse);
+
+            var ifTrue = Gen(t.IfTrue)
+                // Jump over true branch if condition is false
+                .Append(new JumpRelative(ifFalse.Count()));
+
+            // true branch must include a jump over the false branch if one exists
+            var condition = Gen(t.Condition)
+                .Append(new JumpFalseRelative(ifTrue.Count()));
+
+            return Seq(condition, ifTrue, ifFalse);
         }
 
         public IEnumerable<Instruction> Visit(TupleLiteral t)
@@ -187,10 +198,29 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(IfStatement i)
         {
-            //TODO Jump By Relative
-            //if (i.Iffalse is not null) return Seq(Gen(i.Condition).Append(), Gen(i.Iftrue), Gen(i.Iffalse));
-            //else return Seq(Gen(i.Condition), Gen(i.Iftrue));
-            throw new NotImplementedException();
+            if(i.Iffalse is null)
+            {
+                var ifTrue = Gen(i.Iftrue);
+
+                var condition = Gen(i.Condition)
+                    // Jump over true branch if condition is false
+                    .Append(new JumpFalseRelative(ifTrue.Count()));
+
+                return Seq(condition, ifTrue);
+            } else
+            {
+                var ifFalse = Gen(i.Iffalse);
+
+                var ifTrue = Gen(i.Iftrue)
+                    // true branch must include a jump over the false branch if one exists
+                    .Append(new JumpRelative(ifFalse.Count()));
+
+                var condition = Gen(i.Condition)
+                    // Jump over true branch if condition is false
+                    .Append(new JumpFalseRelative(ifTrue.Count()));
+
+                return Seq(condition, ifTrue, ifFalse);
+            }
         }
 
         public IEnumerable<Instruction> Visit(ReturnStatement r)
@@ -200,6 +230,17 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(WhileLoop w)
         {
+
+            //var body = Gen(w.Body);
+
+            //var finalBody = body
+            //    // Jump back to 
+            //    .Append(new JumpRelative(-body.Count()));
+
+            //var condition = Gen(w.Condition)
+            //    .Append(new JumpFalseRelative(finalBody.Count()));
+
+            //return Seq(condition, body);
             throw new NotImplementedException();
         }
 

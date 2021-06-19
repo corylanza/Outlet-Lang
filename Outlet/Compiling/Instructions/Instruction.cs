@@ -9,5 +9,7 @@ namespace Outlet.Compiling.Instructions
     public abstract class Instruction
     {
         public abstract T Accept<T>(IInstructionVisitor<T> visitor);
+
+        public abstract override string ToString();
     }
 }

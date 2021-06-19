@@ -11,14 +11,24 @@ namespace Outlet.Interpreting.ByteCode
 {
     public partial class VirtualMachine
     {
+        private readonly Stack<int> CallStack = new();
         private readonly Stack<int> ValueStack = new();
+        
+        //private readonly Stack<int[]> StackFrames = new();
+        //private int GetLocal(uint localId) => StackFrames.Peek()[localId];
+        
+        // Temp Implementation
         private readonly Dictionary<uint, int> Locals = new();
+
+        private int idx = 0;
 
         public object? Interpret(Instruction[] byteCode)
         {
-            int idx = 0;
+            idx = 0;
 
-            while (idx < byteCode.Length) {
+            while (idx < byteCode.Length)
+            {
+                //Console.WriteLine($"Executing {byteCode[idx]} at {idx}");
                 byteCode[idx++].Accept(this);
             }
 

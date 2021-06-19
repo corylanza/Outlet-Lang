@@ -40,7 +40,7 @@ namespace Outlet
 
         }
 
-        protected Operand RunBytes(byte[] bytes, bool useByteCode = true)
+        protected Operand RunBytes(byte[] bytes)
         {
             try
             {
@@ -48,6 +48,8 @@ namespace Outlet
                 IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
                 Checker.Check(program);
+
+                bool useByteCode = true;
 
                 if (useByteCode)
                 {
@@ -94,7 +96,7 @@ namespace Outlet
     {
         public ReplOutletProgram(SystemInterface sys) : base(sys) { }
 
-        public Operand Run(byte[] bytes) => RunBytes(bytes, useByteCode: false);
+        public Operand Run(byte[] bytes) => RunBytes(bytes);
 
         public void Check(byte[] bytes) => CheckBytes(bytes);
     }
