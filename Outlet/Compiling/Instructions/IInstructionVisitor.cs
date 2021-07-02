@@ -120,6 +120,24 @@ namespace Outlet.Compiling.Instructions
         public override string ToString() => $"{nameof(JumpFalseRelative)} {JumpInterval}";
     }
 
+    public class CallFunc : Instruction
+    {
+        public int ArgCount { get; set; }
+
+        public CallFunc(int argCount) => ArgCount = argCount;
+
+        public override T Accept<T>(IInstructionVisitor<T> visitor) => visitor.Visit(this);
+
+        public override string ToString() => $"{nameof(CallFunc)} {ArgCount}";
+    }
+
+    public class Return : Instruction
+    {
+        public override T Accept<T>(IInstructionVisitor<T> visitor) => visitor.Visit(this);
+
+        public override string ToString() => $"{nameof(Return)}";
+    }
+
     public interface IInstructionVisitor<T>
     {
         T Visit(ConstInt c);
@@ -133,5 +151,7 @@ namespace Outlet.Compiling.Instructions
         T Visit(LocalGet l);
         T Visit(JumpRelative j);
         T Visit(JumpFalseRelative j);
+        T Visit(CallFunc c);
+        T Visit(Return r);
     }
 }

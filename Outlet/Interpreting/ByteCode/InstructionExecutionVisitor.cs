@@ -53,13 +53,13 @@ namespace Outlet.Interpreting.ByteCode
 
         public object? Visit(LocalStore l)
         {
-            Locals[l.LocalId] = ValueStack.Pop();
+            SetLocal(l.LocalId, ValueStack.Pop());
             return null;
         }
 
         public object? Visit(LocalGet l)
         {
-            ValueStack.Push(Locals[l.LocalId]);
+            ValueStack.Push(GetLocal(l.LocalId));
             return null;
         }
 
@@ -76,6 +76,29 @@ namespace Outlet.Interpreting.ByteCode
                 idx += j.JumpInterval;
             }
             return null;
+        }
+
+        public object? Visit(CallFunc c)
+        {
+            IEnumerable<int> Args(int argCount)
+            {
+                foreach(int i in Enumerable.Range(0, argCount))
+                {
+                    yield return ValueStack.Pop();
+                }
+            }
+
+            var args = Args(c.ArgCount);
+            var caller = ValueStack.Pop();
+
+            //TODO fix
+            StackFrames.Push(new CallFrame(100, idx));
+            return null;
+        }
+
+        public object? Visit(Return r)
+        {
+            throw new NotImplementedException();
         }
     }
 }

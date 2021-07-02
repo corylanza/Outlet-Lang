@@ -5,7 +5,7 @@ namespace Outlet.AST {
 
 		public readonly string Op;
 		public BinaryOperation? Oper;
-		public Overload<BinaryOperation> Overloads;
+		public readonly Overload<BinaryOperation> Overloads;
 
         public Binary(string op, Expression left, Expression right, Overload<BinaryOperation> overloads) : base(left, right)
 		{

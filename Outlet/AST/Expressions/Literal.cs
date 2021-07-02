@@ -10,8 +10,8 @@ namespace Outlet.AST {
 
     public class Literal<E> : Literal where E : struct {
 
-		public Primitive Type;
-		public E Value;
+		public readonly Primitive Type;
+		public readonly E Value;
 
         public Literal(E value) {
             Type = value switch
@@ -32,7 +32,7 @@ namespace Outlet.AST {
 
     public class StringLiteral : Literal
     {
-        public string Value;
+        public readonly string Value;
 
         public StringLiteral(string s) => Value = s;
 

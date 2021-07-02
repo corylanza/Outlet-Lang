@@ -11,14 +11,23 @@ namespace Outlet.Interpreting.ByteCode
 {
     public partial class VirtualMachine
     {
-        private readonly Stack<int> CallStack = new();
+        //private readonly Stack<int> CallStack = new();
         private readonly Stack<int> ValueStack = new();
         
-        //private readonly Stack<int[]> StackFrames = new();
-        //private int GetLocal(uint localId) => StackFrames.Peek()[localId];
+        private readonly Stack<CallFrame> StackFrames = new();
+        private CallFrame CurrentStackFrame => StackFrames.Peek();
+
+        private int GetLocal(uint localId) => CurrentStackFrame.Locals[localId];
+        private void SetLocal(uint localId, int value) => CurrentStackFrame.Locals[localId] = value;
+
+        public VirtualMachine()
+        {
+            // TODO 100 is arbitrary, calculate this at compile time
+            StackFrames.Push(new CallFrame(100, 0));
+        }
         
         // Temp Implementation
-        private readonly Dictionary<uint, int> Locals = new();
+        //private readonly Dictionary<uint, int> Locals = new();
 
         private int idx = 0;
 
@@ -39,6 +48,19 @@ namespace Outlet.Interpreting.ByteCode
                 return output;
             }
             return null;
+        }
+    }
+
+    public class CallFrame
+    {
+        public int[] Locals { get; init; }
+
+        public int ReturnIdx { get; init; }
+
+        public CallFrame(int size, int returnIdx)
+        {
+            Locals = new int[size];
+            ReturnIdx = returnIdx;
         }
     }
 }

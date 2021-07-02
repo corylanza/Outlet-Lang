@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace Outlet.AST {
 	public class ArrayAccess : Expression {
 
-		public Expression Collection;
-		public Expression[] Index;
+		public Expression Collection { get; private init; }
+		public Expression[] Index { get; private init; }
 
 		public ArrayAccess(Expression collection, Expression[] idx) {
 			Collection = collection;

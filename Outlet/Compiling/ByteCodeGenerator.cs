@@ -34,6 +34,9 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(FunctionDeclaration f)
         {
+            //yield return new LocalGet(f.Decl.LocalId!.Value);
+            var body = Gen(f.Body).Append(new Return());
+            
             throw new NotImplementedException();
         }
 
@@ -92,7 +95,7 @@ namespace Outlet.Compiling
 
         public IEnumerable<Instruction> Visit(Call c)
         {
-            throw new NotImplementedException();
+            return Seq(Gen(c.Caller), c.Args.SelectMany(arg => Gen(arg)).Append(new CallFunc(c.Args.Length)));
         }
 
         public IEnumerable<Instruction> Visit<E>(Literal<E> c) where E : struct
