@@ -35,6 +35,12 @@ namespace Outlet.CLI
 			stderr: stderror
 		);
 
+		//public static SystemInterface ConsoleInterface(List<string> inputLines, List<string> outputLines, StandardError stderror) => new SystemInterface(
+		//	stdin: () => inputLines.Tak ?? "",
+		//	stdout: text => Console.WriteLine(text),
+		//	stderr: stderror
+		//);
+
 		public static void RunFile(string path)
 		{
 			if (!File.Exists(path)) ThrowException(new Exception("file does not exist"));
