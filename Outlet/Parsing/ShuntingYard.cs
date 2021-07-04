@@ -41,9 +41,22 @@ namespace Outlet.Parsing {
 				cur = Tokens.Dequeue();
 				switch (cur.InnerToken) {
 					case Identifier id:
-						if(ExpectingOperator(cur)) break;
-						output.Push(new Variable(id.Name));
-						expectOperand = false;
+						if(!expectOperand && output.Count > 0)
+                        {
+							// for cases with declarators in expressions such as
+							// tuple assignment: (int a, int b) = (3, 5) 
+							// lambdas: (int a, int b) => a + b;
+							// multiple assignment: int a = int b = 5;
+							var typeExpr = output.Pop();
+							output.Push(new Declarator(typeExpr, id.Name));
+							expectOperand = false;
+						}
+						else
+                        {
+							if (ExpectingOperator(cur)) break;
+							output.Push(new Variable(id.Name));
+							expectOperand = false;
+						}
 						break;
 					case TokenLiteral literal:
 						if(ExpectingOperator(cur)) break;
