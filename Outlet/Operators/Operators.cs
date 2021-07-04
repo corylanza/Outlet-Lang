@@ -169,6 +169,9 @@ namespace Outlet.Operators
 
     public record LambdaOp() : BinaryOperator("=>", 14, Side.Right)
     {
-        public override Expression GenerateAstNode(Expression left, Expression right) => new Lambda(left, right);
+        public override Expression GenerateAstNode(Expression left, Expression right) => left switch {
+        ///    ParamListWrapper wrapper => throw new NotImplementedException(),//wrapper.Wrapped ,
+            _ => new Lambda(left, right)
+        };
     }
 }

@@ -49,7 +49,7 @@ namespace Outlet
                 Nodes.Add(program);
                 Checker.Check(program);
 
-                bool useByteCode = true;
+                bool useByteCode = false;
 
                 if (useByteCode)
                 {
@@ -63,7 +63,7 @@ namespace Outlet
                     return res;
                 }
             }
-            catch (Exception e)
+            catch (OutletException e)
             {
                 System.StdErr(e);
                 return Value.Null;

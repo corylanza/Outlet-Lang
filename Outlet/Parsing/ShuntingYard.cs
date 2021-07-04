@@ -150,7 +150,28 @@ namespace Outlet.Parsing {
 							Expression[] tuple = new Expression[tuplen];
 							for (int i = 0; i < tuplen; i++) tuple[tuplen - 1 - i] = output.Pop();
 							// If there is a func paren then this is a function call, otherwise it is a tuple literal if multiple values
-							output.Push(stack.Pop() == Delimeter.FuncParen ? new Call(output.Pop(), tuple) : tuplen == 1 ? tuple[0] : new TupleLiteral(tuple));
+
+							var closingParen = stack.Pop();
+							if (closingParen == Delimeter.FuncParen)
+							{
+								output.Push(new Call(output.Pop(), tuple));
+							}
+							else
+							{
+								if(tuple.All(element => element is Declarator))
+                                {
+									var decls = tuple.OfType<Declarator>();
+									output.Push(new ParamListWrapper(new ParameterList(decls.ToList())));
+                                }
+								else if (tuplen == 1)
+								{
+									output.Push(tuple.First());
+								}
+								else
+								{
+									output.Push(new TupleLiteral(tuple));
+								}
+							}
 						}
 						expectOperand = false;
 						break;

@@ -163,35 +163,48 @@ namespace Outlet.Interpreting.TreeWalk {
             return func;
 		}
 
-		public Operand Visit(FunctionDeclaration f) {
+        private CallFunc GenerateFunctionBody(string name, uint localCount, List<Declarator> parameters, IASTNode body)
+        {
             StackFrame closure = CurrentStackFrame;
-			Operand HiddenFunc(params Operand[] args) {
-                if (!f.LocalCount.HasValue) throw new UnexpectedException("stack frame size not allocated at check time");
-                StackFrame stackFrame = new StackFrame(closure, f.LocalCount.Value, f.Name);
+            Operand HiddenFunc(params Operand[] args)
+            {
+                StackFrame stackFrame = new StackFrame(closure, localCount, name);
                 CallStack.Push(stackFrame);
-                foreach (var (parameter, value) in f.Parameters.Zip(args)) {
+                foreach (var (parameter, value) in parameters.Zip(args))
+                {
                     stackFrame.Assign(parameter, value);
                 }
-                Operand returnval = f.Body.Accept(this);
+                Operand returnval = body.Accept(this);
                 CallStack.Pop();
-				return returnval;
-			}
+                return returnval;
+            }
+
+            return HiddenFunc;
+        }
+
+		public Operand Visit(FunctionDeclaration f) {
+            var hiddenFunc = GenerateFunctionBody(
+                name: f.Name,
+                localCount: f.LocalCount ?? throw new UnexpectedException("stack frame size not allocated at check time"),
+                parameters: f.Parameters,
+                body: f.Body
+            );
 
             // TODO pass this to caller
-            List<Type> genericParams = f.TypeParameters.Select(param =>
-            {
-                if (!param.ResolveLevel.HasValue) throw new UnexpectedException($"generic parameter {param.Identifier} was not resolved");
-                var type = Primitive.Object;
-                CurrentStackFrame.Assign(param, new TypeObject(type));
-                return type as Type;
-            }).ToList();
+            //List<Type> genericParams = f.TypeParameters.Select(param =>
+            //{
+            //    if (!param.ResolveLevel.HasValue) throw new UnexpectedException($"generic parameter {param.Identifier} was not resolved");
+            //    var type = Primitive.Object;
+            //    CurrentStackFrame.Assign(param, new TypeObject(type));
+            //    return type as Type;
+            //}).ToList();
 
             var funcType = new FunctionType(f.Parameters.Select(arg =>
                 (arg.Accept(this) is TypeObject to ? to.Encapsulated : 
                     throw new UnexpectedException("expected type"), arg.Identifier)).ToArray(),
                 f.Decl.Accept(this) is TypeObject tr ? tr.Encapsulated : 
                     throw new UnexpectedException("expected type"));
-            var func = new UserDefinedFunction(f.Decl.Identifier, funcType, HiddenFunc);
+            var func = new UserDefinedFunction(f.Decl.Identifier, funcType, hiddenFunc);
             CurrentStackFrame.Assign(f.Decl, func);
 			return func;
 		}
@@ -207,17 +220,19 @@ namespace Outlet.Interpreting.TreeWalk {
 			return initial;
 		}
 
-		#endregion
+        #endregion
 
-		#region Expressions
+        #region Expressions
 
-		public Operand Visit(Declarator d) {
+        public Operand Visit(Declarator d) {
 			Operand? t = d.Type?.Accept(this);
 			if(t is TypeObject type) return type;
 			else throw new UnexpectedException(d.Type?.ToString() ?? "invalid type" + " is not a valid type");
 		}
 
-		public Operand Visit<E>(Literal<E> c) where E : struct => new Value<E>(c.Type, c.Value);
+        public Operand Visit(ExpressionWrapper e) => throw new UnexpectedException($"{e} is not a complete statement");
+
+        public Operand Visit<E>(Literal<E> c) where E : struct => new Value<E>(c.Type, c.Value);
 
         public Operand Visit(StringLiteral s) => new String(s.Value);
 
@@ -323,11 +338,28 @@ namespace Outlet.Interpreting.TreeWalk {
         }
 
 		public Operand Visit(Lambda l) {
-			Operand left = l.Left.Accept(this);
-			Operand right = l.Right.Accept(this);
-			if(left is TypeObject lt && lt.Encapsulated is TupleType tt && right is TypeObject rt)
-				return new TypeObject(new FunctionType(tt.Types.Select(x => (x, "")).ToArray(), rt.Encapsulated));
-			throw new UnexpectedException("lambda invalid");
+            const string anonymousFuncName = "anonymous";
+
+            if (l.Left is ParamListWrapper plw)
+            {
+                var hiddenFunc = GenerateFunctionBody(
+                    name: anonymousFuncName,
+                    localCount: l.LocalCount ?? throw new UnexpectedException("stack frame size not allocated at check time"),
+                    parameters: plw.Wrapped.Parameters,
+                    body: l.Right
+                );
+
+                var funcType = new FunctionType(Enumerable.Empty<(Type, string)>().ToArray(), Primitive.Int); // TODO implement this
+
+                return new UserDefinedFunction(anonymousFuncName, funcType, hiddenFunc);
+            } else
+            {
+                Operand left = l.Left.Accept(this);
+                Operand right = l.Right.Accept(this);
+                if (left is TypeObject lt && lt.Encapsulated is TupleType tt && right is TypeObject rt)
+                    return new TypeObject(new FunctionType(tt.Types.Select(x => (x, "")).ToArray(), rt.Encapsulated));
+                throw new UnexpectedException("lambda invalid");
+            }
 		}
 
 		public Operand Visit(ListLiteral l) => new Operands.Array(l.Args.Select(arg => arg.Accept(this)).ToArray());

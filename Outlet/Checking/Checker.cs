@@ -353,6 +353,8 @@ namespace Outlet.Checking
             null => Error($"Cannot use var here")
         };
 
+        public Type Visit(ExpressionWrapper e) => Error($"{e} is not a complete statement");
+
         public Type Visit(TupleAccess t) => t.Left.Accept(this) switch
         {
             Error e => e,
@@ -361,12 +363,39 @@ namespace Outlet.Checking
             Type type => Error($"Cannot reference member {t.Member} of non tuple type {type}")
         };
 
-        public Type Visit(Lambda l) => (l.Left.Accept(this), l.Right.Accept(this)) switch
+        public Type Visit(Lambda l)
         {
-            (MetaType args, MetaType result) when args.Stored is TupleType tt  =>
-                new MetaType(new FunctionType(tt.Types.Select(t => (t, "arg")).ToArray(), result.Stored)),//Error("NOT IMPLEMENTED")
-            _ => Error("Lambdas currently only work for types")
-        };
+            if(l.Left is ParamListWrapper plw)
+            {
+                List<(Type paramType, string paramName)> args = new();
+
+                EnterStackFrame();
+
+                foreach(var parameter in plw.Wrapped.Parameters)
+                {
+                    var argType = parameter.Accept(this);
+                    Define(argType, parameter);
+                    args.Add((argType, parameter.Identifier));
+                }
+
+                Type returnType = l.Right.Accept(this);
+
+                // TODO handle empty param list types e.g. () => int
+                l.LocalCount = CurrentStackFrame.Count;
+                ExitStackFrame();
+
+                return new FunctionType(args.ToArray(), returnType);
+            }
+            else
+            {
+                return (l.Left.Accept(this), l.Right.Accept(this)) switch
+                {
+                    (MetaType args, MetaType result) when args.Stored is TupleType tt =>
+                        new MetaType(new FunctionType(tt.Types.Select(t => (t, "arg")).ToArray(), result.Stored)),//Error("NOT IMPLEMENTED")
+                    (Type args, Type result) => Error($"Lambdas currently only work for types, not {args} => {result}")
+                };
+            }
+        }
 
         public Type Visit(ListLiteral l)
         {

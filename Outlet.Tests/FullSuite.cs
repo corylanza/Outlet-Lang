@@ -120,5 +120,22 @@ namespace Outlet.Tests
             Assert.AreEqual("5", code.Run("noop(5)"));
             Assert.AreEqual("true", code.Run("noop(true)"));
         }
+
+        [Test]
+        public void TestLambdas()
+        {
+            var code = new CodeRunner();
+            code.Run("(int a, int b) => a + b;");
+            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            code.Run("var add = (int a, int b) => a + b;");
+            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            Assert.AreEqual("5", code.Run("add(3,2)"));
+            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            code.Run("bool qual(int test, int => bool pred) => pred(test);");
+            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            Assert.AreEqual("True", code.Run("qual(3, (a) => a > 2)"));
+            Assert.AreEqual("False", code.Run("qual(3, (a) => a < 2)"));
+
+        }
     }
 }

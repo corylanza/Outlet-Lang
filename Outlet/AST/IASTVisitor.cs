@@ -18,6 +18,7 @@ namespace Outlet {
 		T Visit(StringLiteral s);
 		T Visit(NullExpr n);
 		T Visit(Declarator d);
+		T Visit(ExpressionWrapper e);
 		T Visit(TupleAccess d);
 		T Visit(MemberAccess d);
 		T Visit(Lambda l);

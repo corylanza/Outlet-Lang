@@ -123,6 +123,11 @@ namespace Outlet.Compiling
             yield return new LocalStore(d.LocalId!.Value);
         }
 
+        public IEnumerable<Instruction> Visit(ExpressionWrapper e)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<Instruction> Visit(TupleAccess d)
         {
             throw new NotImplementedException();
