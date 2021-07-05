@@ -255,6 +255,14 @@ namespace Outlet.Checking
 
         #region Expressions
 
+        public Type Visit(Declarator d) => d.Type?.Accept(this) switch
+        {
+            MetaType meta => meta.Stored,
+            Primitive t when t == Primitive.MetaType => Error("Declared type must be a check time constant"),
+            Type invalid => Error($"Declaration requires valid type, found: {invalid}"),
+            null => Error($"Cannot use var here")
+        };
+
         public Type Visit(ArrayAccess a)
         {
             Type elem = a.Collection.Accept(this);
@@ -344,14 +352,6 @@ namespace Outlet.Checking
             }
             return Error($"type {calltype} is not callable");
         }
-
-        public Type Visit(Declarator d) => d.Type?.Accept(this) switch
-        {
-            MetaType meta => meta.Stored,
-            Primitive t when t == Primitive.MetaType => Error("Declared type must be a check time constant"),
-            Type invalid => Error($"Declaration requires valid type, found: {invalid}"),
-            null => Error($"Cannot use var here")
-        };
 
         public Type Visit(ExpressionWrapper e) => Error($"{e} is not a complete statement");
 

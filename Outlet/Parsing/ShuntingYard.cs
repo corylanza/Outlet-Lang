@@ -41,7 +41,7 @@ namespace Outlet.Parsing {
 				cur = Tokens.Dequeue();
 				switch (cur.InnerToken) {
 					case Identifier id:
-						if(!expectOperand && output.Count > 0)
+						if(!expectOperand && output.Count > 0 && Tokens.First().InnerToken == DelimeterToken.Comma || Tokens.First().InnerToken == DelimeterToken.RightParen)
                         {
 							// for cases with declarators in expressions such as
 							// tuple assignment: (int a, int b) = (3, 5) 
