@@ -83,15 +83,19 @@ namespace Outlet.Operators
         new BinOp<Int, Int, Int>((l, r) => Value.Int(l.Underlying >> r.Underlying)));
 
     public record LT() : BinaryOperator("<", 6, Side.Left,
+        new BinOp<Int, Int, Bln>((l, r) => Value.Bool(l.Underlying < r.Underlying)),
         new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying < r.Underlying)));
 
     public record LTE() : BinaryOperator("<=", 6, Side.Left,
+        new BinOp<Int, Int, Bln>((l, r) => Value.Bool(l.Underlying <= r.Underlying)),
         new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying <= r.Underlying)));
 
     public record GT() : BinaryOperator(">", 6, Side.Left,
+        new BinOp<Int, Int, Bln>((l, r) => Value.Bool(l.Underlying > r.Underlying)),
         new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying > r.Underlying)));
 
     public record GTE() : BinaryOperator(">=", 6, Side.Left,
+        new BinOp<Int, Int, Bln>((l, r) => Value.Bool(l.Underlying >= r.Underlying)),
         new BinOp<Flt, Flt, Bln>((l, r) => Value.Bool(l.Underlying >= r.Underlying)));
 
     public record AsOp() : BinaryOperator("as", 6, Side.Left)

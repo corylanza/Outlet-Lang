@@ -133,8 +133,8 @@ namespace Outlet.Tests
             Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
             code.Run("bool qual(int test, int => bool pred) => pred(test);");
             Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
-            Assert.AreEqual("True", code.Run("qual(3, (a) => a > 2)"));
-            Assert.AreEqual("False", code.Run("qual(3, (a) => a < 2)"));
+            Assert.AreEqual("True", code.Run("qual(3, (int a) => a > 2)"));
+            Assert.AreEqual("False", code.Run("qual(3, (int a) => a < 2)"));
 
         }
     }
