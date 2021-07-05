@@ -33,11 +33,16 @@ namespace Outlet.Tests
 
             public string Run(string code) => ReplProgram.Run(Encoding.ASCII.GetBytes(code)).ToString();
 
-            public string DumpErrors()
+            public string? DumpErrors()
             {
-                var output = string.Join('\n', Errors);
-                Errors.Clear();
-                return output;
+                if (Errors.Any())
+                {
+                    var output = string.Join('\n', Errors);
+                    Errors.Clear();
+                    return output;
+                }
+
+                return null;
             }
 
             private void OnException(Exception ex)
@@ -80,12 +85,12 @@ namespace Outlet.Tests
                         Id = id; Count += 1;
                     }
                 }");
-            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            AssertNoErrors(code);
             Assert.AreEqual("0", code.Run("person.Count"));
             code.Run("var p = person(5);");
             Assert.AreEqual("5", code.Run("p.Id"));
             Assert.AreEqual("1", code.Run("person.Count"));
-            Assert.AreEqual("2", code.Run("person.Count = 2;"), code.ErrorCount > 0 ? code.DumpErrors() : null);
+            Assert.AreEqual("2", code.Run("person.Count = 2;"), code.DumpErrors());
             Assert.AreEqual("3", code.Run("p.Id = 3;"));
         }
 
@@ -99,7 +104,7 @@ namespace Outlet.Tests
             Assert.AreEqual("5", code.Run("11 / 2"));
             Assert.AreEqual("10", code.Run("5 - -5"));
             Assert.AreEqual("10", code.Run("5 - -5"));
-            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            AssertNoErrors(code);
         }
 
         [Test]
@@ -107,7 +112,7 @@ namespace Outlet.Tests
         {
             var code = new CodeRunner();
             code.Run("int fac(int n) => n == 1 ? 1 : n * fac(n-1);");
-            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            AssertNoErrors(code);
             Assert.AreEqual("120", code.Run("fac(5)"));
         }
 
@@ -116,7 +121,7 @@ namespace Outlet.Tests
         {
             var code = new CodeRunner();
             code.Run("T noop[T](T t) => t;");
-            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            AssertNoErrors(code);
             Assert.AreEqual("5", code.Run("noop(5)"));
             Assert.AreEqual("true", code.Run("noop(true)"));
         }
@@ -126,16 +131,17 @@ namespace Outlet.Tests
         {
             var code = new CodeRunner();
             code.Run("(int a, int b) => a + b;");
-            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            AssertNoErrors(code);
             code.Run("var add = (int a, int b) => a + b;");
-            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            AssertNoErrors(code);
             Assert.AreEqual("5", code.Run("add(3,2)"));
-            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            AssertNoErrors(code);
             code.Run("bool qual(int test, int => bool pred) => pred(test);");
-            Assert.AreEqual(0, code.ErrorCount, code.ErrorCount > 0 ? code.DumpErrors() : null);
+            AssertNoErrors(code);
             Assert.AreEqual("True", code.Run("qual(3, (int a) => a > 2)"));
             Assert.AreEqual("False", code.Run("qual(3, (int a) => a < 2)"));
-
         }
+
+        private static void AssertNoErrors(CodeRunner code) => Assert.AreEqual(0, code.ErrorCount, code.DumpErrors());
     }
 }
