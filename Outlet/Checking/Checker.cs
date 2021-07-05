@@ -391,7 +391,9 @@ namespace Outlet.Checking
                 return (l.Left.Accept(this), l.Right.Accept(this)) switch
                 {
                     (MetaType args, MetaType result) when args.Stored is TupleType tt =>
-                        new MetaType(new FunctionType(tt.Types.Select(t => (t, "arg")).ToArray(), result.Stored)),//Error("NOT IMPLEMENTED")
+                        new MetaType(new FunctionType(tt.Types.Select(t => (t, "arg")).ToArray(), result.Stored)),//Error("NOT IMPLEMENTED 
+                    (MetaType arg, MetaType result) =>
+                        new MetaType(new FunctionType(new (Type, string)[] { (arg, "arg")}, result.Stored)),
                     (Type args, Type result) => Error($"Lambdas currently only work for types, not {args} => {result}")
                 };
             }

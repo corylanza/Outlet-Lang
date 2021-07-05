@@ -358,6 +358,8 @@ namespace Outlet.Interpreting.TreeWalk {
                 Operand right = l.Right.Accept(this);
                 if (left is TypeObject lt && lt.Encapsulated is TupleType tt && right is TypeObject rt)
                     return new TypeObject(new FunctionType(tt.Types.Select(x => (x, "")).ToArray(), rt.Encapsulated));
+                if (left is TypeObject lts && right is TypeObject rts)
+                    return new TypeObject(new FunctionType(new (Type, string)[] { (lts.Encapsulated, "") }, rts.Encapsulated));
                 throw new UnexpectedException("lambda invalid");
             }
 		}
