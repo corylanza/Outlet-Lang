@@ -32,8 +32,10 @@ namespace Outlet
         protected OutletProgram(SystemInterface sys)
         {
             System = sys;
-            // old Lexer = new Lexing.Lexer();
-            Lexer = OutletLexer.CreateOutletLexer();
+
+            bool useNewLexer = true;
+            Lexer = useNewLexer ? OutletLexer.CreateOutletLexer() : new Lexing.Lexer();
+
             Checker = new Checker();
             var stdlib = AppDomain.CurrentDomain.Load("Outlet.StandardLib");
             new NativeInitializer(sys).Register(stdlib, Checker.GlobalScope, Checker.Error);
