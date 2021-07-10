@@ -45,11 +45,13 @@ namespace Outlet
 
         }
 
+        public LinkedList<Lexeme> Tokenize(byte[] bytes) => Lexer.Scan(bytes, System.StdErr);
+
         protected Operand RunBytes(byte[] bytes)
         {
             try
             {
-                LinkedList<Lexeme> lexout = Lexer.Scan(bytes, System.StdErr);
+                LinkedList<Lexeme> lexout = Tokenize(bytes);
                 IASTNode program = new Parser(lexout).Parse();
                 Nodes.Add(program);
                 Checker.Check(program);

@@ -60,7 +60,13 @@ namespace Outlet.Lexer
             Tokenizer IntTokenizer = s => new IntLiteral(s);
             Tokenizer HexTokenizer = s => new IntLiteral(int.Parse(s, System.Globalization.NumberStyles.HexNumber).ToString());
             Tokenizer FloatTokenizer = s => new FloatLiteral(s);
-            Tokenizer SymbolTokenizer = s => Token.ContainsKey(s) ? Token.Get(s) : new Identifier(s);
+            Token SymbolTokenizer(string text)
+            {
+                if (text == "true") return new BoolLiteral(text);
+                if (text == "false") return new BoolLiteral(text);
+                if (text == "null") return new NullLiteral();
+                return Token.ContainsKey(text) ? Token.Get(text) : new Identifier(text);
+            }
             Tokenizer StringTokenizer = s => new StringLiteral(s);
             Tokenizer OpTokenizer = s => Token.Get(s);
 

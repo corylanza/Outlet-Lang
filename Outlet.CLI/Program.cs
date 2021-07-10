@@ -1,5 +1,6 @@
 ﻿using Outlet;
 using Outlet.StandardLib;
+using Outlet.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -58,15 +59,30 @@ namespace Outlet.CLI
 			var repl = new ReplOutletProgram(ConsoleInterface(ThrowException));
 			while (true)
 			{
-				Console.ForegroundColor = ConsoleColor.White;
-				Console.WriteLine("<enter an expression>");
-				string input = "";
-				while (input.Length == 0 || input.Count((c) => c == '{') > input.Count((c) => c == '}'))
-				{
-					input += Console.ReadLine();
+				if(ConsoleClass.LexingMode)
+                {
+					Console.ForegroundColor = ConsoleColor.White;
+					Console.WriteLine("<enter outlet code>");
+					string input = "";
+					while (input.Length == 0 || input.Count((c) => c == '{') > input.Count((c) => c == '}'))
+					{
+						input += Console.ReadLine();
+					}
+					byte[] bytes = Encoding.ASCII.GetBytes(input);
+					var output = repl.Tokenize(bytes);
+					output.ToList().ForEach(lexeme => PrettyPrinter.PrettyPrint(lexeme.PrettyPrint().ToArray()));
+				} else
+                {
+					Console.ForegroundColor = ConsoleColor.White;
+					Console.Write("> ");
+					string input = "";
+					while (input.Length == 0 || input.Count((c) => c == '{') > input.Count((c) => c == '}'))
+					{
+						input += Console.ReadLine();
+					}
+					byte[] bytes = Encoding.ASCII.GetBytes(input);
+					Console.WriteLine(repl.Run(bytes).ToString());
 				}
-				byte[] bytes = Encoding.ASCII.GetBytes(input);
-				Console.WriteLine(repl.Run(bytes).ToString());
 			}
 		}
 
