@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CharGroup = Outlet.Lexer.Lexer.CharGroup;
 
 namespace Outlet.Lexer
 {
@@ -32,7 +33,7 @@ namespace Outlet.Lexer
                 if (Rule.TestRule(tokens, new LexState(0, "", null, null), out LexState result))
                 {
                     charPos += result.Length;
-                    linePos += tokens.Take(result.Length).Count(c => NewLine(c));
+                    linePos += tokens.Take(result.Length).Count(c => NewLine.Contains(c));
                     tokens.RemoveRange(0, result.Length);
 
                     if(result.Tokenizer is Tokenizer tokenizer && tokenizer(result.CharBuffer) is Token token)
@@ -70,10 +71,7 @@ namespace Outlet.Lexer
             Tokenizer StringTokenizer = s => new StringLiteral(s);
             Tokenizer OpTokenizer = s => Token.Get(s);
 
-            LexingRule Operator(params CharGroup[] chars)
-            {
-                return new SequenceRule(chars.Select(charGroup => new CharacterRule(charGroup, keep: true, tokenizer: OpTokenizer)).ToArray());
-            }
+            LexingRule Operator(params CharGroup[] chars) => new SequenceRule(chars.Select(charGroup => new CharacterRule(charGroup, keep: true, tokenizer: OpTokenizer)).ToArray());
 
             return new OutletLexer
             (
@@ -195,7 +193,7 @@ namespace Outlet.Lexer
         public override bool TestRule(IReadOnlyList<char> tokens, LexState starting, out LexState result)
         {
             char currentChar;
-            if (tokens.Count > starting.Length && Characters(currentChar = tokens[starting.Length]))
+            if (tokens.Count > starting.Length && Characters.Contains(currentChar = tokens[starting.Length]))
             {
                 var newLength = starting.Length + 1;
                 var newBuffer = KeepCharacter ? string.Concat(starting.CharBuffer.Append(currentChar)) : starting.CharBuffer;
@@ -324,8 +322,6 @@ namespace Outlet.Lexer
             return current.Tokenizer is not null;
         }
     }
-
-    public delegate bool CharGroup(char c);
 
     public delegate Token? Tokenizer(string input);
 }
