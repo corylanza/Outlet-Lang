@@ -13,6 +13,38 @@ namespace Outlet.Tokens
 		public override string ToString() => ToStringFunc();
 	}
 
+	public record Identifier(string Name) : Token(() => Name);
+
+	public abstract record TokenLiteral(Func<string> ToStringFunc) : Token(ToStringFunc);
+	public record NullLiteral() : TokenLiteral(() => "null");
+	public record IntLiteral(int Value) : TokenLiteral(() => Value.ToString());
+	public record FloatLiteral(float Value) : TokenLiteral(() => Value.ToString());
+	public record BoolLiteral(bool Value) : TokenLiteral(() => Value.ToString());
+	public record StringLiteral(string Value) : TokenLiteral(() => Value.ToString());
+
+	public record Keyword(string Name) : Symbol(Name);
+	public record DelimeterToken(string Name) : Symbol(Name);
+	public record OperatorToken(string Name, BinaryOperator? Binary, UnaryOperator? PreUnary, UnaryOperator? PostUnary) : Symbol(Name)
+	{
+		public bool HasBinaryOperation([NotNullWhen(true)] out BinaryOperator? binop)
+		{
+			binop = Binary;
+			return !(binop is null);
+		}
+
+		public bool HasPreUnaryOperation([NotNullWhen(true)] out UnaryOperator? unop)
+		{
+			unop = PreUnary;
+			return !(unop is null);
+		}
+
+		public bool HasPostUnaryOperation([NotNullWhen(true)] out UnaryOperator? unop)
+		{
+			unop = PostUnary;
+			return !(unop is null);
+		}
+	}
+
 	public record Symbol(Func<string> ToStringFunc) : Token(ToStringFunc)
 	{
 		private static readonly Dictionary<string, Symbol> AllTokens = new();
@@ -97,36 +129,4 @@ namespace Outlet.Tokens
 			Question = DefOperator("?", new TernaryQuestion()),
 			Dot = DefOperator(".", new DotOp());
 	}
-
-	public record Keyword(string Name) : Symbol(Name);
-	public record DelimeterToken(string Name) : Symbol(Name);
-	public record OperatorToken(string Name, BinaryOperator? Binary, UnaryOperator? PreUnary, UnaryOperator? PostUnary) : Symbol(Name)
-    {
-		public bool HasBinaryOperation([NotNullWhen(true)] out BinaryOperator? binop)
-		{
-			binop = Binary;
-			return !(binop is null);
-		}
-
-		public bool HasPreUnaryOperation([NotNullWhen(true)] out UnaryOperator? unop)
-		{
-			unop = PreUnary;
-			return !(unop is null);
-		}
-
-		public bool HasPostUnaryOperation([NotNullWhen(true)] out UnaryOperator? unop)
-		{
-			unop = PostUnary;
-			return !(unop is null);
-		}
-	}
-
-	public abstract record TokenLiteral(Func<string> ToStringFunc) : Token(ToStringFunc);
-	public record NullLiteral() : TokenLiteral(() => "null");
-	public record IntLiteral(int Value) : TokenLiteral(() => Value.ToString());
-	public record FloatLiteral(float Value) : TokenLiteral(() => Value.ToString());
-	public record BoolLiteral(bool Value) : TokenLiteral(() => Value.ToString());
-	public record StringLiteral(string Value) : TokenLiteral(() => Value.ToString());
-
-	public record Identifier(string Name) : Token(() => Name);
 }
