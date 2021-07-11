@@ -10,8 +10,11 @@ using CharGroup = Outlet.Lexer.Lexer.CharGroup;
 
 namespace Outlet.Lexer
 {
+    public delegate Token? Tokenizer(string input);
+
     public abstract partial class Lexer : ILexer
     {
+
         private LexingRule Rule { get; set; }
 
         public Lexer(LexingRule rule)
@@ -77,8 +80,13 @@ namespace Outlet.Lexer
             return Symbol.ContainsKey(text) ? Symbol.Get(text) : new Identifier(text);
         }
 
-        static OneOrMoreRule NumberSequence(CharGroup validNumbers, Tokenizer tokenizer) =>
-            new OneOrMoreRule(new OrRule(KeepChar(validNumbers, tokenizer), DiscardChar(Underscore, tokenizer)));
+        static SequenceRule OneOrMoreRule(LexingRule rule) => new SequenceRule(new(rule), new(new ZeroOrMoreRule(rule)));
+
+        /// <summary>
+        /// Accepts one or more of the valid characters and allows underscores as discarded characters for spacing  (e.g. 2_000 == 2000)
+        /// </summary>
+        static SequenceRule NumberSequence(CharGroup validNumbers, Tokenizer tokenizer) =>
+            OneOrMoreRule(new OrRule(KeepChar(validNumbers, tokenizer), DiscardChar(Underscore, tokenizer)));
 
         static LexingRule Operator(params CharGroup[] chars) =>
             new SequenceRule(chars.Select(charGroup => new SequenceStep(new CharacterRule(charGroup, keep: true, tokenizer: OpTokenizer))).ToArray());
@@ -93,9 +101,9 @@ namespace Outlet.Lexer
                 new OrRule
                 (
                     // Whitespace
-                    new OneOrMoreRule(KeepChar(WhiteSpace, DiscardTokenizer)),
+                    OneOrMoreRule(KeepChar(WhiteSpace, DiscardTokenizer)),
                     // Identifiers and Keywords
-                    new OneOrMoreRule(KeepChar(Letter, SymbolTokenizer)),
+                    OneOrMoreRule(KeepChar(Letter, SymbolTokenizer)),
                     // Ints and Floats
                     new SequenceRule
                     (
@@ -172,6 +180,8 @@ namespace Outlet.Lexer
     public abstract class LexingRule
     {
         public abstract bool TestRule(IReadOnlyList<char> tokens, LexState starting, out LexState result);
+
+
     }
 
     public class CharacterRule : LexingRule
@@ -220,47 +230,16 @@ namespace Outlet.Lexer
     {
         private LexingRule Rule { get; init; }
 
-        public ZeroOrMoreRule(LexingRule rule)
-        {
-            Rule = rule;
-        }
+        public ZeroOrMoreRule(LexingRule rule) => Rule = rule;
 
         public override bool TestRule(IReadOnlyList<char> tokens, LexState starting, out LexState result)
         {
-            LexState current = starting;
-
-            while (Rule.TestRule(tokens, current, out LexState? iterResult))
+            result = starting;
+            while (Rule.TestRule(tokens, result, out LexState iterResult))
             {
-                current = iterResult;
+                result = iterResult;
             }
-
-            result = current;
             return true;
-        }
-    }
-
-    public class OneOrMoreRule : LexingRule
-    {
-        private LexingRule Rule { get; init; }
-
-        public OneOrMoreRule(LexingRule rule)
-        {
-            Rule = rule;
-        }
-
-        public override bool TestRule(IReadOnlyList<char> tokens, LexState starting, out LexState result)
-        {
-            LexState current = starting;
-
-            int i = 0;
-            while(Rule.TestRule(tokens, current, out LexState? iterResult))
-            {
-                current = iterResult;
-                i++;
-            }
-
-            result = current;
-            return i > 0 && current.Tokenizer is not null;
         }
     }
 
@@ -340,6 +319,4 @@ namespace Outlet.Lexer
             return current.Tokenizer is not null;
         }
     }
-
-    public delegate Token? Tokenizer(string input);
 }
