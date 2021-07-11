@@ -15,6 +15,7 @@ namespace Outlet.Tokens
 
 	public record Identifier(string Name) : Token(() => Name);
 
+	// Literal values
 	public abstract record TokenLiteral(Func<string> ToStringFunc) : Token(ToStringFunc);
 	public record NullLiteral() : TokenLiteral(() => "null");
 	public record IntLiteral(int Value) : TokenLiteral(() => Value.ToString());
@@ -22,49 +23,34 @@ namespace Outlet.Tokens
 	public record BoolLiteral(bool Value) : TokenLiteral(() => Value.ToString());
 	public record StringLiteral(string Value) : TokenLiteral(() => Value.ToString());
 
-	public record Keyword(string Name) : Symbol(Name);
-	public record DelimeterToken(string Name) : Symbol(Name);
-	public record OperatorToken(string Name, BinaryOperator? Binary, UnaryOperator? PreUnary, UnaryOperator? PostUnary) : Symbol(Name)
+	// Symbols
+	public sealed record Keyword(string Name) : Symbol(Name);
+	public sealed record DelimeterToken(string Name) : Symbol(Name);
+	public sealed record OperatorToken(string Name, BinaryOperator? Binary, UnaryOperator? PreUnary, UnaryOperator? PostUnary) : Symbol(Name)
 	{
-		public bool HasBinaryOperation([NotNullWhen(true)] out BinaryOperator? binop)
-		{
-			binop = Binary;
-			return !(binop is null);
-		}
-
-		public bool HasPreUnaryOperation([NotNullWhen(true)] out UnaryOperator? unop)
-		{
-			unop = PreUnary;
-			return !(unop is null);
-		}
-
-		public bool HasPostUnaryOperation([NotNullWhen(true)] out UnaryOperator? unop)
-		{
-			unop = PostUnary;
-			return !(unop is null);
-		}
+		public bool HasBinaryOperation([NotNullWhen(true)] out BinaryOperator? binop) => (binop = Binary) is not null;
+		public bool HasPreUnaryOperation([NotNullWhen(true)] out UnaryOperator? unop) => (unop = PreUnary) is not null;
+		public bool HasPostUnaryOperation([NotNullWhen(true)] out UnaryOperator? unop) => (unop = PostUnary) is not null;
 	}
 
-	public record Symbol(Func<string> ToStringFunc) : Token(ToStringFunc)
+	public abstract record Symbol : Token
 	{
 		private static readonly Dictionary<string, Symbol> AllTokens = new();
 		public static Dictionary<string, Symbol> GetAllTokens => AllTokens;
 		public static bool ContainsKey(string text) => AllTokens.ContainsKey(text);
 		public static Token Get(string text) => AllTokens[text];
 
-		protected Symbol(string Name) : this(() => Name)
+		// Only one instance of each symbol should ever be created
+		// These are added to the static AllTokens dictionary, used for lookups
+		protected Symbol(string Name) : base(() => Name)
         {
 			AllTokens.Add(ToStringFunc(), this);
 		}
 
-		private static OperatorToken DefOperator(string symbol, UnaryOperator unop) =>
-			new(symbol, null, unop, null);
-		private static OperatorToken DefOperator(string symbol, UnaryOperator preUnary, UnaryOperator postUnary) =>
-			new(symbol, null, preUnary, postUnary);
-		private static OperatorToken DefOperator(string symbol, UnaryOperator preUnary, BinaryOperator binop) =>
-			new(symbol, binop, preUnary, null);
-		private static OperatorToken DefOperator(string symbol, BinaryOperator binop) =>
-			new(symbol, binop, null, null);
+		private static OperatorToken DefOperator(string symbol, UnaryOperator unop) => new(symbol, null, unop, null);
+		private static OperatorToken DefOperator(string symbol, UnaryOperator preUnary, UnaryOperator postUnary) => new(symbol, null, preUnary, postUnary);
+		private static OperatorToken DefOperator(string symbol, UnaryOperator preUnary, BinaryOperator binop) => new(symbol, binop, preUnary, null);
+		private static OperatorToken DefOperator(string symbol, BinaryOperator binop) => new(symbol, binop, null, null);
 
 		public static readonly DelimeterToken
 			LeftParen = new("("),

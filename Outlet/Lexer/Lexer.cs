@@ -20,8 +20,7 @@ namespace Outlet.Lexer
         }
 
 
-        public LinkedList<Lexeme> Scan(byte[] charStream, StandardError errorHandler) =>
-            new LinkedList<Lexeme>(Lex(new List<char>(charStream.Select(b => (char)b))));
+        public LinkedList<Lexeme> Scan(byte[] charStream, StandardError errorHandler) => new(Lex(new List<char>(charStream.Select(b => (char)b))));
 
         protected IEnumerable<Lexeme> Lex(List<char> tokens)
         {
@@ -69,25 +68,23 @@ namespace Outlet.Lexer
         static Token IntTokenizer(string text) => new IntLiteral(int.Parse(text));
         static Token HexTokenizer(string text) => new IntLiteral(int.Parse(text, System.Globalization.NumberStyles.HexNumber));
         static Token FloatTokenizer(string text) => new FloatLiteral(float.Parse(text));
-
+        static Token StringTokenizer(string text) => new StringLiteral(text);
+        static Token OpTokenizer(string text) => Symbol.Get(text);
         static Token SymbolTokenizer(string text) {
             if (text == "true") return new BoolLiteral(bool.Parse(text));
             if (text == "false") return new BoolLiteral(bool.Parse(text));
             if (text == "null") return new NullLiteral();
             return Symbol.ContainsKey(text) ? Symbol.Get(text) : new Identifier(text);
         }
-        static Token StringTokenizer(string text) => new StringLiteral(text);
-        static Token OpTokenizer(string text) => Symbol.Get(text);
+
+        static OneOrMoreRule NumberSequence(CharGroup validNumbers, Tokenizer tokenizer) =>
+            new OneOrMoreRule(new OrRule(KeepChar(validNumbers, tokenizer), DiscardChar(Underscore, tokenizer)));
 
         static LexingRule Operator(params CharGroup[] chars) =>
             new SequenceRule(chars.Select(charGroup => new SequenceStep(new CharacterRule(charGroup, keep: true, tokenizer: OpTokenizer))).ToArray());
 
-
         static CharacterRule KeepChar(CharGroup chars, Tokenizer tokenizer) => new(chars, keep: true, tokenizer: tokenizer);
         static CharacterRule DiscardChar(CharGroup chars, Tokenizer tokenizer) => new(chars, keep: false, tokenizer: tokenizer);
-
-        static OneOrMoreRule NumberSequence(CharGroup validNumbers, Tokenizer tokenizer) =>
-            new OneOrMoreRule(new OrRule(KeepChar(validNumbers, tokenizer), DiscardChar(Underscore, tokenizer)));
 
         public static OutletLexer CreateOutletLexer()
         {
