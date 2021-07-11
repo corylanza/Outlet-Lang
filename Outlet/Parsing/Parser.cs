@@ -54,14 +54,14 @@ namespace Outlet.Parsing {
 			else throw SyntaxError(expected, found);
 		}
 
-		private Lexeme ConsumeTypeGetLexeme<T>(string expected) where T : Token
+		private (Lexeme lexeme, T token) ConsumeTypeGetLexeme<T>(string expected) where T : Token
 		{
 			Lexeme? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
-			if (found is not null && found.InnerToken is T) return found;
+			if (found is not null && found.InnerToken is T token) return (found, token);
 			throw SyntaxError(expected, found);
 		}
 
-		private T ConsumeType<T>(string expected) where T : Token 
+		private T ConsumeType<T>(string expected) where T : Token
 		{
 			Lexeme? found = Tokens.Count > 0 ? Tokens.Dequeue() : null;
 			if (found is not null && found.InnerToken is T t) return t; 
@@ -81,12 +81,12 @@ namespace Outlet.Parsing {
 
 
 		private static bool IsBinary(Token last) => 
-			last is TokenLiteral || last is Identifier || last == DelimeterToken.RightParen || last == DelimeterToken.RightBrace;
+			last is TokenLiteral || last is Identifier || last == Symbol.RightParen || last == Symbol.RightBrace;
 		private static bool IsPreUnary(Token? last) => 
-			last is null || last is OperatorToken || last == DelimeterToken.LeftParen || last == DelimeterToken.LeftBrace || last == DelimeterToken.Comma;
+			last is null || last is OperatorToken || last == Symbol.LeftParen || last == Symbol.LeftBrace || last == Symbol.Comma;
 		private static bool IsPostUnary(Token? next) =>
-			next is null || next is OperatorToken || next == DelimeterToken.RightParen ||
-			next == DelimeterToken.Comma || next == DelimeterToken.RightBrace || next == DelimeterToken.SemiC;
+			next is null || next is OperatorToken || next == Symbol.RightParen ||
+			next == Symbol.Comma || next == Symbol.RightBrace || next == Symbol.SemiC;
 
 		public IASTNode Parse() {
 			var block = ParseBlock(isProgram: true);

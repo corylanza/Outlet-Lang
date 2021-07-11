@@ -48,7 +48,7 @@ namespace Outlet.Compiling
         public IEnumerable<Instruction> Visit(VariableDeclaration v)
         {
             // TODO handle no initializer case
-            return Seq(Gen(v.Initializer), Gen(v.Decl));
+            if(v.Initializer is not null) return Seq(Gen(v.Initializer), Gen(v.Decl));
             throw new NotImplementedException();
         }
 

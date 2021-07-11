@@ -3,6 +3,7 @@ using Outlet.Lexer;
 using Outlet.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Outlet.Tests
 {
     public class LexerTests
     {
-        private ILexer Lexer { get; set; }
+        [NotNull]
+        private ILexer? Lexer { get; set; }
 
         [SetUp]
         public void SetUp()
@@ -27,7 +29,7 @@ namespace Outlet.Tests
                 Assert.Fail(e.Message);
             }
 
-            foreach(var (key, token) in Token.AllTokens)
+            foreach(var (key, token) in Symbol.GetAllTokens)
             {
                 var byteArray = key.Select(c => (byte)c).ToArray();
                 var output = Lexer.Scan(byteArray, ErrHandler);
@@ -43,10 +45,10 @@ namespace Outlet.Tests
         [Test]
         public void TestNumbers()
         {
-            void ErrHandler(Exception e)
-            {
-                Assert.Fail(e.Message);
-            }
+            //void ErrHandler(Exception e)
+            //{
+            //    Assert.Fail(e.Message);
+            //}
 
             
         }
@@ -54,10 +56,10 @@ namespace Outlet.Tests
         [Test]
         public void TestStrings()
         {
-            void ErrHandler(Exception e)
-            {
-                Assert.Fail(e.Message);
-            }
+            //void ErrHandler(Exception e)
+            //{
+            //    Assert.Fail(e.Message);
+            //}
 
 
         }

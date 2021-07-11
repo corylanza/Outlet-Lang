@@ -112,16 +112,16 @@ namespace Outlet.Lexing {
         public delegate Token? Tokenizer(string text);
 
         private static Token TokenizeID(string text) {
-			if(text == "true") return new BoolLiteral(text);
-			if(text == "false") return new BoolLiteral(text);
+			if(text == "true") return new BoolLiteral(bool.Parse(text));
+			if(text == "false") return new BoolLiteral(bool.Parse(text));
 			if(text == "null") return new NullLiteral();
-            if(Token.ContainsKey(text)) return Token.Get(text);
+            if(Symbol.ContainsKey(text)) return Symbol.Get(text);
             else return new Identifier(text);
         }
-        private static Token TokenizeOp(string text) => Token.Get(text);
+        private static Token TokenizeOp(string text) => Symbol.Get(text);
         private static Token TokenizeString(string text) => new StringLiteral(text);
-        private static Token TokenizeInt(string text) => new IntLiteral(text);
-        private static Token TokenizeFloat(string text) => new FloatLiteral(text);
+        private static Token TokenizeInt(string text) => new IntLiteral(int.Parse(text));
+        private static Token TokenizeFloat(string text) => new FloatLiteral(float.Parse(text));
         private static Token? NoToken(string text) => null;
     }
 }

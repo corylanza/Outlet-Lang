@@ -46,7 +46,7 @@ namespace Outlet.Lexing {
 								if(lexemes.Last() is Lexeme l1 && l1.InnerToken is IntLiteral i1) {
 									// if there was an int . int then create a float token instead use the first ints position as the new floats position
 									lexemes.RemoveLast();
-									lexemes.AddLast(new Lexeme(new FloatLiteral(i1.Value + "." + i2.Value), l1.Line, l1.Character));
+									lexemes.AddLast(new Lexeme(new FloatLiteral(float.Parse(i1.Value + "." + i2.Value)), l1.Line, l1.Character));
 								} else {
 									// if we don't find an int . int pattern then we must readd the . and add an int lexeme
 									lexemes.AddLast(dotLexeme);

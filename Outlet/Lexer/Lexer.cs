@@ -58,18 +58,18 @@ namespace Outlet.Lexer
         public static OutletLexer CreateOutletLexer()
         {
             Tokenizer DiscardTokenizer = s => null;
-            Tokenizer IntTokenizer = s => new IntLiteral(s);
-            Tokenizer HexTokenizer = s => new IntLiteral(int.Parse(s, System.Globalization.NumberStyles.HexNumber).ToString());
-            Tokenizer FloatTokenizer = s => new FloatLiteral(s);
+            Tokenizer IntTokenizer = s => new IntLiteral(int.Parse(s));
+            Tokenizer HexTokenizer = s => new IntLiteral(int.Parse(s, System.Globalization.NumberStyles.HexNumber));
+            Tokenizer FloatTokenizer = s => new FloatLiteral(float.Parse(s));
             Token SymbolTokenizer(string text)
             {
-                if (text == "true") return new BoolLiteral(text);
-                if (text == "false") return new BoolLiteral(text);
+                if (text == "true") return new BoolLiteral(bool.Parse(text));
+                if (text == "false") return new BoolLiteral(bool.Parse(text));
                 if (text == "null") return new NullLiteral();
-                return Token.ContainsKey(text) ? Token.Get(text) : new Identifier(text);
+                return Symbol.ContainsKey(text) ? Symbol.Get(text) : new Identifier(text);
             }
             Tokenizer StringTokenizer = s => new StringLiteral(s);
-            Tokenizer OpTokenizer = s => Token.Get(s);
+            Tokenizer OpTokenizer = s => Symbol.Get(s);
 
             LexingRule Operator(params CharGroup[] chars) => new SequenceRule(chars.Select(charGroup => new CharacterRule(charGroup, keep: true, tokenizer: OpTokenizer)).ToArray());
 

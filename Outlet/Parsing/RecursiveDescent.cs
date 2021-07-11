@@ -68,15 +68,11 @@ namespace Outlet.Parsing {
 				return new OperatorOverloadDeclaration(decl, op, parameters, typeParams, body);
             }
 			ClassDeclaration ClassDef() {
-                List<Declaration> instance = new List<Declaration>();
-				List<Declaration> statics = new List<Declaration>();
-				List<ConstructorDeclaration> constructors = new List<ConstructorDeclaration>();
-				Variable? superclass = null;
-                Lexeme nameLexeme = ConsumeTypeGetLexeme<Identifier>(expected: "class identifier");
-				Identifier name = nameLexeme.InnerToken as Identifier;
+				(List<Declaration> instance, List<Declaration> statics, List<ConstructorDeclaration> constructors, Variable? superclass) = (new(), new(), new(), null);
+                (Lexeme nameLexeme, Identifier name) = ConsumeTypeGetLexeme<Identifier>(expected: "class identifier");
 				var genericParameters = ParseGenericParameters();
                 if (Match(Keyword.Extends)) {
-					 superclass = new Variable(ConsumeType<Identifier>(expected: "name of super class after extends keyword").Name);
+					superclass = new Variable(ConsumeType<Identifier>(expected: "name of super class after extends keyword").Name);
 				}
 				if(Match(DelimeterToken.LeftCurly)) {
 					while(true) {
@@ -102,7 +98,7 @@ namespace Outlet.Parsing {
 			}
 			if(Match(Keyword.Class)) return ClassDef();
 			Statement next = NextStatement();
-			if(next is Declarator d) {
+			if(next is Declarator d && d.Type is not null) {
 				if(d.IsOperatorOverload)
                 {
 					var op = ConsumeType<OperatorToken>(expected: "operator following overload");

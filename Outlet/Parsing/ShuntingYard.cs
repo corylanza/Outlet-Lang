@@ -26,13 +26,13 @@ namespace Outlet.Parsing {
 			Lexeme? last = null;
 			bool ValidToken() =>
                 PeekMatchType(out Token? i) &&
-				((i is DelimeterToken d && (d != DelimeterToken.LeftCurly && d != DelimeterToken.RightCurly && d != DelimeterToken.SemiC)) ||
+				((i is DelimeterToken d && (d != Symbol.LeftCurly && d != Symbol.RightCurly && d != Symbol.SemiC)) ||
 				i is TokenLiteral || i is OperatorToken || i is Identifier);
 
 			bool ExpectingOperator(Lexeme toputback) { if(!expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool ExpectingOperand(Lexeme toputback) { if(expectOperand) { Tokens.AddFirst(toputback); done = true; return true; } else return false; }
 			bool lesserPrecedence(Operator op) => stack.Count > 0 && stack.Peek() is Operator onstack && (onstack.Precedence < op.Precedence || onstack.Precedence == op.Precedence && onstack.Association == Side.Left);
-			SyntaxException SyntaxError(string message) => this.SyntaxError(message, first);
+			//SyntaxException SyntaxError(string message) => this.SyntaxError(message, first);
 			
 			#endregion
 
@@ -42,7 +42,7 @@ namespace Outlet.Parsing {
 				switch (cur.InnerToken) {
 					case Identifier id:
 						if(!expectOperand && output.Count > 0 && stack.Count > 0 && stack.Peek() == Delimeter.LeftParen
-							&& (Tokens.First().InnerToken == DelimeterToken.Comma || Tokens.First().InnerToken == DelimeterToken.RightParen))
+							&& (Tokens.First().InnerToken == Symbol.Comma || Tokens.First().InnerToken == Symbol.RightParen))
                         {
 							// for cases with declarators in expressions such as
 							// tuple assignment: (int a, int b) = (3, 5) 

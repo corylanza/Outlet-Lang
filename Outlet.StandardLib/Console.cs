@@ -12,7 +12,7 @@ namespace Outlet.StandardLib
         public static bool LexingMode { get; set; }
 
         [ForeignFunction(Name = "print")]
-        public static void PrintThis(SystemInterface sys, object text) => sys.StdOut(text.ToString());
+        public static void PrintThis(SystemInterface sys, object text) => sys.StdOut(text?.ToString() ?? "");
 
         [ForeignFunction(Name = "read")]
         public static string ReadThis(SystemInterface sys) => sys.StdIn();
