@@ -27,27 +27,37 @@ namespace Outlet.Lexer
         {
             int linePos = 1;
             int charPos = 0;
+            var output = new List<Lexeme>();
 
             while (tokens.Any())
             {
-                if (Rule.TestRule(tokens, new LexState(0, "", null, null), out LexState result))
+                try
                 {
-                    charPos += result.Length;
-                    linePos += tokens.Take(result.Length).Count(c => NewLine.Contains(c));
-                    tokens.RemoveRange(0, result.Length);
+                    if (Rule.TestRule(tokens, new LexState(0, "", null), out LexState result))
+                    {
+                        charPos += result.Length;
+                        linePos += tokens.Take(result.Length).Count(c => NewLine.Contains(c));
+                        tokens.RemoveRange(0, result.Length);
 
-                    if(result.Tokenizer is Tokenizer tokenizer && tokenizer(result.CharBuffer) is Token token)
-                    {
-                        yield return new Lexeme(token, linePos, charPos);
-                    } else
-                    {
-                        // Whitespace / comments
+                        if (result.Tokenizer is Tokenizer tokenizer && tokenizer(result.CharBuffer) is Token token)
+                        {
+                            output.Add(new Lexeme(token, linePos, charPos));
+                        }
+                        else
+                        {
+                            // Whitespace / comments
+                        }
                     }
-                } else
+                    else
+                    {
+                        throw new SyntaxException($"unexpected {string.Concat(tokens)}", linePos, new Range(charPos, charPos + result.Length));
+                    }
+                } catch (LexerException e)
                 {
-                    throw new SyntaxException(result.ErrorMessage ?? $"unexpected {string.Concat(tokens)}", linePos, new Range(charPos, charPos + result.Length));
+                    throw new SyntaxException(e.Message, linePos, new Range(charPos, charPos));
                 }
             }
+            return output;
         }
     }
 
@@ -55,82 +65,82 @@ namespace Outlet.Lexer
     {
         private OutletLexer(LexingRule rule) : base(rule) { }
 
+        static Token? DiscardTokenizer(string text) => null;
+        static Token IntTokenizer(string text) => new IntLiteral(int.Parse(text));
+        static Token HexTokenizer(string text) => new IntLiteral(int.Parse(text, System.Globalization.NumberStyles.HexNumber));
+        static Token FloatTokenizer(string text) => new FloatLiteral(float.Parse(text));
+
+        static Token SymbolTokenizer(string text) {
+            if (text == "true") return new BoolLiteral(bool.Parse(text));
+            if (text == "false") return new BoolLiteral(bool.Parse(text));
+            if (text == "null") return new NullLiteral();
+            return Symbol.ContainsKey(text) ? Symbol.Get(text) : new Identifier(text);
+        }
+        static Token StringTokenizer(string text) => new StringLiteral(text);
+        static Token OpTokenizer(string text) => Symbol.Get(text);
+
+        static LexingRule Operator(params CharGroup[] chars) =>
+            new SequenceRule(chars.Select(charGroup => new SequenceStep(new CharacterRule(charGroup, keep: true, tokenizer: OpTokenizer))).ToArray());
+
+
+        static CharacterRule KeepChar(CharGroup chars, Tokenizer tokenizer) => new(chars, keep: true, tokenizer: tokenizer);
+        static CharacterRule DiscardChar(CharGroup chars, Tokenizer tokenizer) => new(chars, keep: false, tokenizer: tokenizer);
+
+        static OneOrMoreRule NumberSequence(CharGroup validNumbers, Tokenizer tokenizer) =>
+            new OneOrMoreRule(new OrRule(KeepChar(validNumbers, tokenizer), DiscardChar(Underscore, tokenizer)));
+
         public static OutletLexer CreateOutletLexer()
         {
-            Tokenizer DiscardTokenizer = s => null;
-            Tokenizer IntTokenizer = s => new IntLiteral(int.Parse(s));
-            Tokenizer HexTokenizer = s => new IntLiteral(int.Parse(s, System.Globalization.NumberStyles.HexNumber));
-            Tokenizer FloatTokenizer = s => new FloatLiteral(float.Parse(s));
-            Token SymbolTokenizer(string text)
-            {
-                if (text == "true") return new BoolLiteral(bool.Parse(text));
-                if (text == "false") return new BoolLiteral(bool.Parse(text));
-                if (text == "null") return new NullLiteral();
-                return Symbol.ContainsKey(text) ? Symbol.Get(text) : new Identifier(text);
-            }
-            Tokenizer StringTokenizer = s => new StringLiteral(s);
-            Tokenizer OpTokenizer = s => Symbol.Get(s);
-
-            LexingRule Operator(params CharGroup[] chars) => new SequenceRule(chars.Select(charGroup => new CharacterRule(charGroup, keep: true, tokenizer: OpTokenizer)).ToArray());
-
             return new OutletLexer
             (
                 new OrRule
                 (
                     // Whitespace
-                    new OneOrMoreRule
-                    (
-                        new CharacterRule(WhiteSpace, keep: false, tokenizer: DiscardTokenizer)
-                    ),
+                    new OneOrMoreRule(KeepChar(WhiteSpace, DiscardTokenizer)),
                     // Identifiers and Keywords
-                    new OneOrMoreRule
-                    (
-                        new CharacterRule(Letter, keep: true, tokenizer: SymbolTokenizer)
-                    ),
+                    new OneOrMoreRule(KeepChar(Letter, SymbolTokenizer)),
                     // Ints and Floats
                     new SequenceRule
                     (
-                        new OneOrMoreRule
+                        new SequenceStep(NumberSequence(Number, IntTokenizer)),
+                        new SequenceStep
                         (
-                            new OrRule
-                            (
-                                new CharacterRule(Number, keep: true, tokenizer: IntTokenizer),
-                                new CharacterRule(Underscore, keep: false, tokenizer: IntTokenizer)
-                            )
+                            new CharacterRule(Dot, keep: true),
+                            errorMessage: "expected number following ."
                         ),
-                        new CharacterRule(Dot, keep: true, errorMessage: "expected a number following decimal point"),
-                        new OneOrMoreRule
-                        (
-                            new OrRule
-                            (
-                                new CharacterRule(Number, keep: true, tokenizer: FloatTokenizer),
-                                new CharacterRule(Underscore, keep: false, tokenizer: FloatTokenizer)
-                            )
-                        )
+                        new SequenceStep(NumberSequence(Number, FloatTokenizer))
                     ),
                     // Hexadecimal
                     new SequenceRule
                     (
-                        new CharacterRule(Zero, keep: false, tokenizer: IntTokenizer),
-                        new CharacterRule(X, keep: false, errorMessage: "expected hexadecimal number following 0x"),
-                        new OneOrMoreRule
+                        new SequenceStep(new CharacterRule(Zero, keep: false, tokenizer: IntTokenizer)),
+                        new SequenceStep
                         (
-                            new OrRule
-                            (
-                                new CharacterRule(Underscore, keep: false, tokenizer: HexTokenizer),
-                                new CharacterRule(Hex, keep: true, tokenizer: HexTokenizer)
-                            )
-                        )
+                            new CharacterRule(X, keep: false),
+                            errorMessage: "expected hexadecimal number following 0x"
+                        ),
+                        new SequenceStep(NumberSequence(Hex, HexTokenizer))
                     ),
                     // Strings
                     new SequenceRule
                     (
-                        new CharacterRule(DoubleQuote, keep: false, errorMessage: "hanging quotes"),
-                        new ZeroOrMoreRule
+                        new SequenceStep
                         (
-                            new CharacterRule(Not(DoubleQuote), keep: true, errorMessage: "expected quotes to close string")
+                            new CharacterRule(DoubleQuote, keep: false),
+                            errorMessage: "hanging quotes"
                         ),
-                        new CharacterRule(DoubleQuote, keep: false, tokenizer: StringTokenizer)
+                        new SequenceStep
+                        (
+                            new ZeroOrMoreRule
+                            (
+                                new CharacterRule(Not(DoubleQuote), keep: true)
+                            ),
+                            errorMessage: "expected quotes to close string"
+                        ),
+                        new SequenceStep
+                        (
+                            new CharacterRule(DoubleQuote, keep: false, tokenizer: StringTokenizer)
+                        )
                     ),
                     // Operators
                     Operator(Delimeter),
@@ -160,7 +170,7 @@ namespace Outlet.Lexer
         }
     }
 
-    public record LexState(int Length, string CharBuffer, Tokenizer? Tokenizer, string? ErrorMessage);
+    public record LexState(int Length, string CharBuffer, Tokenizer? Tokenizer);
 
     public abstract class LexingRule
     {
@@ -171,16 +181,12 @@ namespace Outlet.Lexer
     {
         private CharGroup Characters { get; init; }
         private bool KeepCharacter { get; init; }
-
-        private string? ErrorMessage { get; init; }
         private Tokenizer? Tokenizer { get; init; }
 
-
-        public CharacterRule(CharGroup chars, bool keep, string errorMessage)
+        public CharacterRule(CharGroup chars, bool keep)
         {
             Characters = chars;
             KeepCharacter = keep;
-            ErrorMessage = errorMessage;
         }
 
         public CharacterRule(CharGroup chars, bool keep, Tokenizer tokenizer)
@@ -202,16 +208,12 @@ namespace Outlet.Lexer
                 {
                     Length = newLength,
                     CharBuffer = newBuffer,
-                    ErrorMessage = ErrorMessage,
                     Tokenizer = Tokenizer
                 };
                 return true;
             } else
             {
-                result = starting with
-                {
-                    ErrorMessage = ErrorMessage
-                };
+                result = starting;
                 return false;
             }
         }
@@ -287,11 +289,25 @@ namespace Outlet.Lexer
         }
     }
 
+    public class SequenceStep
+    {
+        public string? ErrorMessage { get; set; }
+
+        public LexingRule Rule { get; init; }
+
+
+        public SequenceStep(LexingRule rule, string? errorMessage = null)
+        {
+            Rule = rule;
+            ErrorMessage = errorMessage;
+        }
+    }
+
     public class SequenceRule : LexingRule
     {
-        private List<LexingRule> Steps { get; init; }
+        private List<SequenceStep> Steps { get; init; }
 
-        public SequenceRule(params LexingRule[] steps)
+        public SequenceRule(params SequenceStep[] steps)
         {
             Steps = steps.ToList();
         }
@@ -299,22 +315,27 @@ namespace Outlet.Lexer
         public override bool TestRule(IReadOnlyList<char> tokens, LexState starting, out LexState result)
         {
             LexState current = starting;
+            string? lastErrorMessage = null;
 
             foreach(var step in Steps)
             {
-                bool passedStep = step.TestRule(tokens, current, out LexState stepResult);
+                bool passedStep = step.Rule.TestRule(tokens, current, out LexState stepResult);
 
                 if (!passedStep)
                 {
-                    if(string.IsNullOrEmpty(current.ErrorMessage))
+                    if (string.IsNullOrEmpty(lastErrorMessage))
                     {
                         current = stepResult;
+                        break;
+                    } else
+                    {
+                        throw new LexerException(lastErrorMessage);
                     }
-                    break;
                 }
                 else
                 {
                     current = stepResult;
+                    lastErrorMessage = step.ErrorMessage;
                 }
             }
 
