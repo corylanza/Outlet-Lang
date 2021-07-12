@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Outlet.ForeignFunctions\Outlet.ForeignFunctions.csproj" />
-    <ProjectReference Include="..\Outlet.StandardLib\Outlet.StandardLib.csproj" />
   </ItemGroup>
 
 </Project>

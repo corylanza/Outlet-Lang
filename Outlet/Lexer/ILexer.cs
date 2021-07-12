@@ -1,4 +1,4 @@
-﻿using Outlet.StandardLib;
+﻿using Outlet.ForeignFunctions;
 using Outlet.Tokens;
 using System;
 using System.Collections.Generic;

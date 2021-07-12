@@ -1,6 +1,6 @@
 ﻿using Outlet.AST;
 using Outlet.Checking;
-using Outlet.FFI;
+using Outlet.ForeignFunctions;
 using Outlet.Interpreting.TreeWalk;
 using Outlet.Lexing;
 using Outlet.Operands;
@@ -11,10 +11,10 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Outlet.StandardLib;
 using Outlet.Interpreting.ByteCode;
 using Outlet.Lexer;
 using Outlet.Compiling;
+using Outlet.FFI;
 
 namespace Outlet
 {

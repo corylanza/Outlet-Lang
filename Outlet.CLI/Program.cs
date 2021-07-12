@@ -1,5 +1,6 @@
 ﻿using Outlet;
 using Outlet.StandardLib;
+using Outlet.ForeignFunctions;
 using Outlet.Util;
 using System;
 using System.Collections.Generic;

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Outlet.Util;
 using Outlet.Tokens;
-using Outlet.StandardLib;
+using Outlet.ForeignFunctions;
 using Outlet.Lexer;
 
 namespace Outlet.Lexing {

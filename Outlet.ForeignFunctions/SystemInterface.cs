@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace Outlet.StandardLib
+namespace Outlet.ForeignFunctions
 {
     public delegate string StandardIn();
     public delegate void StandardOut(string output);
@@ -12,7 +13,7 @@ namespace Outlet.StandardLib
     public class SystemInterface
     {
         public StandardIn StdIn { get; private set; }
-        public StandardOut StdOut { get; private set; } 
+        public StandardOut StdOut { get; private set; }
         public StandardError StdErr { get; private set; }
 
         public SystemInterface(StandardIn stdin, StandardOut stdout, StandardError stderr)
