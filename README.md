@@ -1,9 +1,5 @@
 # Outlet-Lang
 The Outlet programming language
-<<<<<<< HEAD
-=======
-## Info
->>>>>>> 3a188e3a869fc5ecb920c842e1ae51a2a2d90ab5
 ## Syntax
 ### Declarations
 Declaring a Variable:
