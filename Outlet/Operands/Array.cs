@@ -29,7 +29,7 @@ namespace Outlet.Operands {
 
 		public override string ToString() {
 			if (Vals.Length == 0) return "[]";
-			string s = "[";
+			string s = $"{RuntimeType}[";
 			foreach (Operand e in Vals) {
 				s += e.ToString() + ", ";
 			}
